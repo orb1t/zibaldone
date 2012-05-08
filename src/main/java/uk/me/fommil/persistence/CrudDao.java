@@ -62,7 +62,7 @@ public abstract class CrudDao<T, K> {
 	 * @return
 	 * @throws ExceptionInInitializerError
 	 */
-	public static final EntityManagerFactory createEntityManagerFactory(String persistenceUnit)
+	public static EntityManagerFactory createEntityManagerFactory(String persistenceUnit)
 			throws ExceptionInInitializerError {
 		try {
 			Preconditions.checkNotNull(persistenceUnit);

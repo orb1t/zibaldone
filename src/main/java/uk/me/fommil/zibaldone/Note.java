@@ -15,7 +15,8 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 
 /**
- *
+ * The atomic element for users: holds a title, rich text and tags.
+ * 
  * @author Samuel Halliday
  */
 @Entity
@@ -27,7 +28,7 @@ public class Note implements Serializable {
         private String title;
 
         @ElementCollection
-        private List<String> tags = Lists.newArrayList();
+        private List<Tag> tags = Lists.newArrayList();
 
         @Lob
         private String contents;
@@ -71,11 +72,11 @@ public class Note implements Serializable {
                 this.title = title;
         }
 
-        public List<String> getTags() {
+        public List<Tag> getTags() {
                 return tags;
         }
 
-        public void setTags(List<String> tags) {
+        public void setTags(List<Tag> tags) {
                 this.tags = tags;
         }
 

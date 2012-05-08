@@ -7,10 +7,8 @@ package uk.me.fommil.utils;
 import com.google.common.io.Closeables;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
@@ -19,25 +17,23 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.Inflater;
-import java.util.zip.InflaterInputStream;
 import javax.annotation.Nullable;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Class with static helper methods to reduce code boilerplate when dealing
  * with I/O. All methods throw {@link NullPointerException} if passed a {@code null}
  * parameter unless otherwise specified.
+ * <p>
+ * NOTE: Before writing anything into this file, check common libraries such as
+ * <a href="http://code.google.com/p/guava-libraries/">Guava</a>
+ * and
+ * <a href="http://hc.apache.org/">HttpComponents</a>
+ * for industry standard solutions.
  * 
  * @author Samuel Halliday
  */
@@ -127,88 +123,6 @@ public final class IOUtils {
 		}
 	}
 
-	/**
-	 * Fetch a web page's contents, permitting server-side compression and will
-	 * use the charset encoding if specified in a "content-type" meta tag in the
-	 * (X)HTML contents, otherwise will use the JRE's default character set.
-	 * <p>
-	 * TODO: use the Content-Type header of HTTP if the charset is present
-	 * (most servers don't set this, but it'd be great if they did... they are
-	 * supposed to).
-	 * TODO: support reading the encoding type for XML docs.
-	 * <p>
-	 * Pretends to be IE6 on Windows XP, Service Pack 2
-	 *
-	 * @param url
-	 *            The web-page to fetch. This method can handle permanent
-	 *            redirects, but not javascript or meta redirects.
-	 * @return The full text of the web page.
-	 * @throws IOException
-	 * @see <a href="http://www.w3.org/International/O-charset">W3C I18n Charset</a>
-	 */
-	public static String getContents(
-			URL url) throws IOException {
-		checkNotNull(url);
-		// Setup a connection
-		URLConnection connection = url.openConnection();
-		// pretend to be IE6 on Windows XP SP2
-		// http://en.wikipedia.org/wiki/User_agent#Internet_Explorer
-		connection.setRequestProperty("User-Agent",
-				"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 2.0.50727)");
-		// allow both GZip and Deflate (ZLib) encodings
-		connection.setRequestProperty("Accept-Encoding", "gzip, deflate");
-		connection.connect();
-		String encoding = connection.getContentEncoding();
-		String type = connection.getContentType();
-		log.finest(url + " encoding = " + encoding + ", type = " + type);
-		if (type != null && !type.contains("text"))
-			throw new IOException(url + " was of type " + type);
-
-		InputStream inStream;
-		// Open a connection
-
-		if ("gzip".equalsIgnoreCase(encoding))
-			inStream = new GZIPInputStream(connection.getInputStream());
-		else if ("deflate".equalsIgnoreCase(encoding))
-			inStream = new InflaterInputStream(connection.getInputStream(),
-					new Inflater(true));
-		else
-			inStream = connection.getInputStream();
-		int length = connection.getContentLength();
-		if (length == -1)
-			length = 50000;
-
-		// read as bytes, we'll try to work out the charset later and convert
-		BufferedInputStream buffered = new BufferedInputStream(inStream);
-		ByteArrayOutputStream bytes = new ByteArrayOutputStream(length);
-		try {
-			byte[] buff = new byte[length];
-			int read = -1;
-			while ((read = buffered.read(buff, 0, length)) != -1) {
-				bytes.write(buff, 0, read);
-			}
-
-		} finally {
-			Closeables.closeQuietly(buffered);
-		}
-
-		// creates a String using the default encoding
-		String contents = bytes.toString();
-		Matcher matcher = xhtmlCharsetPattern.matcher(contents);
-		if (matcher.find()) {
-			String charset = matcher.group(1);
-			try {
-				Charset cs = Charset.forName(charset);
-				// no need to reencode if we already have the right charset
-				if (!cs.name().equals(Charset.defaultCharset().name()))
-					return new String(bytes.toByteArray(), cs.name());
-			} catch (IllegalArgumentException e) {
-				log.warning(charset + " not supported as a charset");
-			}
-
-		}
-		return contents;
-	}
 
 	// finds the charset in an (X)HTML page
 	private static final Pattern xhtmlCharsetPattern = Pattern.compile(

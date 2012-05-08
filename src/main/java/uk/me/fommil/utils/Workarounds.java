@@ -35,7 +35,7 @@ public final class Workarounds {
 		try {
 			file.deleteOnExit();
 		} catch (Exception e1) {
-			log.info(file + " delete denied, retrying - it might be Java bug #6997203.");
+			log.log(Level.INFO, "{0} delete denied, retrying - it might be Java bug #6997203.", file);
 			try {
 				System.gc();
 				Thread.yield();

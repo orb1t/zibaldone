@@ -18,7 +18,6 @@ package uk.me.fommil.utils;
  *
  * @author Samuel Halliday
  * @see <a href="http://en.wikipedia.org/Guru_Meditation">Guru Meditation</a>
- * @see <a href="http://javablog.co.uk/2008/10/18/runtimeexceptions-and-gurus-failing-to-meditate/">Javablog article</a>
  */
 public class GuruMeditationFailure extends RuntimeException {
 
