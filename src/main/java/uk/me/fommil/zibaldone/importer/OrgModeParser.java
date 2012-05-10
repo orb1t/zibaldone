@@ -31,20 +31,20 @@ import uk.me.fommil.zibaldone.Tag;
  */
 public class OrgModeParser {
 
-	private static final Pattern startPattern = Pattern.compile("^\\*+\\s");
+        private static final Pattern startPattern = Pattern.compile("^\\*+\\s");
 
-	private static final Logger log = Logger.getLogger(OrgModeParser.class.getName());
+        private static final Logger log = Logger.getLogger(OrgModeParser.class.getName());
 
-	/**
-	 * @param args
-	 * @throws Exception
-	 */
-	public static void main(String[] args) throws Exception {
+        /**
+         * @param args
+         * @throws Exception
+         */
+        public static void main(String[] args) throws Exception {
 //		EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
 
 
-		OrgModeParser parser = new OrgModeParser(new File("../data/QT2-notes.org"));
-		List<Note> notes = parser.parseAll();
+                OrgModeParser parser = new OrgModeParser(new File("../data/QT2-notes.org"));
+                List<Note> notes = parser.parseAll();
 
 
 //		try {
@@ -62,68 +62,67 @@ public class OrgModeParser {
 //		}
 
 
-	}
+        }
+        private final File file;
 
-	private final File file;
+        public OrgModeParser(File file) {
+                Preconditions.checkNotNull(file);
+                Preconditions.checkArgument(file.isFile(), file);
+                this.file = file;
+        }
 
-	public OrgModeParser(File file) {
-		Preconditions.checkNotNull(file);
-		Preconditions.checkArgument(file.isFile(), file);
-		this.file = file;
-	}
+        /**
+         * @return
+         * @throws IOException
+         */
+        public List<Note> parseAll() throws IOException {
+                BufferedReader reader = Files.newReader(file, Charset.defaultCharset());
+                try {
+                        List<Note> notes = Lists.newArrayList();
+                        StringBuilder rawNote = new StringBuilder();
+                        Map<Integer, Note> hierarchy = Maps.newTreeMap();
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                                if (startPattern.matcher(line).find()) {
+                                        Entry<Integer, Note> note = parseNote(rawNote.toString(), hierarchy);
+                                        if (!note.getValue().getTitle().isEmpty()) {
+                                                notes.add(note.getValue());
+                                                log.info(note.toString());
+                                                hierarchy.put(note.getKey(), note.getValue());
+                                        }
+                                        rawNote = new StringBuilder();
+                                }
+                                rawNote.append(line);
+                                rawNote.append("\n");
+                        }
+                        return notes;
+                } finally {
+                        Closeables.closeQuietly(reader);
+                }
+        }
 
-	/**
-	 * @return
-	 * @throws IOException
-	 */
-	public List<Note> parseAll() throws IOException {
-		BufferedReader reader = Files.newReader(file, Charset.defaultCharset());
-		try {
-			List<Note> notes = Lists.newArrayList();
-			StringBuilder rawNote = new StringBuilder();
-			Map<Integer, Note> hierarchy = Maps.newTreeMap();
-			String line;
-			while ((line = reader.readLine()) != null) {
-				if (startPattern.matcher(line).find()) {
-					Entry<Integer, Note> note = parseNote(rawNote.toString(), hierarchy);
-					if (!note.getValue().getTitle().isEmpty()) {
-						notes.add(note.getValue());
-						log.info(note.toString());
-						hierarchy.put(note.getKey(), note.getValue());
-					}
-					rawNote = new StringBuilder();
-				}
-				rawNote.append(line);
-				rawNote.append("\n");
-			}
-			return notes;
-		} finally {
-			Closeables.closeQuietly(reader);
-		}
-	}
+        // integer key represents the depth of the note
+        private Entry<Integer, Note> parseNote(String rawNote, Map<Integer, Note> hierarchy) throws IOException {
+                BufferedReader reader = new BufferedReader(new StringReader(rawNote));
+                String header = reader.readLine();
 
-	// integer key represents the depth of the note
-	private Entry<Integer, Note> parseNote(String rawNote, Map<Integer, Note> hierarchy) throws IOException {
-		BufferedReader reader = new BufferedReader(new StringReader(rawNote));
-		String header = reader.readLine();
+                Integer depth = header.indexOf(" ");
 
-		Integer depth = header.indexOf(" ");
-
-		List<String> headerParts = Arrays.asList(header.split(":"));
-		String title = headerParts.get(0).replace("*", "").trim();
+                List<String> headerParts = Arrays.asList(header.split(":"));
+                String title = headerParts.get(0).replace("*", "").trim();
                 Iterable<String> strings = Iterables.skip(headerParts, 1);
-		List<Tag> tags = Lists.newArrayList(Tag.asTags(strings));
-		if (hierarchy.containsKey(depth - 1)) {
-			tags.addAll(hierarchy.get(depth - 1).getTags());
+                List<Tag> tags = Lists.newArrayList(Tag.asTags(strings));
+                if (hierarchy.containsKey(depth - 1)) {
+                        tags.addAll(hierarchy.get(depth - 1).getTags());
                 }
 
-		String contents = new String(rawNote.substring(header.length() + 1));
+                String contents = new String(rawNote.substring(header.length() + 1));
 
-		Note note = new Note();
-		note.setTitle(title);
-		note.setTags(tags);
-		note.setContents(contents);
+                Note note = new Note();
+                note.setTitle(title);
+                note.setTags(tags);
+                note.setContents(contents);
 
-		return Maps.immutableEntry(depth, note);
-	}
+                return Maps.immutableEntry(depth, note);
+        }
 }

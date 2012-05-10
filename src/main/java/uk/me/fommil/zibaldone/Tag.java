@@ -7,34 +7,53 @@
 package uk.me.fommil.zibaldone;
 
 import com.google.common.collect.Lists;
+import java.io.Serializable;
 import java.util.List;
+import javax.persistence.Embeddable;
 
 /**
  * Provided as a type safe alternative to {@link String}.
  *
  * @author Samuel Halliday
  */
-public class Tag {
-
-        private final String tag;
+@Embeddable
+public class Tag implements Serializable {
 
         /**
-         * 
+         * serial version 1
+         */
+        public static final long serialVersionUID = 1L;
+
+        private String text;
+
+        /**
+         *
+         */
+        public Tag() {
+        }
+
+        /**
+         *
          * @param strings
          * @return
          */
         public static List<Tag> asTags(Iterable<String> strings) {
                 List<Tag> tags = Lists.newArrayList();
                 for (String string : strings) {
-                        tags.add(new Tag(string));
+                        Tag tag = new Tag();
+                        tag.setText(string);
+                        tags.add(tag);
                 }
                 return tags;
         }
 
-        /**
-         * @param tag
-         */
-        public Tag(String tag) {
-                this.tag = tag;
+        // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
+        public String getText() {
+                return text;
         }
+
+        public void setText(String text) {
+                this.text = text;
+        }
+        // </editor-fold>        
 }
