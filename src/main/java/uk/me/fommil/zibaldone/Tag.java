@@ -6,6 +6,7 @@
  */
 package uk.me.fommil.zibaldone;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import java.io.Serializable;
 import java.util.List;
@@ -41,10 +42,33 @@ public class Tag implements Serializable {
                 List<Tag> tags = Lists.newArrayList();
                 for (String string : strings) {
                         Tag tag = new Tag();
-                        tag.setText(string);
+                        tag.setText(string.trim());
                         tags.add(tag);
                 }
                 return tags;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+                // <editor-fold defaultstate="collapsed" desc="boilerplate identity, instanceof and cast">
+                if (this == obj) {
+                        return true;
+                }
+                if (!(obj instanceof Tag)) {
+                        return false;
+                }
+                final Tag other = (Tag) obj;// </editor-fold>
+                return Objects.equal(text, other.text);
+        }
+
+        @Override
+        public int hashCode() {
+                return Objects.hashCode(text);
+        }
+
+        @Override
+        public String toString() {
+                return text;
         }
 
         // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">

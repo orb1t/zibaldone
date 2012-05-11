@@ -22,7 +22,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
+import javax.persistence.EntityManagerFactory;
+import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Tag;
+import uk.me.fommil.zibaldone.persistence.NoteDao;
 
 /**
  * Parse Emacs <a href="http://orgmode.org/">Org-Mode</a> files.
@@ -35,36 +38,37 @@ public class OrgModeParser {
 
         private static final Logger log = Logger.getLogger(OrgModeParser.class.getName());
 
+        private final File file;
+
         /**
          * @param args
          * @throws Exception
          */
         public static void main(String[] args) throws Exception {
-//		EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
-
+                EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
 
                 OrgModeParser parser = new OrgModeParser(new File("../data/QT2-notes.org"));
                 List<Note> notes = parser.parseAll();
 
 
-//		try {
-//			NoteDao dao = new NoteDao(emf);
-//
-//			long count = dao.count();
-//			System.out.println("counting " + count);
-//
-//			dao.create(notes);
-//
-//			count = dao.count();
-//			System.out.println("counting " + count);
-//		} finally {
-//			emf.close();
-//		}
+                try {
+                        NoteDao dao = new NoteDao(emf);
 
+                        long count = dao.count();
+                        System.out.println("counting " + count);
 
+                        dao.create(notes);
+
+                        count = dao.count();
+                        System.out.println("counting " + count);
+                } finally {
+                        emf.close();
+                }
         }
-        private final File file;
 
+        /**
+         * @param file
+         */
         public OrgModeParser(File file) {
                 Preconditions.checkNotNull(file);
                 Preconditions.checkArgument(file.isFile(), file);

@@ -8,11 +8,8 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import java.io.Serializable;
 import java.util.List;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Lob;
+import java.util.logging.Logger;
+import javax.persistence.*;
 
 /**
  * The atomic element for users: holds a title, rich text and tags.
@@ -21,8 +18,12 @@ import javax.persistence.Lob;
  */
 @Entity
 public class Note implements Serializable {
+        
+        private static final Logger log = Logger.getLogger(Note.class.getName());
 
         private static final long serialVersionUID = 1L;
+
+        private static final int CONTENTS_MAX = 2048;
 
         @Column
         private String title;
@@ -31,9 +32,12 @@ public class Note implements Serializable {
         private List<Tag> tags = Lists.newArrayList();
 
         @Lob
+        @Column(length = CONTENTS_MAX)
+        @Basic(fetch = FetchType.LAZY)
         private String contents;
 
         @Id
+        @GeneratedValue
         private Long id;
 
         @Override
@@ -53,6 +57,14 @@ public class Note implements Serializable {
         @Override
         public String toString() {
                 return Objects.toStringHelper(getClass()).addValue(title).add("tags", tags).toString();
+        }
+
+        public void setContents(String contents) {
+                if (contents.length() > CONTENTS_MAX) {
+                        log.warning("Cutting contents of " + toString());
+                        contents = contents.substring(0, CONTENTS_MAX);
+                }
+                this.contents = contents;
         }
 
         // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
@@ -82,10 +94,6 @@ public class Note implements Serializable {
 
         public String getContents() {
                 return contents;
-        }
-
-        public void setContents(String contents) {
-                this.contents = contents;
         }
         // </editor-fold>
 }
