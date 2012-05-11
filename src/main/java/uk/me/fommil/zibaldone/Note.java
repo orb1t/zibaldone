@@ -18,12 +18,12 @@ import javax.persistence.*;
  */
 @Entity
 public class Note implements Serializable {
-        
+
         private static final Logger log = Logger.getLogger(Note.class.getName());
 
         private static final long serialVersionUID = 1L;
 
-        private static final int CONTENTS_MAX = 2048;
+        private static final int CONTENTS_MAX = 8192;
 
         @Column
         private String title;
@@ -36,9 +36,8 @@ public class Note implements Serializable {
         @Basic(fetch = FetchType.LAZY)
         private String contents;
 
-        @Id
-        @GeneratedValue
-        private Long id;
+        @EmbeddedId
+        private NoteId id;
 
         @Override
         public boolean equals(Object obj) {
@@ -68,11 +67,11 @@ public class Note implements Serializable {
         }
 
         // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
-        public Long getId() {
+        public NoteId getId() {
                 return id;
         }
 
-        public void setId(Long id) {
+        public void setId(NoteId id) {
                 this.id = id;
         }
 

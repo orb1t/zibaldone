@@ -3,6 +3,7 @@
   <persistence-unit name="ZibaldonePU" transaction-type="RESOURCE_LOCAL">
     <provider>org.hibernate.ejb.HibernatePersistence</provider>
     <!-- Zibaldone is a J2SE application - most properties are defined in jpa.properties -->
+    <class>uk.me.fommil.zibaldone.Note</class>
     <properties>
       <property name="hibernate.hbm2ddl.auto" value="create-drop"/>
     </properties>

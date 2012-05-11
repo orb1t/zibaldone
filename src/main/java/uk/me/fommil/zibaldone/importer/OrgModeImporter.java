@@ -24,6 +24,8 @@ import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import javax.persistence.EntityManagerFactory;
 import uk.me.fommil.persistence.CrudDao;
+import uk.me.fommil.zibaldone.Importer;
+import uk.me.fommil.zibaldone.NoteId;
 import uk.me.fommil.zibaldone.Tag;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
 
@@ -32,11 +34,11 @@ import uk.me.fommil.zibaldone.persistence.NoteDao;
  *
  * @author Samuel Halliday
  */
-public class OrgModeParser {
+public class OrgModeImporter implements Importer {
 
         private static final Pattern startPattern = Pattern.compile("^\\*+\\s");
 
-        private static final Logger log = Logger.getLogger(OrgModeParser.class.getName());
+        private static final Logger log = Logger.getLogger(OrgModeImporter.class.getName());
 
         private final File file;
 
@@ -45,17 +47,28 @@ public class OrgModeParser {
          * @throws Exception
          */
         public static void main(String[] args) throws Exception {
+
+                OrgModeImporter parser = new OrgModeImporter(new File("../data/QT2-notes.org"));
+                log.info("Importing from " + parser.getInstanceName());
+                List<Note> notes = parser.getNotes();
+
                 EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
-
-                OrgModeParser parser = new OrgModeParser(new File("../data/QT2-notes.org"));
-                List<Note> notes = parser.parseAll();
-
 
                 try {
                         NoteDao dao = new NoteDao(emf);
 
                         long count = dao.count();
                         System.out.println("counting " + count);
+                        
+                        // "reconcile"
+                        long i = 0;
+                        for (Note note : notes) {
+                                NoteId id = new NoteId();
+                                id.setSource(parser.getInstanceName());
+                                id.setId(i);
+                                note.setId(id);
+                                i++;
+                        }
 
                         dao.create(notes);
 
@@ -69,17 +82,19 @@ public class OrgModeParser {
         /**
          * @param file
          */
-        public OrgModeParser(File file) {
+        public OrgModeImporter(File file) {
                 Preconditions.checkNotNull(file);
                 Preconditions.checkArgument(file.isFile(), file);
                 this.file = file;
         }
 
-        /**
-         * @return
-         * @throws IOException
-         */
-        public List<Note> parseAll() throws IOException {
+        @Override
+        public String getInstanceName() {
+                return "OrgMode:" + file.getPath().hashCode();
+        }
+
+        @Override
+        public List<Note> getNotes() throws IOException {
                 BufferedReader reader = Files.newReader(file, Charset.defaultCharset());
                 try {
                         List<Note> notes = Lists.newArrayList();
@@ -91,7 +106,7 @@ public class OrgModeParser {
                                         Entry<Integer, Note> note = parseNote(rawNote.toString(), hierarchy);
                                         if (!note.getValue().getTitle().isEmpty()) {
                                                 notes.add(note.getValue());
-                                                log.info(note.toString());
+                                                log.fine(note.toString());
                                                 hierarchy.put(note.getKey(), note.getValue());
                                         }
                                         rawNote = new StringBuilder();
