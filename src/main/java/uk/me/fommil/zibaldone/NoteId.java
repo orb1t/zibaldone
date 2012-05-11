@@ -19,52 +19,52 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class NoteId implements Serializable {
 
-        /** serial version 1 */
-        public static final long serialVersionUID = 1L;
+    /** serial version 1 */
+    public static final long serialVersionUID = 1L;
 
-        @Column
-        private String source;
+    @Column
+    private String source;
 
-        @Column
-        private Long id;
+    @Column
+    private Long id;
 
-        @Override
-        public boolean equals(Object obj) {
-                if (!(obj instanceof NoteId) || id == null) {
-                        return false;
-                }
-                final NoteId other = (NoteId) obj;
-                return Objects.equal(id, other.id) && Objects.equal(source, other.source);
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof NoteId) || id == null) {
+            return false;
         }
+        final NoteId other = (NoteId) obj;
+        return Objects.equal(id, other.id) && Objects.equal(source, other.source);
+    }
 
-        @Override
-        public int hashCode() {
-                return Objects.hashCode(id, source);
-        }
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id, source);
+    }
 
-        @Override
-        public String toString() {
-                return "NoteKey{" + "source=" + source + ", id=" + id + '}';
-        }
+    @Override
+    public String toString() {
+        return "NoteKey{" + "source=" + source + ", id=" + id + '}';
+    }
 
-        public NoteId() {
-        }
+    public NoteId() {
+    }
 
-        // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
-        public Long getId() {
-                return id;
-        }
+    // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
+    public Long getId() {
+        return id;
+    }
 
-        public void setId(Long id) {
-                this.id = id;
-        }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-        public String getSource() {
-                return source;
-        }
+    public String getSource() {
+        return source;
+    }
 
-        public void setSource(String source) {
-                this.source = source;
-        }
-        // </editor-fold>
+    public void setSource(String source) {
+        this.source = source;
+    }
+    // </editor-fold>
 }

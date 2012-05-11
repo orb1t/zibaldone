@@ -6,13 +6,128 @@
  */
 package uk.me.fommil.zibaldone;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.StringTokenizer;
+import java.util.logging.Logger;
+import javax.persistence.EntityManagerFactory;
+import org.tartarus.snowball.SnowballProgram;
+import org.tartarus.snowball.ext.EnglishStemmer;
+import uk.me.fommil.persistence.CrudDao;
+import uk.me.fommil.zibaldone.persistence.NoteDao;
+
 /**
  * Identifies when a newly imported {@link Note} is actually an update to an
- * existing one.
- * Closely related to the {@link Importer} and {@link Cluster} classes.
+ * existing one. This class is responsible for persisting {@link Note} instances
+ * and updating the library of {@link Tag} stems.
  * 
  * @author Samuel Halliday
  */
 public class Reconciler {
-        
+
+    private static final Logger log = Logger.getLogger(Reconciler.class.getName());
+
+    private final SnowballProgram stemmer = new EnglishStemmer();
+
+    /**
+     * Convenience method for {@link #reconcile(java.util.Map)}.
+     * 
+     * @param importer
+     * @param notes
+     */
+    public void reconcile(Importer importer, List<Note> notes) {
+        Preconditions.checkNotNull(importer);
+        Preconditions.checkNotNull(notes);
+        Map<Importer, List<Note>> singleton = Collections.singletonMap(importer, notes);
+        reconcile(singleton);
+    }
+
+    /**
+     * Attempts to reconcile all the given {@link Note}s with those currently
+     * persisted.
+     * 
+     * @param all ids of the notes will be ignored
+     */
+    public synchronized void reconcile(Map<Importer, List<Note>> all) {
+        Preconditions.checkNotNull(all);
+
+        EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
+        try {
+            NoteDao dao = new NoteDao(emf);
+            long start = dao.count();
+            for (Entry<Importer, List<Note>> entry : all.entrySet()) {
+                String name = entry.getKey().getInstanceName();
+                log.info("Reconciling: " + name);
+
+                List<Note> notes = entry.getValue();
+
+                if (dao.countForImporter(name) == 0) {
+                    for (int i = 0; i < notes.size(); i++) {
+                        NoteId id = new NoteId();
+                        id.setId((long) i);
+                        id.setSource(name);
+                        notes.get(i).setId(id);
+                    }
+
+                    dao.create(notes);
+                } else {
+                    // TODO: implement reconciliation
+                    throw new UnsupportedOperationException("not implemented yet");
+                }
+            }
+            long end = dao.count();
+            log.info("Persisted " + (end - start) + " Notes");
+
+            List<Tag> tags = dao.getAllTags();
+            log.info(tags.size() + " unique Tags: " + tags);
+            Multimap<Tag, Tag> stems = ArrayListMultimap.create();
+
+            for (Tag tag : tags) {
+                Tag stem = tokeniseAndStem(tag);
+                if (!stems.containsKey(stem)) {
+                    stems.put(stem, tag);
+                } else {
+                    if (!stems.get(stem).contains(tag)) {
+                        stems.put(stem, tag);
+                    }
+                }
+            }
+
+            log.info(stems.size() + " unique Stems: " + stems);
+            // TODO: persist the stems
+            
+        } finally {
+            emf.close();
+        }
+    }
+
+    private Tag tokeniseAndStem(Tag tag) {
+        StringBuilder builder = new StringBuilder();
+        String text = tag.getText();
+        StringTokenizer tokeniser = new StringTokenizer(text);
+        while (tokeniser.hasMoreTokens()) {
+            String token = tokeniser.nextToken();
+            String stemmed = stem(token);
+            builder.append(stemmed);
+            if (tokeniser.hasMoreTokens()) {
+                builder.append(" ");
+            }
+        }
+
+        Tag stem = new Tag();
+        stem.setText(builder.toString());
+
+        return stem;
+    }
+
+    private String stem(String word) {
+        stemmer.setCurrent(word);
+        stemmer.stem();
+        return stemmer.getCurrent();
+    }
 }

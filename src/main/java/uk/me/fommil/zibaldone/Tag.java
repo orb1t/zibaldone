@@ -20,64 +20,64 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class Tag implements Serializable {
 
-        /**
-         * serial version 1
-         */
-        public static final long serialVersionUID = 1L;
+    /**
+     * serial version 1
+     */
+    public static final long serialVersionUID = 1L;
 
-        private String text;
+    private String text;
 
-        /**
-         *
-         */
-        public Tag() {
+    /**
+     *
+     */
+    public Tag() {
+    }
+
+    /**
+     *
+     * @param strings
+     * @return
+     */
+    public static List<Tag> asTags(Iterable<String> strings) {
+        List<Tag> tags = Lists.newArrayList();
+        for (String string : strings) {
+            Tag tag = new Tag();
+            tag.setText(string.trim());
+            tags.add(tag);
         }
+        return tags;
+    }
 
-        /**
-         *
-         * @param strings
-         * @return
-         */
-        public static List<Tag> asTags(Iterable<String> strings) {
-                List<Tag> tags = Lists.newArrayList();
-                for (String string : strings) {
-                        Tag tag = new Tag();
-                        tag.setText(string.trim());
-                        tags.add(tag);
-                }
-                return tags;
+    @Override
+    public boolean equals(Object obj) {
+        // <editor-fold defaultstate="collapsed" desc="boilerplate identity, instanceof and cast">
+        if (this == obj) {
+            return true;
         }
+        if (!(obj instanceof Tag)) {
+            return false;
+        }
+        final Tag other = (Tag) obj;// </editor-fold>
+        return Objects.equal(text, other.text);
+    }
 
-        @Override
-        public boolean equals(Object obj) {
-                // <editor-fold defaultstate="collapsed" desc="boilerplate identity, instanceof and cast">
-                if (this == obj) {
-                        return true;
-                }
-                if (!(obj instanceof Tag)) {
-                        return false;
-                }
-                final Tag other = (Tag) obj;// </editor-fold>
-                return Objects.equal(text, other.text);
-        }
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(text);
+    }
 
-        @Override
-        public int hashCode() {
-                return Objects.hashCode(text);
-        }
+    @Override
+    public String toString() {
+        return text;
+    }
 
-        @Override
-        public String toString() {
-                return text;
-        }
+    // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
+    public String getText() {
+        return text;
+    }
 
-        // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
-        public String getText() {
-                return text;
-        }
-
-        public void setText(String text) {
-                this.text = text;
-        }
-        // </editor-fold>        
+    public void setText(String text) {
+        this.text = text;
+    }
+    // </editor-fold>        
 }

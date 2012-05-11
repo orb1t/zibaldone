@@ -21,18 +21,18 @@ package uk.me.fommil.utils;
  */
 public class GuruMeditationFailure extends RuntimeException {
 
-        /** serial version 1 */
-        public static final long serialVersionUID = 1L;
+    /** serial version 1 */
+    public static final long serialVersionUID = 1L;
 
-        /** */
-        public GuruMeditationFailure() {
-                super();
-        }
+    /** */
+    public GuruMeditationFailure() {
+        super();
+    }
 
-        /**
-         * @param e
-         */
-        public GuruMeditationFailure(Throwable e) {
-                super(e);
-        }
+    /**
+     * @param e
+     */
+    public GuruMeditationFailure(Throwable e) {
+        super(e);
+    }
 }

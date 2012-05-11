@@ -19,80 +19,80 @@ import javax.persistence.*;
 @Entity
 public class Note implements Serializable {
 
-        private static final Logger log = Logger.getLogger(Note.class.getName());
+    private static final Logger log = Logger.getLogger(Note.class.getName());
 
-        private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-        private static final int CONTENTS_MAX = 8192;
+    private static final int CONTENTS_MAX = 8192;
 
-        @Column
-        private String title;
+    @Column
+    private String title;
 
-        @ElementCollection
-        private List<Tag> tags = Lists.newArrayList();
+    @ElementCollection
+    private List<Tag> tags = Lists.newArrayList();
 
-        @Lob
-        @Column(length = CONTENTS_MAX)
-        @Basic(fetch = FetchType.LAZY)
-        private String contents;
+    @Lob
+    @Column(length = CONTENTS_MAX)
+    @Basic(fetch = FetchType.LAZY)
+    private String contents;
 
-        @EmbeddedId
-        private NoteId id;
+    @EmbeddedId
+    private NoteId id;
 
-        @Override
-        public boolean equals(Object obj) {
-                if (!(obj instanceof Note) || id == null) {
-                        return false;
-                }
-                final Note other = (Note) obj;
-                return Objects.equal(id, other.id);
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Note) || id == null) {
+            return false;
         }
+        final Note other = (Note) obj;
+        return Objects.equal(id, other.id);
+    }
 
-        @Override
-        public int hashCode() {
-                return Objects.hashCode(id);
-        }
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 
-        @Override
-        public String toString() {
-                return Objects.toStringHelper(getClass()).addValue(title).add("tags", tags).toString();
-        }
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(getClass()).addValue(title).add("tags", tags).toString();
+    }
 
-        public void setContents(String contents) {
-                if (contents.length() > CONTENTS_MAX) {
-                        log.warning("Cutting contents of " + toString());
-                        contents = contents.substring(0, CONTENTS_MAX);
-                }
-                this.contents = contents;
+    public void setContents(String contents) {
+        if (contents.length() > CONTENTS_MAX) {
+            log.warning("Cutting contents of " + toString());
+            contents = contents.substring(0, CONTENTS_MAX);
         }
+        this.contents = contents;
+    }
 
-        // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
-        public NoteId getId() {
-                return id;
-        }
+    // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
+    public NoteId getId() {
+        return id;
+    }
 
-        public void setId(NoteId id) {
-                this.id = id;
-        }
+    public void setId(NoteId id) {
+        this.id = id;
+    }
 
-        public String getTitle() {
-                return title;
-        }
+    public String getTitle() {
+        return title;
+    }
 
-        public void setTitle(String title) {
-                this.title = title;
-        }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-        public List<Tag> getTags() {
-                return tags;
-        }
+    public List<Tag> getTags() {
+        return tags;
+    }
 
-        public void setTags(List<Tag> tags) {
-                this.tags = tags;
-        }
+    public void setTags(List<Tag> tags) {
+        this.tags = tags;
+    }
 
-        public String getContents() {
-                return contents;
-        }
-        // </editor-fold>
+    public String getContents() {
+        return contents;
+    }
+    // </editor-fold>
 }

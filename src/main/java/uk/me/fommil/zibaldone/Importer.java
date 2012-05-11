@@ -20,21 +20,21 @@ import java.util.List;
  */
 public interface Importer {
 
-        /**
-         * @return a name which identifies the instance name. It should
-         * remain the same across sessions to identify a particular import
-         * channel and not clash with other distinct instances.
-         * The returned string must not be longer than 24 characters.
-         */
-        public String getInstanceName();
+    /**
+     * @return a name which identifies the instance name. It should
+     * remain the same across sessions to identify a particular import
+     * channel and not clash with other distinct instances.
+     * The returned string must not be longer than 24 characters.
+     */
+    public String getInstanceName();
 
-        /**
-         * @return all the {@link Note}s from the input channel.
-         * Implementations should not cache this result as the caller expects
-         * a fresh reload of the underlying resource.
-         * {@code id} values will be ignored.
-         * 
-         * @throws IOException
-         */
-        public List<Note> getNotes() throws IOException;
+    /**
+     * @return all the {@link Note}s from the input channel.
+     * Implementations should not cache this result as the caller expects
+     * a fresh reload of the underlying resource.
+     * {@code id} values will be ignored.
+     * 
+     * @throws IOException
+     */
+    public List<Note> getNotes() throws IOException;
 }

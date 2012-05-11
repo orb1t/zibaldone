@@ -13,5 +13,4 @@ package uk.me.fommil.zibaldone;
  * @author Samuel Halliday
  */
 public interface Relator {
-        
 }
