@@ -7,9 +7,9 @@
 package uk.me.fommil.zibaldone;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.io.Serializable;
-import java.util.List;
+import java.util.Set;
 import javax.persistence.Embeddable;
 
 /**
@@ -38,8 +38,8 @@ public class Tag implements Serializable {
      * @param strings
      * @return
      */
-    public static List<Tag> asTags(Iterable<String> strings) {
-        List<Tag> tags = Lists.newArrayList();
+    public static Set<Tag> asTags(Iterable<String> strings) {
+        Set<Tag> tags = Sets.newHashSet();
         for (String string : strings) {
             Tag tag = new Tag();
             tag.setText(string.trim());

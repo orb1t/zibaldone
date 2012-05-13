@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
+import java.util.Set;
 import uk.me.fommil.zibaldone.*;
 
 /**
@@ -101,7 +102,7 @@ public class OrgModeImporter implements Importer {
         List<String> headerParts = Arrays.asList(header.split(":"));
         String title = headerParts.get(0).replace("*", "").trim();
         Iterable<String> strings = Iterables.skip(headerParts, 1);
-        List<Tag> tags = Lists.newArrayList(Tag.asTags(strings));
+        Set<Tag> tags = Tag.asTags(strings);
         if (hierarchy.containsKey(depth - 1)) {
             tags.addAll(hierarchy.get(depth - 1).getTags());
         }

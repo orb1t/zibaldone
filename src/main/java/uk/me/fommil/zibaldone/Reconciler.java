@@ -83,7 +83,7 @@ public class Reconciler {
             long end = dao.count();
             log.info("Persisted " + (end - start) + " Notes");
 
-            List<Tag> tags = dao.getAllTags();
+            Set<Tag> tags = dao.getAllTags();
             log.info(tags.size() + " unique Tags: " + tags);
             Multimap<Tag, Tag> stems = ArrayListMultimap.create();
 

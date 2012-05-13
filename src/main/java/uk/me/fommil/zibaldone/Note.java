@@ -5,9 +5,10 @@
 package uk.me.fommil.zibaldone;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.persistence.*;
 
@@ -29,7 +30,7 @@ public class Note implements Serializable {
     private String title;
 
     @ElementCollection
-    private List<Tag> tags = Lists.newArrayList();
+    private Set<Tag> tags = Sets.newHashSet();
 
     @Lob
     @Column(length = CONTENTS_MAX)
@@ -83,11 +84,11 @@ public class Note implements Serializable {
         this.title = title;
     }
 
-    public List<Tag> getTags() {
+    public Set<Tag> getTags() {
         return tags;
     }
 
-    public void setTags(List<Tag> tags) {
+    public void setTags(Set<Tag> tags) {
         this.tags = tags;
     }
 
