@@ -7,16 +7,12 @@
 package uk.me.fommil.zibaldone.relator;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.collect.Sets.SetView;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
-import uk.me.fommil.utils.GuruMeditationFailure;
 import uk.me.fommil.zibaldone.Equivalence;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Relator;
@@ -44,35 +40,49 @@ public class TagRelator implements Relator {
      * @param equivalences
      */
     public TagRelator(List<Equivalence> equivalences) {
-
-        // imagine situation where user-defined equivalences extend
-        // each other and automatic ones
-
         Set<Set<Tag>> bags = Sets.newHashSet();
         for (Equivalence e : equivalences) {
             Set<Tag> tags = e.getTags();
-            log.info(tags.toString());
             bags.add(tags);
         }
-
         bags = distinctBags(bags);
-        log.info(bags.toString());
-
-        // TODO: create the resolver map
+        for (Set<Tag> bag : bags) {
+            Tag resolved = Iterables.get(bag, 0);
+            for (Tag tag : bag) {
+                resolve.put(tag, resolved);
+            }
+        }
+//        log.info(resolve.toString());
     }
 
     @Override
     public double relate(Note a, Note b) {
         Preconditions.checkNotNull(a);
         Preconditions.checkNotNull(b);
-        if (a.equals(b)) {
+        Set<Tag> aResolved = resolve(a.getTags());
+        Set<Tag> bResolved = resolve(b.getTags());
+        if (aResolved.equals(bResolved)) {
             return 0;
         }
 
 
+        int overlapTags = Sets.intersection(aResolved, bResolved).size();
+        if (overlapTags == 0) {
+            return Double.POSITIVE_INFINITY;
+        }
 
+        int totalTags = Sets.union(aResolved, bResolved).size();
+        // choices choices... how to scale?
+        double overlap = (double) overlapTags / totalTags;
+        return (1 - overlap);
+    }
 
-        throw new UnsupportedOperationException("Not supported yet.");
+    private Set<Tag> resolve(Set<Tag> tags) {
+        Set<Tag> resolved = Sets.newHashSet();
+        for (Tag tag : tags) {
+            resolved.add(resolve(tag));
+        }
+        return resolved;
     }
 
     private Tag resolve(Tag tag) {
@@ -84,39 +94,19 @@ public class TagRelator implements Relator {
 
     // ensure that there are no overlapping Tags in the bags
     // by merging Tag bags of non-zero intersection
-    // TODO: find a more elegant way to do this
+    // (interesting algorithmically)
     private Set<Set<Tag>> distinctBags(Set<Set<Tag>> bags) {
-        Set<Set<Tag>> reduced = distinctBags1(bags);
-        // imagine N bags "chained" together with one tag in common with the one
-        // in front and the one behind. Every merge will about half the number
-        // of bags.
-        for (int i = 0; i < bags.size() ; i++) {
-            Set<Set<Tag>> reducedMore = distinctBags1(reduced);
-            if (reducedMore.equals(reduced)) {
-                return reducedMore;
-            }
-            reduced = reducedMore;
-        }
-        throw new GuruMeditationFailure();
-    }
-
-    private Set<Set<Tag>> distinctBags1(Set<Set<Tag>> bags) {
-        Set<Set<Tag>> distinct = Sets.newHashSet();
-        for (Set<Tag> bag1 : bags) {
-            boolean merged = false;
-            for (Set<Tag> bag2 : bags) {
-                if (bag1 == bag2) {
-                    continue;
-                }
+        List<Set<Tag>> distinct = Lists.newArrayList(bags);
+        for (ListIterator<Set<Tag>> it1 = distinct.listIterator(); it1.hasNext();) {
+            Set<Tag> bag1 = it1.next();
+            for (ListIterator<Set<Tag>> it2 = distinct.listIterator(it1.nextIndex()); it2.hasNext();) {
+                Set<Tag> bag2 = it2.next();
                 if (!Sets.intersection(bag1, bag2).isEmpty()) {
-                    distinct.add(Sets.union(bag1, bag2));
-                    merged = true;
+                    bag1.addAll(bag2);
+                    it2.remove();
                 }
             }
-            if (!merged) {
-                distinct.add(bag1);
-            }
         }
-        return distinct;
+        return Sets.newHashSet(distinct);
     }
 }

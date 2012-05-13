@@ -7,6 +7,7 @@
 package uk.me.fommil.zibaldone;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.io.Serializable;
 import java.util.Set;
@@ -31,6 +32,15 @@ public class Tag implements Serializable {
      *
      */
     public Tag() {
+    }
+
+    /**
+     *
+     * @param strings
+     * @return
+     */
+    public static Set<Tag> asTags(String ... strings) {
+        return asTags(Lists.newArrayList(strings));
     }
 
     /**

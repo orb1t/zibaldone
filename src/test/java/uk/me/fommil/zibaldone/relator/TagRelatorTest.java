@@ -7,7 +7,6 @@
 package uk.me.fommil.zibaldone.relator;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
 import org.junit.*;
@@ -21,15 +20,15 @@ import uk.me.fommil.zibaldone.Tag;
  * @author Samuel Halliday
  */
 public class TagRelatorTest {
-    
-    private Equivalence equivalence(String ... words) {
+
+    private Equivalence equivalence(String... words) {
         Equivalence e = new Equivalence();
-        Set<Tag> tags = Tag.asTags(Lists.newArrayList(words));
+        Set<Tag> tags = Tag.asTags(words);
         e.setTags(tags);
         e.setContext(Equivalence.Context.USER_DEFINED);
         return e;
     }
-    
+
     /**
      * Test of relate method, of class TagRelator.
      */
@@ -39,9 +38,31 @@ public class TagRelatorTest {
         equivalences.add(equivalence("good", "great", "wonderful"));
         equivalences.add(equivalence("bad", "woeful", "terrible"));
         equivalences.add(equivalence("ugly", "discusting", "rank"));
-        //equivalences.add(equivalence("good", "bad", "ugly"));
-        TagRelator instance = new TagRelator(equivalences);
+        equivalences.add(equivalence("good", "bad", "ugly"));
+        equivalences.add(equivalence("smug", "smugness", "smuggy"));
 
-        
+        TagRelator relator = new TagRelator(equivalences);
+
+        {
+            Note a = new Note();
+            a.setTags(Tag.asTags("smug", "silly"));
+            Note b = new Note();
+            b.setTags(Tag.asTags("smug", "silly"));
+            assertEquals(0, relator.relate(a, b), 0);
+        }
+        {
+            Note a = new Note();
+            a.setTags(Tag.asTags("smug", "silly", "ugly"));
+            Note b = new Note();
+            b.setTags(Tag.asTags("smug", "silly"));
+            assertEquals(0.33, relator.relate(a, b), 0.01);
+        }
+        {
+            Note a = new Note();
+            a.setTags(Tag.asTags("smug", "silly", "ugly"));
+            Note b = new Note();
+            b.setTags(Tag.asTags("good"));
+            assertEquals(0.66, relator.relate(a, b), 0.01);
+        }
     }
 }
