@@ -19,7 +19,7 @@ import uk.me.fommil.zibaldone.Tag;
  *
  * @author Samuel Halliday
  */
-public class NoteDao extends CrudDao<Note, Long> {
+public class NoteDao extends CrudDao<Long, Note> {
     
     private static final Logger log = Logger.getLogger(NoteDao.class.getName());
 

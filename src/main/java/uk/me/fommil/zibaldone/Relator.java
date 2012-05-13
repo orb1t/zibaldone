@@ -13,4 +13,14 @@ package uk.me.fommil.zibaldone;
  * @author Samuel Halliday
  */
 public interface Relator {
+
+    /**
+     * Defines a metric between the parameters which is 0 if the objects are
+     * equal.
+     * 
+     * @param a
+     * @param b
+     * @return
+     */
+    public double relate(Note a, Note b);
 }

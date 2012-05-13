@@ -22,6 +22,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
+import javax.transaction.Transaction;
 
 /**
  * Generic CRUD (CREATE, READ, UPDATE, DELETE) DAO (Data Access Object) for {@link Entity} types.
@@ -34,11 +35,11 @@ import javax.persistence.Query;
  * Implementations are reminded that many convenience methods are provided with {@code protected}
  * visibility.
  *
- * @param <T> the class of the type
  * @param <K> the class of the type's primary key
+ * @param <T> the class of the type
  * @author Samuel Halliday
  */
-public abstract class CrudDao<T, K> {
+public abstract class CrudDao<K, T> {
 
     private static final Logger log = Logger.getLogger(CrudDao.class.getName());
 

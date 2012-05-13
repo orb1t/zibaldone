@@ -8,17 +8,17 @@ package uk.me.fommil.zibaldone;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import com.google.common.collect.Sets;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.StringTokenizer;
 import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import org.tartarus.snowball.SnowballProgram;
 import org.tartarus.snowball.ext.EnglishStemmer;
 import uk.me.fommil.persistence.CrudDao;
+import uk.me.fommil.zibaldone.persistence.EquivalenceDao;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
 
 /**
@@ -97,26 +97,37 @@ public class Reconciler {
                     }
                 }
             }
+            log.info(stems.keySet().size() + " unique Stems: " + stems);
 
-            log.info(stems.size() + " unique Stems: " + stems);
-            // TODO: persist the stems
-            
+            // gather all the stemmed words
+            List<Equivalence> equivalences = Lists.newArrayList();
+            for (Tag stem : stems.keySet()) {
+                Set<Tag> originals = Sets.newHashSet(stems.get(stem));
+                Equivalence equivalence = new Equivalence();
+                equivalence.setContext(Equivalence.Context.AUTOMATIC);
+                equivalence.setStem(stem);
+                equivalence.setTags(originals);
+                equivalences.add(equivalence);
+            }
+            EquivalenceDao equivDao = new EquivalenceDao(emf);
+            equivDao.updateAllAutomatics(equivalences);
+            log.info(equivDao.count() + " Equivalences: " + equivalences);
         } finally {
             emf.close();
         }
     }
 
     private Tag tokeniseAndStem(Tag tag) {
+        // multi-token stemming is never going to be brilliant
+        // e.g. consider "every thing" and "everything" - they might not
+        // have the same stem.
         StringBuilder builder = new StringBuilder();
         String text = tag.getText();
         StringTokenizer tokeniser = new StringTokenizer(text);
         while (tokeniser.hasMoreTokens()) {
-            String token = tokeniser.nextToken();
+            String token = tokeniser.nextToken().toLowerCase();
             String stemmed = stem(token);
             builder.append(stemmed);
-            if (tokeniser.hasMoreTokens()) {
-                builder.append(" ");
-            }
         }
 
         Tag stem = new Tag();
