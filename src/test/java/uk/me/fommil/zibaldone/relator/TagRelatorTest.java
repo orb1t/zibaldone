@@ -29,9 +29,6 @@ public class TagRelatorTest {
         return e;
     }
 
-    /**
-     * Test of relate method, of class TagRelator.
-     */
     @Test
     public void testRelate() {
         List<Equivalence> equivalences = Lists.newArrayList();
@@ -42,7 +39,6 @@ public class TagRelatorTest {
         equivalences.add(equivalence("smug", "smugness", "smuggy"));
 
         TagRelator relator = new TagRelator(equivalences);
-
         {
             Note a = new Note();
             a.setTags(Tag.asTags("smug", "silly"));
@@ -63,6 +59,30 @@ public class TagRelatorTest {
             Note b = new Note();
             b.setTags(Tag.asTags("good"));
             assertEquals(0.66, relator.relate(a, b), 0.01);
+        }
+    }
+
+    @Test
+    public void testConstructor() {
+        // corner case
+        List<Equivalence> equivalences = Lists.newArrayList();
+        equivalences.add(equivalence("a", "b"));
+        equivalences.add(equivalence("b", "c"));
+        equivalences.add(equivalence("c", "d"));
+        equivalences.add(equivalence("d", "a"));
+
+        equivalences.add(equivalence("e", "f"));
+        equivalences.add(equivalence("f", "g"));
+        equivalences.add(equivalence("g", "h"));
+        equivalences.add(equivalence("h", "a"));
+
+        TagRelator relator = new TagRelator(equivalences);
+        {
+            Note a = new Note();
+            a.setTags(Tag.asTags("a"));
+            Note b = new Note();
+            b.setTags(Tag.asTags("f"));
+            assertEquals(0, relator.relate(a, b), 0);
         }
     }
 }

@@ -96,17 +96,24 @@ public class TagRelator implements Relator {
     // by merging Tag bags of non-zero intersection
     // (interesting algorithmically)
     private Set<Set<Tag>> distinctBags(Set<Set<Tag>> bags) {
+        // This was originally written with a ListIterator, but it was
+        // not concurrent enough to allow the underlying List be modified
+        // by another ListIterator.
         List<Set<Tag>> distinct = Lists.newArrayList(bags);
-        for (ListIterator<Set<Tag>> it1 = distinct.listIterator(); it1.hasNext();) {
-            Set<Tag> bag1 = it1.next();
-            for (ListIterator<Set<Tag>> it2 = distinct.listIterator(it1.nextIndex()); it2.hasNext();) {
-                Set<Tag> bag2 = it2.next();
+        for (Set<Tag> bag1 : distinct) {
+            for (Set<Tag> bag2 : distinct) {
+                if (bag1 == bag2) {
+                    // is there a cleverer way to do this?
+                    continue;
+                }
                 if (!Sets.intersection(bag1, bag2).isEmpty()) {
                     bag1.addAll(bag2);
-                    it2.remove();
+                    bag2.clear(); // this wouldn't be safe for Set<Set<Tag>>
                 }
             }
         }
-        return Sets.newHashSet(distinct);
+        HashSet<Set<Tag>> nodupes = Sets.newHashSet(distinct);
+        nodupes.remove(Collections.<Tag>emptySet());
+        return nodupes;
     }
 }
