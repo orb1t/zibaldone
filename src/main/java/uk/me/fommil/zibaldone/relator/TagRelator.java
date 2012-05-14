@@ -68,7 +68,7 @@ public class TagRelator implements Relator {
 
         int overlapTags = Sets.intersection(aResolved, bResolved).size();
         if (overlapTags == 0) {
-            return Double.POSITIVE_INFINITY;
+            return 1.0;
         }
 
         int totalTags = Sets.union(aResolved, bResolved).size();

@@ -15,12 +15,14 @@ package uk.me.fommil.zibaldone;
 public interface Relator {
 
     /**
-     * Defines a metric between the parameters which is 0 if the objects are
-     * equal.
+     * Defines a metric (i.e. symmetric, positive, etc) between the parameters
+     * which is {@code 0.0} if the objects are equal. Implementations are free
+     * to decide how the metric is calculated - which need not be deterministic
+     * - but the returned value must be in the domain {@code [0, 1]}.
      * 
      * @param a
      * @param b
-     * @return
+     * @return 
      */
     public double relate(Note a, Note b);
 }
