@@ -9,10 +9,15 @@ package uk.me.fommil.zibaldone.relator;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import static com.google.common.collect.Lists.newArrayList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import static com.google.common.collect.Sets.intersection;
+import static com.google.common.collect.Sets.newHashSet;
 import java.util.*;
 import java.util.logging.Logger;
+import uk.me.fommil.utils.Convenience;
+import static uk.me.fommil.utils.Convenience.excluding;
 import uk.me.fommil.zibaldone.Equivalence;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Relator;
@@ -45,7 +50,7 @@ public class TagRelator implements Relator {
             Set<Tag> tags = e.getTags();
             bags.add(tags);
         }
-        bags = distinctBags(bags);
+        bags = distinctSets(bags);
         for (Set<Tag> bag : bags) {
             Tag resolved = Iterables.get(bag, 0);
             for (Tag tag : bag) {
@@ -64,7 +69,6 @@ public class TagRelator implements Relator {
         if (aResolved.equals(bResolved)) {
             return 0;
         }
-
 
         int overlapTags = Sets.intersection(aResolved, bResolved).size();
         if (overlapTags == 0) {
@@ -92,28 +96,22 @@ public class TagRelator implements Relator {
         return tag;
     }
 
-    // ensure that there are no overlapping Tags in the bags
-    // by merging Tag bags of non-zero intersection
-    // (interesting algorithmically)
-    private Set<Set<Tag>> distinctBags(Set<Set<Tag>> bags) {
+    // ensure that there are no overlapping Set<Tag>s
+    // by merging Set<Tag>s of non-zero intersection
+    private Set<Set<Tag>> distinctSets(Set<Set<Tag>> sets) {
         // This was originally written with a ListIterator, but it was
         // not concurrent enough to allow the underlying List be modified
         // by another ListIterator.
-        List<Set<Tag>> distinct = Lists.newArrayList(bags);
-        for (Set<Tag> bag1 : distinct) {
-            for (Set<Tag> bag2 : distinct) {
-                if (bag1 == bag2) {
-                    // is there a cleverer way to do this?
-                    continue;
-                }
-                if (!Sets.intersection(bag1, bag2).isEmpty()) {
-                    bag1.addAll(bag2);
-                    bag2.clear(); // this wouldn't be safe for Set<Set<Tag>>
+        List<Set<Tag>> distinct = newArrayList(sets);
+        for (Set<Tag> set1 : distinct) {
+            for (Set<Tag> set2 : excluding(distinct, set1)) {
+                if (!intersection(set1, set2).isEmpty()) {
+                    // this wouldn't be safe for a Set
+                    set1.addAll(set2);
+                    set2.clear();
                 }
             }
         }
-        HashSet<Set<Tag>> nodupes = Sets.newHashSet(distinct);
-        nodupes.remove(Collections.<Tag>emptySet());
-        return nodupes;
+        return newHashSet(excluding(distinct, Collections.<Tag>emptySet()));
     }
 }
