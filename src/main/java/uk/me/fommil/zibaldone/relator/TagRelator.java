@@ -7,8 +7,10 @@
 package uk.me.fommil.zibaldone.relator;
 
 import com.google.common.base.Preconditions;
+import static com.google.common.base.Predicates.equalTo;
+import static com.google.common.base.Predicates.not;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Lists.newArrayList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -16,8 +18,6 @@ import static com.google.common.collect.Sets.intersection;
 import static com.google.common.collect.Sets.newHashSet;
 import java.util.*;
 import java.util.logging.Logger;
-import uk.me.fommil.utils.Convenience;
-import static uk.me.fommil.utils.Convenience.excluding;
 import uk.me.fommil.zibaldone.Equivalence;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Relator;
@@ -104,7 +104,7 @@ public class TagRelator implements Relator {
         // by another ListIterator.
         List<Set<Tag>> distinct = newArrayList(sets);
         for (Set<Tag> set1 : distinct) {
-            for (Set<Tag> set2 : excluding(distinct, set1)) {
+            for (Set<Tag> set2 : filter(distinct, not(equalTo(set1)))) {
                 if (!intersection(set1, set2).isEmpty()) {
                     // this wouldn't be safe for a Set
                     set1.addAll(set2);
@@ -112,6 +112,6 @@ public class TagRelator implements Relator {
                 }
             }
         }
-        return newHashSet(excluding(distinct, Collections.<Tag>emptySet()));
+        return newHashSet(filter(distinct, not(equalTo(Collections.<Tag>emptySet()))));
     }
 }
