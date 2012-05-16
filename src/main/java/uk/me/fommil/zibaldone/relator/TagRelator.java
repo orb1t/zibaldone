@@ -51,14 +51,12 @@ public class TagRelator implements Relator {
             Set<Tag> tags = e.getTags();
             bags.add(tags);
         }
-        bags = disjointByMerging(bags);
-        for (Set<Tag> bag : bags) {
+        for (Set<Tag> bag : disjointify(bags)) {
             Tag resolved = Iterables.get(bag, 0);
             for (Tag tag : bag) {
                 resolve.put(tag, resolved);
             }
         }
-//        log.info(resolve.toString());
     }
 
     @Override
@@ -99,12 +97,13 @@ public class TagRelator implements Relator {
 
     // ensure that there are no overlapping Set<T>s
     // by merging Set<T>s of non-zero intersection
-    private <T> Set<Set<T>> disjointByMerging(Collection<Set<T>> sets) {
+    // note the underlying sets may be modified
+    private <T> Set<Set<T>> disjointify(Collection<Set<T>> sets) {
         List<Set<T>> disjoint = newArrayList(sets);
         for (Set<T> set1 : disjoint) {
             for (Set<T> set2 : filter(disjoint, not(equalTo(set1)))) {
                 if (!intersection(set1, set2).isEmpty()) {
-                    // this wouldn't be safe for a Set of Sets of T
+                    // this wouldn't be safe for a Set<Set<T>>
                     set1.addAll(set2);
                     set2.clear();
                 }
