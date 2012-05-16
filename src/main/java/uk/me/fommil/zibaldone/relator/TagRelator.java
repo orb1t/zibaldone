@@ -7,6 +7,7 @@
 package uk.me.fommil.zibaldone.relator;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.not;
 import com.google.common.collect.Iterables;
@@ -50,7 +51,7 @@ public class TagRelator implements Relator {
             Set<Tag> tags = e.getTags();
             bags.add(tags);
         }
-        bags = distinctSets(bags);
+        bags = disjointByMerging(bags);
         for (Set<Tag> bag : bags) {
             Tag resolved = Iterables.get(bag, 0);
             for (Tag tag : bag) {
@@ -96,22 +97,30 @@ public class TagRelator implements Relator {
         return tag;
     }
 
-    // ensure that there are no overlapping Set<Tag>s
-    // by merging Set<Tag>s of non-zero intersection
-    private Set<Set<Tag>> distinctSets(Set<Set<Tag>> sets) {
-        // This was originally written with a ListIterator, but it was
-        // not concurrent enough to allow the underlying List be modified
-        // by another ListIterator.
-        List<Set<Tag>> distinct = newArrayList(sets);
-        for (Set<Tag> set1 : distinct) {
-            for (Set<Tag> set2 : filter(distinct, not(equalTo(set1)))) {
+    // ensure that there are no overlapping Set<T>s
+    // by merging Set<T>s of non-zero intersection
+    private <T> Set<Set<T>> disjointByMerging(Collection<Set<T>> sets) {
+        List<Set<T>> disjoint = newArrayList(sets);
+        for (Set<T> set1 : disjoint) {
+            for (Set<T> set2 : filter(disjoint, not(equalTo(set1)))) {
                 if (!intersection(set1, set2).isEmpty()) {
-                    // this wouldn't be safe for a Set
+                    // this wouldn't be safe for a Set of Sets of T
                     set1.addAll(set2);
                     set2.clear();
                 }
             }
         }
-        return newHashSet(filter(distinct, not(equalTo(Collections.<Tag>emptySet()))));
+        return newHashSet(filter(disjoint, NO_EMPTIES));
     }
+    private static Predicate<Set<?>> NO_EMPTIES = new Predicate<Set<?>>() {
+
+        @Override
+        public boolean apply(Set<?> input) {
+            if (input == null || input.isEmpty()) {
+                return false;
+            }
+            return true;
+        }
+    };
+
 }
