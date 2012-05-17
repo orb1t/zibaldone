@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 import org.junit.*;
 import static org.junit.Assert.*;
-import uk.me.fommil.zibaldone.Equivalence;
+import uk.me.fommil.zibaldone.Synonym;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Tag;
 
@@ -21,24 +21,24 @@ import uk.me.fommil.zibaldone.Tag;
  */
 public class TagRelatorTest {
 
-    private Equivalence equivalence(String... words) {
-        Equivalence e = new Equivalence();
+    private Synonym synonym(String... words) {
+        Synonym e = new Synonym();
         Set<Tag> tags = Tag.asTags(words);
         e.setTags(tags);
-        e.setContext(Equivalence.Context.USER_DEFINED);
+        e.setContext(Synonym.Context.USER_DEFINED);
         return e;
     }
 
     @Test
     public void testRelate() {
-        List<Equivalence> equivalences = Lists.newArrayList();
-        equivalences.add(equivalence("good", "great", "wonderful"));
-        equivalences.add(equivalence("bad", "woeful", "terrible"));
-        equivalences.add(equivalence("ugly", "discusting", "rank"));
-        equivalences.add(equivalence("good", "bad", "ugly"));
-        equivalences.add(equivalence("smug", "smugness", "smuggy"));
+        List<Synonym> synonyms = Lists.newArrayList();
+        synonyms.add(synonym("good", "great", "wonderful"));
+        synonyms.add(synonym("bad", "woeful", "terrible"));
+        synonyms.add(synonym("ugly", "discusting", "rank"));
+        synonyms.add(synonym("good", "bad", "ugly"));
+        synonyms.add(synonym("smug", "smugness", "smuggy"));
 
-        TagRelator relator = new TagRelator(equivalences);
+        TagRelator relator = new TagRelator(synonyms);
         {
             Note a = new Note();
             a.setTags(Tag.asTags("smug", "silly"));
@@ -65,18 +65,18 @@ public class TagRelatorTest {
     @Test
     public void testConstructor() {
         // corner case
-        List<Equivalence> equivalences = Lists.newArrayList();
-        equivalences.add(equivalence("a", "b"));
-        equivalences.add(equivalence("b", "c"));
-        equivalences.add(equivalence("c", "d"));
-        equivalences.add(equivalence("d", "a"));
+        List<Synonym> synonyms = Lists.newArrayList();
+        synonyms.add(synonym("a", "b"));
+        synonyms.add(synonym("b", "c"));
+        synonyms.add(synonym("c", "d"));
+        synonyms.add(synonym("d", "a"));
 
-        equivalences.add(equivalence("e", "f"));
-        equivalences.add(equivalence("f", "g"));
-        equivalences.add(equivalence("g", "h"));
-        equivalences.add(equivalence("h", "a"));
+        synonyms.add(synonym("e", "f"));
+        synonyms.add(synonym("f", "g"));
+        synonyms.add(synonym("g", "h"));
+        synonyms.add(synonym("h", "a"));
 
-        TagRelator relator = new TagRelator(equivalences);
+        TagRelator relator = new TagRelator(synonyms);
         {
             Note a = new Note();
             a.setTags(Tag.asTags("a"));

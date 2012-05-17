@@ -9,22 +9,21 @@ package uk.me.fommil.zibaldone;
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 import java.io.Serializable;
-import java.util.List;
 import java.util.Set;
 import javax.persistence.*;
 
 /**
- * Equivalences between {@link Tag}s, i.e. tags that are not byte-for-byte the
+ * Synonyms between {@link Tag}s, i.e. tags that are not byte-for-byte the
  * same but should be treated as the same.
  * <p>
- * Equivalences may be user defined but are also automatically created
+ * Synonyms may be user defined but are also automatically created
  * in the {@link Reconciler}. The user may choose to ignore an automatic
- * equivalence.
+ * synonym.
  * 
  * @author Samuel Halliday
  */
 @Entity
-public class Equivalence implements Serializable {
+public class Synonym implements Serializable {
 
     /** serial version 1 */
     public static final long serialVersionUID = 1L;
@@ -46,7 +45,7 @@ public class Equivalence implements Serializable {
     private Set<Tag> tags = Sets.newHashSet();
 
     /**
-     * Defines the context of {@link Equivalence} instances.
+     * Defines the context of {@link Synonym} instances.
      */
     public static enum Context {
 
@@ -61,10 +60,10 @@ public class Equivalence implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Equivalence) || id == null) {
+        if (!(obj instanceof Synonym) || id == null) {
             return false;
         }
-        final Equivalence other = (Equivalence) obj;
+        final Synonym other = (Synonym) obj;
         return Objects.equal(id, other.id);
     }
 

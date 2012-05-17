@@ -18,7 +18,7 @@ import javax.persistence.EntityManagerFactory;
 import org.tartarus.snowball.SnowballProgram;
 import org.tartarus.snowball.ext.EnglishStemmer;
 import uk.me.fommil.persistence.CrudDao;
-import uk.me.fommil.zibaldone.persistence.EquivalenceDao;
+import uk.me.fommil.zibaldone.persistence.SynonymDao;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
 
 /**
@@ -100,18 +100,18 @@ public class Reconciler {
             log.info(stems.keySet().size() + " unique Stems: " + stems);
 
             // gather all the stemmed words
-            List<Equivalence> equivalences = Lists.newArrayList();
+            List<Synonym> synonyms = Lists.newArrayList();
             for (Tag stem : stems.keySet()) {
                 Set<Tag> originals = Sets.newHashSet(stems.get(stem));
-                Equivalence equivalence = new Equivalence();
-                equivalence.setContext(Equivalence.Context.AUTOMATIC);
-                equivalence.setStem(stem);
-                equivalence.setTags(originals);
-                equivalences.add(equivalence);
+                Synonym synonym = new Synonym();
+                synonym.setContext(Synonym.Context.AUTOMATIC);
+                synonym.setStem(stem);
+                synonym.setTags(originals);
+                synonyms.add(synonym);
             }
-            EquivalenceDao equivDao = new EquivalenceDao(emf);
-            equivDao.updateAllAutomatics(equivalences);
-            log.info(equivDao.count() + " Equivalences: " + equivalences);
+            SynonymDao equivDao = new SynonymDao(emf);
+            equivDao.updateAllAutomatics(synonyms);
+            log.info(equivDao.count() + " Synonyms: " + synonyms);
         } finally {
             emf.close();
         }

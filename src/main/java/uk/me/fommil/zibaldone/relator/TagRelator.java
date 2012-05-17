@@ -19,14 +19,14 @@ import static com.google.common.collect.Sets.intersection;
 import static com.google.common.collect.Sets.newHashSet;
 import java.util.*;
 import java.util.logging.Logger;
-import uk.me.fommil.zibaldone.Equivalence;
+import uk.me.fommil.zibaldone.Synonym;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Relator;
 import uk.me.fommil.zibaldone.Tag;
 
 /**
  * Defines the relation between {@link Note} instances based purely on tags,
- * whilst respecting the {@link Equivalence} rules.
+ * whilst respecting the {@link Synonym} rules.
  * 
  * @author Samuel Halliday
  */
@@ -34,20 +34,20 @@ public class TagRelator implements Relator {
 
     private static final Logger log = Logger.getLogger(TagRelator.class.getName());
 
-    // tags that appear in an Equivalence are resolved to an arbitrary tag
+    // tags that appear in an Synonym are resolved to an arbitrary tag
     private final Map<Tag, Tag> resolve = Maps.newHashMap();
 
     /**
-     * Assumes that the provided {@link Equivalence} instances do not change
+     * Assumes that the provided {@link Synonym} instances do not change
      * after construction and also ignores their type - so every
-     * {@link Equivalence} is treated as valid (even if it is actually an
+     * {@link Synonym} is treated as valid (even if it is actually an
      * ignore instruction).
      * 
-     * @param equivalences
+     * @param synonyms
      */
-    public TagRelator(List<Equivalence> equivalences) {
+    public TagRelator(List<Synonym> synonyms) {
         Set<Set<Tag>> bags = Sets.newHashSet();
-        for (Equivalence e : equivalences) {
+        for (Synonym e : synonyms) {
             Set<Tag> tags = e.getTags();
             bags.add(tags);
         }
@@ -111,7 +111,7 @@ public class TagRelator implements Relator {
         }
         return newHashSet(filter(disjoint, NO_EMPTIES));
     }
-    private static Predicate<Set<?>> NO_EMPTIES = new Predicate<Set<?>>() {
+    private static final Predicate<Set<?>> NO_EMPTIES = new Predicate<Set<?>>() {
 
         @Override
         public boolean apply(Set<?> input) {

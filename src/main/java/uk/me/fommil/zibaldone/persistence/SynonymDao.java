@@ -9,44 +9,44 @@ package uk.me.fommil.zibaldone.persistence;
 import java.util.List;
 import javax.persistence.EntityManagerFactory;
 import uk.me.fommil.persistence.CrudDao;
-import uk.me.fommil.zibaldone.Equivalence;
-import uk.me.fommil.zibaldone.Equivalence.Context;
+import uk.me.fommil.zibaldone.Synonym;
+import uk.me.fommil.zibaldone.Synonym.Context;
 
 /**
- * Data Access Object for {@link Equivalence} instances.
+ * Data Access Object for {@link Synonym} instances.
  * "AUTOMATIC_IGNORED" instances will exist side by side with their automatically
  * discovered instances. Convenience methods are provided to return sensible
  * lists of instances.
  * 
  * @author Samuel Halliday
  */
-public class EquivalenceDao extends CrudDao<Long, Equivalence> {
+public class SynonymDao extends CrudDao<Long, Synonym> {
 
     /**
      * @param emf
      */
-    public EquivalenceDao(EntityManagerFactory emf) {
-        super(Equivalence.class, emf);
+    public SynonymDao(EntityManagerFactory emf) {
+        super(Synonym.class, emf);
     }
 
     /**
      * Resets the database store of automatic instances.
      * 
-     * @param equivalences
+     * @param synonyms
      */
-    public void updateAllAutomatics(List<Equivalence> equivalences) {
+    public void updateAllAutomatics(List<Synonym> synonyms) {
         if (count() > 0) {
             throw new UnsupportedOperationException("not implemented yet");
         }
-        create(equivalences);
-        
+        create(synonyms);
+
 //        EntityManager em = createEntityManager();
 //        Query clear = em.createQuery("DELETE " + getTableName() + " e WHERE e.context = :automatic");
 //        clear.setParameter("automatic", Context.class.getName() + "." + Context.AUTOMATIC.name());
 //        try {
 //            em.getTransaction().begin();
 //            clear.executeUpdate();
-//            for (Equivalence equivalence : equivalences) {
+//            for (Synonym equivalence : equivalences) {
 //                Preconditions.checkArgument(equivalence.getContext() == Context.AUTOMATIC, "context was not AUTOMATIC");
 //                Preconditions.checkArgument(equivalence.getStem() != null, "stem was null");
 //                em.persist(equivalence);
@@ -63,7 +63,7 @@ public class EquivalenceDao extends CrudDao<Long, Equivalence> {
      * will not be returned.
      * @return
      */
-    public List<Equivalence> read(Context context) {
+    public List<Synonym> read(Context context) {
         // TODO: implement method
         throw new UnsupportedOperationException("not implemented yet");
     }
