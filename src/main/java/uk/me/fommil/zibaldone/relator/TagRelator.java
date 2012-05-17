@@ -97,29 +97,81 @@ public class TagRelator implements Relator {
 
     // ensure that there are no overlapping Set<T>s
     // by merging Set<T>s of non-zero intersection
-    // note the underlying sets may be modified
-    private <T> Set<Set<T>> disjointify(Collection<Set<T>> sets) {
-        List<Set<T>> disjoint = newArrayList(sets);
-        for (Set<T> set1 : disjoint) {
-            for (Set<T> set2 : filter(disjoint, not(equalTo(set1)))) {
+    // underlying set is modified
+    private <T> Set<Set<T>> disjointify(Set<Set<T>> sets) {
+        for (Set<T> set1 : nestable(sets)) {
+            Iterable<Set<T>> others = filter(nestable(sets), not(equalTo(set1)));
+            for (Iterator<Set<T>> it = others.iterator(); it.hasNext();) {
+                Set<T> set2 = it.next();
                 if (!intersection(set1, set2).isEmpty()) {
-                    // this wouldn't be safe for a Set<Set<T>>
                     set1.addAll(set2);
-                    set2.clear();
+                    it.remove();
                 }
             }
         }
-        return newHashSet(filter(disjoint, NO_EMPTIES));
+        return sets;
     }
-    private static final Predicate<Set<?>> NO_EMPTIES = new Predicate<Set<?>>() {
+
+    private static <T> Iterable<T> nestable(Set<T> set) {
+        return new MultiIterable<T>(set);
+    }
+
+    /**
+     * Provides an Iterable for Sets which allows other instances to remove
+     * entries. Very inefficient as it essentially replays the underlying Set's
+     * full Iterable for every call to hasNext or next.
+     * 
+     * @param <T> 
+     */
+    private static class MultiIterable<T> implements Iterable<T> {
+
+        private final Set<T> collection;
+
+        public MultiIterable(Set<T> collection) {
+            this.collection = collection;
+        }
 
         @Override
-        public boolean apply(Set<?> input) {
-            if (input == null || input.isEmpty()) {
-                return false;
-            }
-            return true;
-        }
-    };
+        public Iterator<T> iterator() {
+            return new Iterator<T>() {
 
+                final Set<T> visited = newHashSet();
+
+                volatile T current = null;
+
+                volatile boolean hasNext = false;
+
+                volatile T next = null;
+
+                private void recount() {
+                    Iterator<T> it = collection.iterator();
+                    hasNext = false;
+                    while (it.hasNext()) {
+                        T nextTest = it.next();
+                        if (visited.contains(nextTest)) {
+                            hasNext = true;
+                            next = nextTest;
+                        }
+                    }
+                }
+
+                @Override
+                public boolean hasNext() {
+                    recount();
+                    return hasNext;
+                }
+
+                @Override
+                public T next() {
+                    recount();
+                    return next;
+                }
+
+                @Override
+                public void remove() {
+                    collection.remove(current);
+                }
+            };
+        }
+    }
 }
