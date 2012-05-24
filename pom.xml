@@ -79,6 +79,26 @@
                         <version>4.10</version>
                         <scope>test</scope>
                 </dependency>
+                <dependency>
+                        <groupId>org.swinglabs</groupId>
+                        <artifactId>swing-layout</artifactId>
+                        <version>1.0.3</version>
+                </dependency>
+                <dependency>
+                        <groupId>net.sf.jung</groupId>
+                        <artifactId>jung-visualization</artifactId>
+                        <version>2.0.1</version>
+                </dependency>
+                <dependency>
+                        <groupId>org.swinglabs</groupId>
+                        <artifactId>swingx</artifactId>
+                        <version>1.6.1</version>
+                </dependency>
+                <dependency>
+                        <groupId>net.sf.jung</groupId>
+                        <artifactId>jung-samples</artifactId>
+                        <version>2.0.1</version>
+                </dependency>
         </dependencies>
 	
 	
@@ -110,4 +130,12 @@
                         </plugin>
                 </plugins>
         </build>
+        <repositories>
+                <repository>
+                        <url>http://repo1.maven.org/maven2/</url>
+                        <id>swing-layout</id>
+                        <layout>default</layout>
+                        <name>Repository for library Library[swing-layout]</name>
+                </repository>
+        </repositories>
 </project>
