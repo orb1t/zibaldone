@@ -6,8 +6,7 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
-import edu.uci.ics.jung.graph.Graph;
-import edu.uci.ics.jung.graph.SparseMultigraph;
+import java.awt.Dimension;
 
 /**
  *
@@ -37,13 +36,7 @@ public class Mainscreen extends javax.swing.JFrame {
         jSeparator1 = new javax.swing.JToolBar.Separator();
         jButtonSynonyms = new javax.swing.JButton();
         jButtonSources = new javax.swing.JButton();
-        Graph<Integer, String> g = new SparseMultigraph<Integer, String>();
-        g.addVertex((Integer)1);
-        g.addVertex((Integer)2);
-        g.addVertex((Integer)3);
-        g.addEdge("Edge-A", 1, 2); // Note that Java 1.5 auto-boxes primitives
-        g.addEdge("Edge-B", 2, 3);
-        jPanelMain = new NoteGraphPanel(g);
+        noteGraphPanel1 = new uk.me.fommil.zibaldone.desktop.NoteGraphPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -87,19 +80,6 @@ public class Mainscreen extends javax.swing.JFrame {
         jButtonSources.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar.add(jButtonSources);
 
-        jPanelMain.setBackground(new java.awt.Color(0, 0, 0));
-
-        org.jdesktop.layout.GroupLayout jPanelMainLayout = new org.jdesktop.layout.GroupLayout(jPanelMain);
-        jPanelMain.setLayout(jPanelMainLayout);
-        jPanelMainLayout.setHorizontalGroup(
-            jPanelMainLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 0, Short.MAX_VALUE)
-        );
-        jPanelMainLayout.setVerticalGroup(
-            jPanelMainLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(0, 579, Short.MAX_VALUE)
-        );
-
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -108,15 +88,19 @@ public class Mainscreen extends javax.swing.JFrame {
                 .addContainerGap()
                 .add(jToolBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 746, Short.MAX_VALUE)
                 .addContainerGap())
-            .add(jPanelMain, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                .add(noteGraphPanel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 758, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
                 .addContainerGap()
                 .add(jToolBar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jPanelMain, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(616, Short.MAX_VALUE))
+            .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+                    .add(0, 37, Short.MAX_VALUE)
+                    .add(noteGraphPanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
         );
 
         pack();
@@ -144,9 +128,9 @@ public class Mainscreen extends javax.swing.JFrame {
     private javax.swing.JButton jButtonSources;
     private javax.swing.JButton jButtonSynonyms;
     private javax.swing.JButton jCloudButton;
-    private javax.swing.JPanel jPanelMain;
     private javax.swing.JTextField jSearchField;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar jToolBar;
+    private uk.me.fommil.zibaldone.desktop.NoteGraphPanel noteGraphPanel1;
     // End of variables declaration//GEN-END:variables
 }
