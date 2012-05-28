@@ -31,7 +31,7 @@ public class NoteGraphPanel extends JPanel {
         g.addEdge("Edge-A", 1, 2);
         g.addEdge("Edge-B", 2, 3);
 
-        Layout<Integer, String> layout = new CircleLayout(g);        
+        Layout<Integer, String> layout = new CircleLayout<Integer, String>(g);
         BasicVisualizationServer<Integer, String> vv =
                 new BasicVisualizationServer<Integer, String>(layout);
 
