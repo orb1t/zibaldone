@@ -12,8 +12,11 @@ package uk.me.fommil.zibaldone.desktop;
  */
 public class Mainscreen extends javax.swing.JFrame {
 
+    private final NoteJungController controller;
+
     public Mainscreen() {
         initComponents();
+        controller = new NoteJungController(noteGraphPanel.getGraph());
     }
 
     /**
@@ -32,7 +35,7 @@ public class Mainscreen extends javax.swing.JFrame {
         jSeparator1 = new javax.swing.JToolBar.Separator();
         jButtonSynonyms = new javax.swing.JButton();
         jButtonSources = new javax.swing.JButton();
-        noteGraphPanel1 = new uk.me.fommil.zibaldone.desktop.NoteGraphPanel();
+        noteGraphPanel = new uk.me.fommil.zibaldone.desktop.NoteJungView();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -77,7 +80,7 @@ public class Mainscreen extends javax.swing.JFrame {
                 .add(jToolBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 746, Short.MAX_VALUE)
                 .addContainerGap())
             .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                .add(noteGraphPanel1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 758, Short.MAX_VALUE))
+                .add(noteGraphPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 758, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -87,21 +90,20 @@ public class Mainscreen extends javax.swing.JFrame {
             .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                 .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
                     .add(0, 37, Short.MAX_VALUE)
-                    .add(noteGraphPanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
+                    .add(noteGraphPanel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    /**
-     * @param args the command line arguments
-     */
+    /** @param args */
     public static void main(String args[]) {
-        /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
 
+            @Override
             public void run() {
-                new Mainscreen().setVisible(true);
+                Mainscreen main = new Mainscreen();
+                main.setVisible(true);
             }
         });
     }
@@ -114,6 +116,6 @@ public class Mainscreen extends javax.swing.JFrame {
     private org.jdesktop.swingx.JXSearchField jSearch;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar jToolBar;
-    private uk.me.fommil.zibaldone.desktop.NoteGraphPanel noteGraphPanel1;
+    private uk.me.fommil.zibaldone.desktop.NoteJungView noteGraphPanel;
     // End of variables declaration//GEN-END:variables
 }
