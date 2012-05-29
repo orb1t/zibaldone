@@ -102,7 +102,7 @@
         </Component>
       </SubComponents>
     </Container>
-    <Component class="uk.me.fommil.zibaldone.desktop.NoteJungView" name="noteGraphPanel">
+    <Component class="uk.me.fommil.zibaldone.desktop.JungGraphView" name="noteGraphPanel">
     </Component>
   </SubComponents>
 </Form>

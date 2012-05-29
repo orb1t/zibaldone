@@ -6,11 +6,14 @@
  */
 package uk.me.fommil.zibaldone.persistence;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ListMultimap;
 import java.util.List;
 import javax.persistence.EntityManagerFactory;
 import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Synonym;
 import uk.me.fommil.zibaldone.Synonym.Context;
+import uk.me.fommil.zibaldone.Tag;
 
 /**
  * Data Access Object for {@link Synonym} instances.
@@ -58,12 +61,22 @@ public class SynonymDao extends CrudDao<Long, Synonym> {
     }
 
     /**
-     * @param context if {@link Context#AUTOMATIC} is provided, then
-     * entries which have a complimentary {@link Context#AUTOMATIC}
-     * will not be returned.
-     * @return
+     * @return all the synonyms minus the {@link Context#AUTOMATIC} instances
+     * that have a complimentary {@link Context#AUTOMATIC_IGNORED} instance.
      */
-    public List<Synonym> read(Context context) {
+    public ListMultimap<Synonym.Context, Synonym> readActive() {
+        // TODO: implement method
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+        
+    /**
+     * @param tags
+     * @return the synonyms that have a non-zero intersection of tags with the input.
+     */
+    public List<Synonym> readByTags(List<Tag> tags) {
+        Preconditions.checkNotNull(tags);
+        Preconditions.checkArgument(!tags.isEmpty());
+        
         // TODO: implement method
         throw new UnsupportedOperationException("not implemented yet");
     }

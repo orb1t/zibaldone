@@ -20,11 +20,13 @@ import org.apache.commons.collections15.Transformer;
 import uk.me.fommil.zibaldone.Note;
 
 /**
- * Draws the {@link Note}s using the JUNG Visualization Library.
+ * Draws the network graph of the {@link Note}s and {@link Cluster}s
+ * using JUNG.
  * 
+ * @see JungMainController
  * @author Samuel Halliday
  */
-public class NoteJungView extends JPanel implements GraphEventListener<Note, Double> {
+public class JungGraphView extends JPanel implements GraphEventListener<Note, Double> {
 
     private final ObservableGraph<Note, Double> graph;
 
@@ -32,19 +34,30 @@ public class NoteJungView extends JPanel implements GraphEventListener<Note, Dou
 
     private final BasicVisualizationServer<Note, Double> graphVisualiser;
 
+    private final JungMainController controller;
+
     /**
-     * For the benefit of the Netbeans UI designer patterns.
+     * For the benefit of the Netbeans UI designer.
      */
-    public NoteJungView() {
+    public JungGraphView() {
         this(new ObservableGraph<Note, Double>(new SparseMultigraph<Note, Double>()));
     }
 
     /**
      * @param graph
      */
-    public NoteJungView(ObservableGraph<Note, Double> graph) {
+    public JungGraphView(ObservableGraph<Note, Double> graph) {
+        this(graph, new JungMainController(graph));
+    }
+
+    /**
+     * @param graph
+     * @param controller 
+     */
+    public JungGraphView(ObservableGraph<Note, Double> graph, JungMainController controller) {
         Preconditions.checkNotNull(graph);
         this.graph = graph;
+        this.controller = controller;
 
         Transformer<Double, Integer> weights = new Transformer<Double, Integer>() {
 
@@ -52,6 +65,9 @@ public class NoteJungView extends JPanel implements GraphEventListener<Note, Dou
             public Integer transform(Double input) {
                 Preconditions.checkNotNull(input);
                 Preconditions.checkArgument(input >= 0 && input <= 1, input);
+
+                // TODO: might want to have a "clipped" view which can
+                // remove edges after some threshold.
 
                 return Math.round((float) (input * 1000.0));
             }
@@ -79,5 +95,9 @@ public class NoteJungView extends JPanel implements GraphEventListener<Note, Dou
 
     public ObservableGraph<Note, Double> getGraph() {
         return graph;
+    }
+
+    public JungMainController getController() {
+        return controller;
     }
 }

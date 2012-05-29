@@ -7,16 +7,15 @@
 package uk.me.fommil.zibaldone.desktop;
 
 /**
- *
  * @author Samuel Halliday
  */
 public class Mainscreen extends javax.swing.JFrame {
 
-    private final NoteJungController controller;
+    private final JungMainController controller;
 
     public Mainscreen() {
         initComponents();
-        controller = new NoteJungController(noteGraphPanel.getGraph());
+        controller = noteGraphPanel.getController();
     }
 
     /**
@@ -35,7 +34,7 @@ public class Mainscreen extends javax.swing.JFrame {
         jSeparator1 = new javax.swing.JToolBar.Separator();
         jButtonSynonyms = new javax.swing.JButton();
         jButtonSources = new javax.swing.JButton();
-        noteGraphPanel = new uk.me.fommil.zibaldone.desktop.NoteJungView();
+        noteGraphPanel = new uk.me.fommil.zibaldone.desktop.JungGraphView();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -116,6 +115,6 @@ public class Mainscreen extends javax.swing.JFrame {
     private org.jdesktop.swingx.JXSearchField jSearch;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar jToolBar;
-    private uk.me.fommil.zibaldone.desktop.NoteJungView noteGraphPanel;
+    private uk.me.fommil.zibaldone.desktop.JungGraphView noteGraphPanel;
     // End of variables declaration//GEN-END:variables
 }
