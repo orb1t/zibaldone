@@ -7,11 +7,15 @@
 package uk.me.fommil.zibaldone;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * API for importing {@link Note} objects from a variety of file formats and
  * sources.
+ * <p>
+ * All implementations must have a default public constructor.
  * 
  * TODO: handle cases where the underlying resources are moved - all the instance
  * names of an Importer could be changed to reflect the new importer.
@@ -29,6 +33,11 @@ public interface Importer {
     public String getInstanceName();
 
     /**
+     * @return a user-friendly name for this implementation.
+     */
+    public String getName();
+    
+    /**
      * @return all the {@link Note}s from the input channel.
      * Implementations should not cache this result as the caller expects
      * a fresh reload of the underlying resource.
@@ -37,4 +46,14 @@ public interface Importer {
      * @throws IOException
      */
     public List<Note> getNotes() throws IOException;
+
+    /**
+     * @return the names of the implementation-specific properties.
+     */
+    public Collection<String> getPropertyNames();
+
+    /**
+     * @param properties to be used by the implementation.
+     */
+    public void setProperties(Properties properties);
 }

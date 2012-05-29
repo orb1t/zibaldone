@@ -7,11 +7,15 @@
 package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Relator;
 
@@ -51,7 +55,7 @@ public class JungMainController {
         // TODO: implement method
         throw new UnsupportedOperationException("not implemented yet");
     }
-    
+
     /**
      * Automatically create a cluster, as a starting point.
      */
@@ -60,20 +64,22 @@ public class JungMainController {
         throw new UnsupportedOperationException("not implemented yet");
     }
 
-    /**
-     * @return
-     */
     public SynonymController getSynonymController() {
         return new SynonymController();
     }
 
-    /**
-     * @return
-     */
     public JungClusterController getClusterController() {
         return new JungClusterController(graph);
     }
-    
+
+    public ImporterController getImporterController() {
+        return new ImporterController();
+    }
+
+    public ExporterController getExporterController() {
+        return new ExporterController();
+    }
+
     /**
      * @return all tags with their usage counts
      */
@@ -81,7 +87,7 @@ public class JungMainController {
         // TODO: implement method
         throw new UnsupportedOperationException("not implemented yet");
     }
-   
+
     /**
      * Keeps all the settings in one place. Callers are encouraged to
      * edit mutable entries in-place but should immediately call one of
@@ -94,7 +100,7 @@ public class JungMainController {
         private boolean serendipity, tags = true, content, user;
 
         private double noise;
-        
+
         private int seeds;
 
         private String search = "";
@@ -104,6 +110,8 @@ public class JungMainController {
         private final List<String> excludeTags = Lists.newArrayList();
 
         private final List<String> includeClusters = Lists.newArrayList();
+
+        private final ListMultimap<Class<? extends Importer>, Properties> importers = ArrayListMultimap.create();
 
         // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
         public boolean isContent() {
@@ -175,6 +183,10 @@ public class JungMainController {
 
         public List<String> getIncludeClusters() {
             return includeClusters;
+        }
+
+        public ListMultimap<Class<? extends Importer>, Properties> getImporters() {
+            return importers;
         }
         // </editor-fold>
     }
