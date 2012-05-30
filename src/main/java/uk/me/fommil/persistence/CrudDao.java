@@ -16,20 +16,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.PersistenceException;
-import javax.persistence.Query;
-import javax.transaction.Transaction;
+import javax.persistence.*;
 
 /**
  * Generic CRUD (CREATE, READ, UPDATE, DELETE) DAO (Data Access Object) for {@link Entity} types.
  * This abstract class is designed to be extended by DAOs in order to provide basic functionality
  * and reduce boilerplate.
  * <p>
- * <b>WARNING</b>: each of these methods is contained in a single {@link Transaction}, which means that
+ * <b>WARNING</b>: each of these methods is contained in a single {@link EntityTransaction}, which means that
  * clients will be prone to Last Commit Wins concurrency problems that can result in data loss.
  * <p>
  * Implementations are reminded that many convenience methods are provided with {@code protected}

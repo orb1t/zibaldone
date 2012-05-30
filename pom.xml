@@ -13,7 +13,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-                <!--<netbeans.hint.license>gpl30</netbeans.hint.license>-->
+        <!--<netbeans.hint.license>gpl30</netbeans.hint.license>-->
     </properties>
     <prerequisites>
         <maven>3.0.3</maven>
@@ -32,32 +32,6 @@
             <version>1.0.0.Final</version>
         </dependency>
         <dependency>
-			<!-- TODO: have hibernate runtime but JPA2 compile time -->
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-entitymanager</artifactId>
-            <version>4.1.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.derby</groupId>
-            <artifactId>derby</artifactId>
-            <version>10.8.2.2</version>
-            <scope>runtime</scope>
-        </dependency>
-		<!-- TODO: check that C3PO and ehcache are being used -->
-        <dependency>
-			<!-- a dependency of Hibernate, which is locally managed -->
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
-            <version>1.6.4</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>1.6.4</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
             <version>2.0.0</version>
@@ -73,14 +47,55 @@
             <version>4.1.3</version>
         </dependency>
         <dependency>
-            <groupId>org.swinglabs</groupId>
-            <artifactId>swing-layout</artifactId>
-            <version>1.0.3</version>
+            <groupId>net.sf.jung</groupId>
+            <artifactId>jung-graph-impl</artifactId>
+            <version>2.0.1</version>
         </dependency>
+        <dependency>
+            <groupId>net.sf.jung</groupId>
+            <artifactId>jung-visualization</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+        
+        <!-- older swingx still has docs -->
+        <dependency>
+            <groupId>org.swinglabs</groupId>
+            <artifactId>swingx</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+        <!--
         <dependency>
             <groupId>org.swinglabs.swingx</groupId>
             <artifactId>swingx-all</artifactId>
             <version>1.6.3</version>
+        </dependency>
+        -->
+        
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+            <version>4.1.2</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.derby</groupId>
+            <artifactId>derby</artifactId>
+            <version>10.8.2.2</version>
+            <scope>runtime</scope>
+        </dependency>
+		<!-- consider using C3PO and ehcache -->
+        <dependency>
+			<!-- a dependency of Hibernate, which is locally managed -->
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+            <version>1.6.4</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>1.6.4</version>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>
@@ -90,21 +105,18 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>net.sf.jung</groupId>
-            <artifactId>jung-visualization</artifactId>
-            <version>2.0.1</version>
-        </dependency>        
+        <!-- JUNG samples just for browsing the source -->
         <dependency>
             <groupId>net.sf.jung</groupId>
             <artifactId>jung-samples</artifactId>
             <version>2.0.1</version>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
 	
 	
     <build>
-                <!-- mvn versions:display-plugin-updates -->
+        <!-- mvn versions:display-plugin-updates -->
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -131,12 +143,4 @@
             </plugin>
         </plugins>
     </build>
-    <repositories>
-        <repository>
-            <url>http://repo1.maven.org/maven2/</url>
-            <id>swing-layout</id>
-            <layout>default</layout>
-            <name>Repository for library Library[swing-layout]</name>
-        </repository>
-    </repositories>
 </project>
