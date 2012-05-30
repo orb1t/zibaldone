@@ -37,16 +37,14 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, Do
     private final JungMainController controller;
 
     /**
-     * For the benefit of the Netbeans UI designer.
+     * @deprecated only to be used by GUI Editors.
      */
+    @Deprecated
     public JungGraphView() {
-        this(new ObservableGraph<Note, Double>(new SparseMultigraph<Note, Double>()));
+        this(Mainscreen.getGraphForTheBenefitOfNetbeans());
     }
 
-    /**
-     * @param graph
-     */
-    public JungGraphView(ObservableGraph<Note, Double> graph) {
+    private JungGraphView(ObservableGraph<Note, Double> graph) {
         this(graph, new JungMainController(graph));
     }
 
@@ -91,13 +89,5 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, Do
     @Override
     public void handleGraphEvent(GraphEvent<Note, Double> evt) {
         throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public ObservableGraph<Note, Double> getGraph() {
-        return graph;
-    }
-
-    public JungMainController getController() {
-        return controller;
     }
 }

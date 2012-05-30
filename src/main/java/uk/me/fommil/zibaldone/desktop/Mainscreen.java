@@ -6,16 +6,39 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
+import edu.uci.ics.jung.graph.ObservableGraph;
+import edu.uci.ics.jung.graph.SparseMultigraph;
+import uk.me.fommil.zibaldone.Note;
+
 /**
  * @author Samuel Halliday
  */
 public class Mainscreen extends javax.swing.JFrame {
 
+    /**
+     * @return a suitable model for use in GUI Editors such as in Netbeans.
+     */
+    static ObservableGraph<Note, Double> getGraphForTheBenefitOfNetbeans() {
+        ObservableGraph<Note, Double> graph = new ObservableGraph<Note, Double>(new SparseMultigraph<Note, Double>());
+
+        // TODO: some nice Notes/edges for display
+
+        return graph;
+    }
     private final JungMainController controller;
 
+    /**
+     * @deprecated only to be used by GUI Editors.
+     */
+    @Deprecated
     public Mainscreen() {
+        this(getGraphForTheBenefitOfNetbeans());
+    }
+
+    public Mainscreen(ObservableGraph<Note, Double> graph) {
         initComponents();
-        controller = noteGraphPanel.getController();
+
+        controller = new JungMainController(graph);
     }
 
     /**
@@ -34,7 +57,8 @@ public class Mainscreen extends javax.swing.JFrame {
         jSeparator1 = new javax.swing.JToolBar.Separator();
         jButtonSynonyms = new javax.swing.JButton();
         jButtonSources = new javax.swing.JButton();
-        noteGraphPanel = new uk.me.fommil.zibaldone.desktop.JungGraphView();
+        jFauxPanel = new javax.swing.JPanel();
+        jImportersPanel = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -64,36 +88,64 @@ public class Mainscreen extends javax.swing.JFrame {
         jButtonSynonyms.setText("Synonyms");
         jToolBar.add(jButtonSynonyms);
 
-        jButtonSources.setText("Sources");
+        jButtonSources.setText("Importers");
         jButtonSources.setFocusable(false);
         jButtonSources.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jButtonSources.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButtonSources.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButtonSourcesMouseClicked(evt);
+            }
+        });
         jToolBar.add(jButtonSources);
+
+        jFauxPanel.setBackground(new java.awt.Color(0, 0, 0));
+
+        javax.swing.GroupLayout jImportersPanelLayout = new javax.swing.GroupLayout(jImportersPanel);
+        jImportersPanel.setLayout(jImportersPanelLayout);
+        jImportersPanelLayout.setHorizontalGroup(
+            jImportersPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 228, Short.MAX_VALUE)
+        );
+        jImportersPanelLayout.setVerticalGroup(
+            jImportersPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 415, Short.MAX_VALUE)
+        );
+
+        javax.swing.GroupLayout jFauxPanelLayout = new javax.swing.GroupLayout(jFauxPanel);
+        jFauxPanel.setLayout(jFauxPanelLayout);
+        jFauxPanelLayout.setHorizontalGroup(
+            jFauxPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jFauxPanelLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jImportersPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        jFauxPanelLayout.setVerticalGroup(
+            jFauxPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jImportersPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, 746, Short.MAX_VALUE)
-                .addContainerGap())
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(noteGraphPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 758, Short.MAX_VALUE))
+            .addComponent(jToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, 670, Short.MAX_VALUE)
+            .addComponent(jFauxPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jToolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 616, Short.MAX_VALUE))
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                    .addGap(0, 37, Short.MAX_VALUE)
-                    .addComponent(noteGraphPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addComponent(jToolBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jFauxPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jButtonSourcesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonSourcesMouseClicked
+        jImportersPanel.setVisible(!jImportersPanel.isVisible());
+    }//GEN-LAST:event_jButtonSourcesMouseClicked
 
     /** @param args */
     public static void main(String args[]) {
@@ -101,7 +153,9 @@ public class Mainscreen extends javax.swing.JFrame {
 
             @Override
             public void run() {
-                Mainscreen main = new Mainscreen();
+                ObservableGraph<Note, Double> graph = new ObservableGraph<Note, Double>(new SparseMultigraph<Note, Double>());
+
+                Mainscreen main = new Mainscreen(graph);
                 main.setVisible(true);
             }
         });
@@ -112,9 +166,10 @@ public class Mainscreen extends javax.swing.JFrame {
     private javax.swing.JButton jButtonSources;
     private javax.swing.JButton jButtonSynonyms;
     private javax.swing.JButton jCloudButton;
+    private javax.swing.JPanel jFauxPanel;
+    private javax.swing.JPanel jImportersPanel;
     private org.jdesktop.swingx.JXSearchField jSearch;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar jToolBar;
-    private uk.me.fommil.zibaldone.desktop.JungGraphView noteGraphPanel;
     // End of variables declaration//GEN-END:variables
 }
