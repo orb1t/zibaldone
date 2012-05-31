@@ -42,6 +42,7 @@ public class Mainscreen extends javax.swing.JFrame {
         return graph;
     }
     private final JungMainController controller;
+    private final ObservableGraph<Note, Double> graph;
 
     /**
      * @deprecated only to be used by GUI Editors.
@@ -52,12 +53,12 @@ public class Mainscreen extends javax.swing.JFrame {
     }
 
     public Mainscreen(ObservableGraph<Note, Double> graph) {
-        rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
-
-        initComponents();
-
-        jSettingsPanel.setVisible(false);
+        this.graph = graph;
         controller = new JungMainController(graph);
+
+        rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
+        initComponents();
+        jSettingsPanel.setVisible(false);
 
         // TODO: animated settings panel
         // TODO: icons for the toolbar buttons
@@ -73,7 +74,7 @@ public class Mainscreen extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jFauxPanel = new javax.swing.JPanel();
+        jJungPanel = new uk.me.fommil.zibaldone.desktop.JungGraphView(graph, controller);
         jToolBar = new javax.swing.JToolBar();
         jSearch = new org.jdesktop.swingx.JXSearchField();
         jCloudButton = new javax.swing.JToggleButton();
@@ -88,16 +89,14 @@ public class Mainscreen extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jFauxPanel.setBackground(new java.awt.Color(0, 0, 0));
-
-        javax.swing.GroupLayout jFauxPanelLayout = new javax.swing.GroupLayout(jFauxPanel);
-        jFauxPanel.setLayout(jFauxPanelLayout);
-        jFauxPanelLayout.setHorizontalGroup(
-            jFauxPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout jJungPanelLayout = new javax.swing.GroupLayout(jJungPanel);
+        jJungPanel.setLayout(jJungPanelLayout);
+        jJungPanelLayout.setHorizontalGroup(
+            jJungPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 670, Short.MAX_VALUE)
         );
-        jFauxPanelLayout.setVerticalGroup(
-            jFauxPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        jJungPanelLayout.setVerticalGroup(
+            jJungPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 463, Short.MAX_VALUE)
         );
 
@@ -178,7 +177,7 @@ public class Mainscreen extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, 670, Short.MAX_VALUE)
-            .addComponent(jFauxPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jJungPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                     .addGap(0, 344, Short.MAX_VALUE)
@@ -189,7 +188,7 @@ public class Mainscreen extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jToolBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jFauxPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jJungPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                     .addGap(0, 44, Short.MAX_VALUE)
@@ -221,8 +220,8 @@ public class Mainscreen extends javax.swing.JFrame {
     private javax.swing.JToggleButton jButtonClusters;
     private javax.swing.JToggleButton jButtonSources;
     private javax.swing.JToggleButton jCloudButton;
-    private javax.swing.JPanel jFauxPanel;
     private javax.swing.JPanel jImportersPanel;
+    private uk.me.fommil.zibaldone.desktop.JungGraphView jJungPanel;
     private org.jdesktop.swingx.JXSearchField jSearch;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JPanel jSettingsPanel;
