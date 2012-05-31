@@ -9,6 +9,7 @@ package uk.me.fommil.zibaldone.desktop;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.SparseMultigraph;
 import uk.me.fommil.zibaldone.Note;
+import uk.me.fommil.zibaldone.Tag;
 
 /**
  * @author Samuel Halliday
@@ -21,7 +22,22 @@ public class Mainscreen extends javax.swing.JFrame {
     static ObservableGraph<Note, Double> getGraphForTheBenefitOfNetbeans() {
         ObservableGraph<Note, Double> graph = new ObservableGraph<Note, Double>(new SparseMultigraph<Note, Double>());
 
-        // TODO: some nice Notes/edges for display
+        Note a = new Note();
+        a.setTitle("A");
+        a.setTags(Tag.asTags("smug", "silly"));
+        Note b = new Note();
+        b.setTitle("B");
+        b.setTags(Tag.asTags("smug", "lovely"));
+        Note c = new Note();
+        c.setTitle("C");
+        c.setTags(Tag.asTags("smug", "lovely"));
+
+        graph.addVertex(a);
+        graph.addVertex(b);
+        graph.addVertex(c);
+
+        graph.addEdge(0.1, a, b);
+        graph.addEdge(0.4, a, c);
 
         return graph;
     }
@@ -36,10 +52,17 @@ public class Mainscreen extends javax.swing.JFrame {
     }
 
     public Mainscreen(ObservableGraph<Note, Double> graph) {
+        rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
+
         initComponents();
 
         jSettingsPanel.setVisible(false);
         controller = new JungMainController(graph);
+
+        // TODO: animated settings panel
+        // TODO: icons for the toolbar buttons
+        // TODO: menu entries
+        // TODO: use simplericity for a better OS X experience
     }
 
     /**
@@ -59,9 +82,9 @@ public class Mainscreen extends javax.swing.JFrame {
         jButtonSources = new javax.swing.JToggleButton();
         jSettingsPanel = new javax.swing.JPanel();
         jSettingsTabs = new javax.swing.JTabbedPane();
-        jPanel1 = new javax.swing.JPanel();
-        jPanel2 = new javax.swing.JPanel();
-        jPanel3 = new javax.swing.JPanel();
+        jImportersPanel = new javax.swing.JPanel();
+        jSynonymsPanel = new javax.swing.JPanel();
+        jAdvancedPanel = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -100,44 +123,44 @@ public class Mainscreen extends javax.swing.JFrame {
         });
         jToolBar.add(jButtonSources);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout jImportersPanelLayout = new javax.swing.GroupLayout(jImportersPanel);
+        jImportersPanel.setLayout(jImportersPanelLayout);
+        jImportersPanelLayout.setHorizontalGroup(
+            jImportersPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 305, Short.MAX_VALUE)
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        jImportersPanelLayout.setVerticalGroup(
+            jImportersPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 417, Short.MAX_VALUE)
         );
 
-        jSettingsTabs.addTab("Importers", jPanel1);
+        jSettingsTabs.addTab("Importers", jImportersPanel);
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout jSynonymsPanelLayout = new javax.swing.GroupLayout(jSynonymsPanel);
+        jSynonymsPanel.setLayout(jSynonymsPanelLayout);
+        jSynonymsPanelLayout.setHorizontalGroup(
+            jSynonymsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 305, Short.MAX_VALUE)
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        jSynonymsPanelLayout.setVerticalGroup(
+            jSynonymsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 417, Short.MAX_VALUE)
         );
 
-        jSettingsTabs.addTab("Synonyms", jPanel2);
+        jSettingsTabs.addTab("Synonyms", jSynonymsPanel);
 
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout jAdvancedPanelLayout = new javax.swing.GroupLayout(jAdvancedPanel);
+        jAdvancedPanel.setLayout(jAdvancedPanelLayout);
+        jAdvancedPanelLayout.setHorizontalGroup(
+            jAdvancedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 305, Short.MAX_VALUE)
         );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        jAdvancedPanelLayout.setVerticalGroup(
+            jAdvancedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 417, Short.MAX_VALUE)
         );
 
-        jSettingsTabs.addTab("Advanced", jPanel3);
+        jSettingsTabs.addTab("Advanced", jAdvancedPanel);
 
         javax.swing.GroupLayout jSettingsPanelLayout = new javax.swing.GroupLayout(jSettingsPanel);
         jSettingsPanel.setLayout(jSettingsPanelLayout);
@@ -194,17 +217,17 @@ public class Mainscreen extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel jAdvancedPanel;
     private javax.swing.JToggleButton jButtonClusters;
     private javax.swing.JToggleButton jButtonSources;
     private javax.swing.JToggleButton jCloudButton;
     private javax.swing.JPanel jFauxPanel;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jImportersPanel;
     private org.jdesktop.swingx.JXSearchField jSearch;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JPanel jSettingsPanel;
     private javax.swing.JTabbedPane jSettingsTabs;
+    private javax.swing.JPanel jSynonymsPanel;
     private javax.swing.JToolBar jToolBar;
     // End of variables declaration//GEN-END:variables
 }

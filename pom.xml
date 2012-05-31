@@ -113,6 +113,11 @@
             <version>2.0.1</version>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>org.simplericity.macify</groupId>
+            <artifactId>macify</artifactId>
+            <version>1.6</version>
+        </dependency>
     </dependencies>
 	
 	
@@ -139,6 +144,27 @@
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>osxappbundle-maven-plugin</artifactId>
+                <version>1.0-alpha-2</version>
+                <configuration>
+                    <mainClass>com.example.Main</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>bundle</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>uk.me.fommil.zibaldone.desktop.Mainscreen</mainClass>
+                            <bundleName>Zibaldone</bundleName>
+                            <vmOptions>-Dcom.apple.macos.useScreenMenuBar=true</vmOptions>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
