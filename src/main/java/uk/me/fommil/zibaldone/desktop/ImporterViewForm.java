@@ -46,6 +46,9 @@ public class ImporterViewForm extends javax.swing.JPanel {
         jXReloadButton = new org.jdesktop.swingx.JXButton();
         jXRemoveButton = new org.jdesktop.swingx.JXButton();
 
+        setBackground(null);
+
+        jPropertiesPanel.setBackground(null);
         jPropertiesPanel.setLayout(new java.awt.GridLayout(0, 2));
 
         jXReloadButton.setText("Reload");

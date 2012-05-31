@@ -26,7 +26,7 @@
           <Component id="jJungPanel" alignment="0" max="32767" attributes="0"/>
           <Group type="103" rootIndex="1" groupAlignment="0" attributes="0">
               <Group type="102" alignment="1" attributes="0">
-                  <EmptySpace min="0" pref="344" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="323" max="32767" attributes="0"/>
                   <Component id="jSettingsPanel" min="-2" max="-2" attributes="0"/>
               </Group>
           </Group>
@@ -102,7 +102,7 @@
                           <Component id="jAddImporterButton" min="-2" pref="55" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="jImporterSelectorComboBox" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace pref="106" max="32767" attributes="0"/>
+                          <EmptySpace pref="122" max="32767" attributes="0"/>
                           <Component id="jReloadImportersButton" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <Group type="102" alignment="0" attributes="0">
@@ -138,7 +138,7 @@
                 </Component>
                 <Component class="org.jdesktop.swingx.JXButton" name="jReloadImportersButton">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Reload"/>
+                    <Property name="text" type="java.lang.String" value="Reload All"/>
                     <Property name="focusable" type="boolean" value="false"/>
                   </Properties>
                 </Component>
@@ -149,6 +149,11 @@
                   <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
                   <SubComponents>
                     <Container class="org.jdesktop.swingx.JXTaskPaneContainer" name="jXImportersContainer">
+                      <Properties>
+                        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                          <Color type="null"/>
+                        </Property>
+                      </Properties>
                     </Container>
                   </SubComponents>
                 </Container>
@@ -166,7 +171,7 @@
               <Layout>
                 <DimensionLayout dim="0">
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <EmptySpace min="0" pref="305" max="32767" attributes="0"/>
+                      <EmptySpace min="0" pref="342" max="32767" attributes="0"/>
                   </Group>
                 </DimensionLayout>
                 <DimensionLayout dim="1">
@@ -188,7 +193,7 @@
               <Layout>
                 <DimensionLayout dim="0">
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <EmptySpace min="0" pref="305" max="32767" attributes="0"/>
+                      <EmptySpace min="0" pref="342" max="32767" attributes="0"/>
                   </Group>
                 </DimensionLayout>
                 <DimensionLayout dim="1">

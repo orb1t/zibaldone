@@ -11,15 +11,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.SparseMultigraph;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.logging.Logger;
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
+import javax.swing.UIManager;
+import org.jdesktop.swingx.combobox.MapComboBoxModel;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Tag;
@@ -82,14 +82,15 @@ public class Mainscreen extends javax.swing.JFrame {
         }
         
         rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
+        UIManager.put("JxTaskPaneContainer.useGradient", Boolean.TRUE);
+        UIManager.put("JxTaskPaneContainer.backgroundGradientStart", Color.green.darker());
+        UIManager.put("JxTaskPaneContainer.backgroundGradientEnd", Color.green.darker().darker());
+        
         initComponents();
         jSettingsPanel.setVisible(false);
         
-        DefaultComboBoxModel importerChoices = (DefaultComboBoxModel) jImporterSelectorComboBox.getModel();
-        importerChoices.removeAllElements();
-        for (String name : importerImpls.keySet()) {
-            importerChoices.addElement(name);
-        }
+        MapComboBoxModel<String, String> importerChoices = new MapComboBoxModel<String,String>(importerImpls);
+        jImporterSelectorComboBox.setModel(importerChoices);
         
         ListMultimap<String, Properties> importers = controller.getSettings().getImporters();
         for (String klassName : importers.keySet()) {
@@ -177,9 +178,10 @@ public class Mainscreen extends javax.swing.JFrame {
             }
         });
 
-        jReloadImportersButton.setText("Reload");
+        jReloadImportersButton.setText("Reload All");
         jReloadImportersButton.setFocusable(false);
 
+        jXImportersContainer.setBackground(null);
         jImporterScrollPane.setViewportView(jXImportersContainer);
 
         javax.swing.GroupLayout jImportersPanelLayout = new javax.swing.GroupLayout(jImportersPanel);
@@ -190,7 +192,7 @@ public class Mainscreen extends javax.swing.JFrame {
                 .addComponent(jAddImporterButton, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jImporterSelectorComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 106, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 122, Short.MAX_VALUE)
                 .addComponent(jReloadImportersButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addGroup(jImportersPanelLayout.createSequentialGroup()
                 .addContainerGap()
@@ -215,7 +217,7 @@ public class Mainscreen extends javax.swing.JFrame {
         jSynonymsPanel.setLayout(jSynonymsPanelLayout);
         jSynonymsPanelLayout.setHorizontalGroup(
             jSynonymsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 305, Short.MAX_VALUE)
+            .addGap(0, 342, Short.MAX_VALUE)
         );
         jSynonymsPanelLayout.setVerticalGroup(
             jSynonymsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -228,7 +230,7 @@ public class Mainscreen extends javax.swing.JFrame {
         jAdvancedPanel.setLayout(jAdvancedPanelLayout);
         jAdvancedPanelLayout.setHorizontalGroup(
             jAdvancedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 305, Short.MAX_VALUE)
+            .addGap(0, 342, Short.MAX_VALUE)
         );
         jAdvancedPanelLayout.setVerticalGroup(
             jAdvancedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -278,7 +280,7 @@ public class Mainscreen extends javax.swing.JFrame {
             .addComponent(jJungPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                    .addGap(0, 344, Short.MAX_VALUE)
+                    .addGap(0, 323, Short.MAX_VALUE)
                     .addComponent(jSettingsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
         layout.setVerticalGroup(

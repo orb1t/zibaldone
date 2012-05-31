@@ -22,6 +22,8 @@ public class ImporterController {
         throw new UnsupportedOperationException("not implemented yet");
     }
 
+    // FIXME: should this really be so abstract? Can't we just expose the Importers in the API?
+    
     public void doImport(Class<Importer> klass, Properties properties) {
         // TODO: implement method
         throw new UnsupportedOperationException("not implemented yet");
