@@ -111,7 +111,7 @@ public class JungMainController {
 
         private final List<String> includeClusters = Lists.newArrayList();
 
-        private final ListMultimap<Class<? extends Importer>, Properties> importers = ArrayListMultimap.create();
+        private final ListMultimap<String, Properties> importers = ArrayListMultimap.create();
 
         // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
         public boolean isContent() {
@@ -185,7 +185,7 @@ public class JungMainController {
             return includeClusters;
         }
 
-        public ListMultimap<Class<? extends Importer>, Properties> getImporters() {
+        public ListMultimap<String, Properties> getImporters() {
             return importers;
         }
         // </editor-fold>

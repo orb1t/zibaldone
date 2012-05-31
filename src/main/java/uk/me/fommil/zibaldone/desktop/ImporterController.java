@@ -17,13 +17,18 @@ import uk.me.fommil.zibaldone.Importer;
  */
 public class ImporterController {
 
-    public List<Class<? extends Importer>> getImplementations() {
+    public List<Class<Importer>> getImplementations() {
         // TODO: implement method
         throw new UnsupportedOperationException("not implemented yet");
     }
 
-    public void doImport(Class<? extends Importer> klass, Properties properties) {
+    public void doImport(Class<Importer> klass, Properties properties) {
         // TODO: implement method
         throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    void doRemove(Class<Importer> klass, Properties properties) {
+        // TODO: implement method
+//        throw new UnsupportedOperationException("not implemented yet");
     }
 }
