@@ -139,6 +139,7 @@ public class Mainscreen extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jJungPanel = new uk.me.fommil.zibaldone.desktop.JungGraphView(graph, controller);
         jSettingsPanel = new javax.swing.JPanel();
         jSettingsTabs = new javax.swing.JTabbedPane();
         jImportersPanel = new javax.swing.JPanel();
@@ -149,7 +150,6 @@ public class Mainscreen extends javax.swing.JFrame {
         jXImportersContainer = new org.jdesktop.swingx.JXTaskPaneContainer();
         jSynonymsPanel = new javax.swing.JPanel();
         jAdvancedPanel = new javax.swing.JPanel();
-        jJungPanel = new uk.me.fommil.zibaldone.desktop.JungGraphView(graph, controller);
         jToolBar = new javax.swing.JToolBar();
         jSearch = new org.jdesktop.swingx.JXSearchField();
         jCloudButton = new javax.swing.JToggleButton();
@@ -158,6 +158,17 @@ public class Mainscreen extends javax.swing.JFrame {
         jButtonSources = new javax.swing.JToggleButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        javax.swing.GroupLayout jJungPanelLayout = new javax.swing.GroupLayout(jJungPanel);
+        jJungPanel.setLayout(jJungPanelLayout);
+        jJungPanelLayout.setHorizontalGroup(
+            jJungPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 670, Short.MAX_VALUE)
+        );
+        jJungPanelLayout.setVerticalGroup(
+            jJungPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 463, Short.MAX_VALUE)
+        );
 
         jAddImporterButton.setText("+");
         jAddImporterButton.addActionListener(new java.awt.event.ActionListener() {
@@ -235,17 +246,6 @@ public class Mainscreen extends javax.swing.JFrame {
         jSettingsPanelLayout.setVerticalGroup(
             jSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jSettingsTabs, javax.swing.GroupLayout.Alignment.TRAILING)
-        );
-
-        javax.swing.GroupLayout jJungPanelLayout = new javax.swing.GroupLayout(jJungPanel);
-        jJungPanel.setLayout(jJungPanelLayout);
-        jJungPanelLayout.setHorizontalGroup(
-            jJungPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 670, Short.MAX_VALUE)
-        );
-        jJungPanelLayout.setVerticalGroup(
-            jJungPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 463, Short.MAX_VALUE)
         );
 
         jToolBar.setFloatable(false);

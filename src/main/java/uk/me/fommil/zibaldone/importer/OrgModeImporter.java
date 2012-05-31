@@ -118,6 +118,14 @@ public class OrgModeImporter implements Importer {
 
     @Override
     public Collection<String> getPropertyNames() {
+        //return Collections.emptySet();
+        
+        // FIXME: to debug the GUI
+        return Lists.newArrayList("password", "blah", "bloo");
+    }
+
+    @Override
+    public Collection<String> getSpecialPropertyNames() {
         return Collections.singleton("filename");
     }
 

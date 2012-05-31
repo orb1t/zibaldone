@@ -46,16 +46,7 @@ public class ImporterViewForm extends javax.swing.JPanel {
         jXReloadButton = new org.jdesktop.swingx.JXButton();
         jXRemoveButton = new org.jdesktop.swingx.JXButton();
 
-        javax.swing.GroupLayout jPropertiesPanelLayout = new javax.swing.GroupLayout(jPropertiesPanel);
-        jPropertiesPanel.setLayout(jPropertiesPanelLayout);
-        jPropertiesPanelLayout.setHorizontalGroup(
-            jPropertiesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 157, Short.MAX_VALUE)
-        );
-        jPropertiesPanelLayout.setVerticalGroup(
-            jPropertiesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
+        jPropertiesPanel.setLayout(new java.awt.GridLayout(0, 2));
 
         jXReloadButton.setText("Reload");
 

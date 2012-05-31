@@ -7,9 +7,7 @@
 package uk.me.fommil.zibaldone;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * API for importing {@link Note} objects from a variety of file formats and
@@ -26,9 +24,11 @@ public interface Importer {
 
     /**
      * @return a name which identifies the instance name. It should
-     * remain the same across sessions to identify a particular import
-     * channel and not clash with other distinct instances.
+     * remain the same across sessions which have the same <i>special</i>
+     * properties.
+     * 
      * The returned string must not be longer than 24 characters.
+     * @see #getSpecialPropertyNames()
      */
     public String getInstanceName();
 
@@ -36,7 +36,7 @@ public interface Importer {
      * @return a user-friendly name for this implementation.
      */
     public String getName();
-    
+
     /**
      * @return all the {@link Note}s from the input channel.
      * Implementations should not cache this result as the caller expects
@@ -48,9 +48,30 @@ public interface Importer {
     public List<Note> getNotes() throws IOException;
 
     /**
-     * @return the names of the implementation-specific properties.
+     * Transient properties which do not have any influence on the persistent
+     * state of the instance. e.g. passwords, filter details.
+     * <p>
+     * Must not share any names in common with {@link #getSpecialPropertyNames()}.
+     * <p>
+     * Upstream should take extra precautions when dealing with properties
+     * named {@code password}.
+     * 
+     * @return the names of the implementation-specific properties, and their
+     * expected type. The ordering is a hint for user interfaces.
      */
     public Collection<String> getPropertyNames();
+
+    /**
+     * Special properties are ones which uniquely define the persistent state
+     * of the instance. e.g. filenames, usernames, URLs.
+     * <p>
+     * Upstream will provide file selection dialogs for dealing with properties
+     * named {@code filename}.
+     * 
+     * @return the names of the implementation-specific properties, and their
+     * expected type. The ordering is a hint for user interfaces.
+     */
+    public Collection<String> getSpecialPropertyNames();
 
     /**
      * @param properties to be used by the implementation.
