@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 import org.jdesktop.swingx.JXTable;
 import uk.me.fommil.beans.JavaEnder.Property;
 
@@ -57,6 +58,8 @@ public final class JavabeansEditorForm extends JPanel {
 
     /** @param args */
     public static void main(String[] args) {
+        PropertyEditorManager.registerEditor(File.class, FilePropertyEditor.class);
+
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         JavabeansEditorForm editor = new JavabeansEditorForm();
@@ -115,9 +118,109 @@ public final class JavabeansEditorForm extends JPanel {
         frame.pack();
         frame.setVisible(true);
     }
+
+    // links the table to the ender
+    private static class MyTableModel extends AbstractTableModel {
+
+        private final List<Property> properties;
+
+        public MyTableModel(List<Property> properties) {
+            this.properties = properties;
+        }
+
+        @Override
+        public void setValueAt(Object value, int rowIndex, int columnIndex) {
+            Preconditions.checkArgument(rowIndex >= 0 && rowIndex < getRowCount());
+            Preconditions.checkArgument(columnIndex >= 0 && columnIndex < getColumnCount());
+
+            properties.get(rowIndex).setValue(value);
+        }
+
+        @Override
+        public int getRowCount() {
+            return properties.size();
+        }
+
+        @Override
+        public int getColumnCount() {
+            return 2;
+        }
+
+        public Class<?> getClassAt(int rowIndex, int columnIndex) {
+            Preconditions.checkArgument(rowIndex >= 0 && rowIndex < getRowCount());
+            Preconditions.checkArgument(columnIndex >= 0 && columnIndex < getColumnCount());
+            switch (columnIndex) {
+                case 0:
+                    return String.class;
+                default:
+                    return properties.get(rowIndex).getPropertyClass();
+            }
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            Preconditions.checkArgument(rowIndex >= 0 && rowIndex < getRowCount());
+            Preconditions.checkArgument(columnIndex >= 0 && columnIndex < getColumnCount());
+            switch (columnIndex) {
+                case 0:
+                    return properties.get(rowIndex).getDisplayName();
+                default:
+                    return properties.get(rowIndex).getValue();
+            }
+        }
+
+        @Override
+        public boolean isCellEditable(int rowIndex, int columnIndex) {
+            Preconditions.checkArgument(rowIndex >= 0 && rowIndex < getRowCount());
+            if (columnIndex == 0) {
+                return false;
+            }
+            return !properties.get(rowIndex).isExpert();
+        }
+    }
     private volatile JavaEnder ender;
 
-    private final JXTable table = new JXTable();
+    // allow per-cell rendering and editing via JavaBeans
+    private final JXTable table = new JXTable() {
+
+        @Override
+        public TableCellRenderer getCellRenderer(int row, int column) {
+            Class<?> klass = getCellClass(row, column);
+            TableCellRenderer javaBeansRenderer = PropertyTableCellEditorAdapter.forClass(klass);
+            // TODO: default renderer or JavaBeans preferred?
+            if (javaBeansRenderer != null) {
+                return javaBeansRenderer;
+            }
+            TableCellRenderer defaultRenderer = getDefaultRenderer(klass);
+            if (defaultRenderer != null) {
+                return defaultRenderer;
+            }
+            log.warning("No TableCellRenderer for " + klass.getName());
+            return null;
+        }
+
+        // code repetition because of TableCell{Renderer, Editor} non-inheritance
+        @Override
+        public TableCellEditor getCellEditor(int row, int column) {
+            Class<?> klass = getCellClass(row, column);
+            TableCellEditor javaBeansRenderer = PropertyTableCellEditorAdapter.forClass(klass);
+            // TODO: default editor or JavaBeans preferred?
+            if (javaBeansRenderer != null) {
+                return javaBeansRenderer;
+            }
+            TableCellEditor defaultRenderer = getDefaultEditor(klass);
+            if (defaultRenderer != null) {
+                return defaultRenderer;
+            }
+            log.warning("No TableCellEditor for " + klass.getName());
+            return null;
+        }
+
+        private Class<?> getCellClass(int row, int col) {
+            MyTableModel model = (MyTableModel) getModel();
+            return model.getClassAt(row, col);
+        }
+    };
 
     public JavabeansEditorForm() {
         super();
@@ -130,9 +233,9 @@ public final class JavabeansEditorForm extends JPanel {
         table.setShowGrid(false);
         table.setCellSelectionEnabled(false);
 
+        // TODO: use custom editors
         // TODO: lose the little blue focus boxes
         // TODO: lose the black background on selection
-        // TODO: use custom editors
         // TODO: set icon for some rows
         // TODO: use the Highlighter to mark rows needing input
         // TODO: set custom renderer for some cells
@@ -140,51 +243,9 @@ public final class JavabeansEditorForm extends JPanel {
 
     public void refresh() {
         final List<Property> properties = ender.getProperties();
-
-        table.setModel(new AbstractTableModel() {
-            
-            @Override
-            public void setValueAt(Object value, int rowIndex, int columnIndex) {
-                Preconditions.checkArgument(rowIndex >= 0 && rowIndex < getRowCount());
-                Preconditions.checkArgument(columnIndex >= 0 && columnIndex < getColumnCount());
-
-                properties.get(rowIndex).setValue(value);
-            }
-
-            @Override
-            public int getRowCount() {
-                return properties.size();
-            }
-
-            @Override
-            public int getColumnCount() {
-                return 2;
-            }
-
-            @Override
-            public Object getValueAt(int rowIndex, int columnIndex) {
-                Preconditions.checkArgument(rowIndex >= 0 && rowIndex < getRowCount());
-                Preconditions.checkArgument(columnIndex >= 0 && columnIndex < getColumnCount());
-                switch (columnIndex) {
-                    case 0:
-                        return properties.get(rowIndex).getDisplayName();
-                    default:
-                        return properties.get(rowIndex).getValue();
-                }
-            }
-
-            @Override
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                Preconditions.checkArgument(rowIndex >= 0 && rowIndex < getRowCount());
-                if (columnIndex == 0) {
-                    return false;
-                }
-                return !properties.get(rowIndex).isExpert();
-            }
-        });
+        table.setModel(new MyTableModel(properties));
         table.getColumnModel().getColumn(1).setMinWidth(150);
         table.packAll();
-        
         invalidate();
     }
 
