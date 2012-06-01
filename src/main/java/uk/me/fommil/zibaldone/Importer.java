@@ -15,9 +15,6 @@ import java.util.*;
  * <p>
  * All implementations must have a default public constructor.
  * 
- * TODO: handle cases where the underlying resources are moved - all the instance
- * names of an Importer could be changed to reflect the new importer.
- * 
  * @author Samuel Halliday
  */
 public interface Importer {
@@ -28,7 +25,7 @@ public interface Importer {
      * properties.
      * 
      * The returned string must not be longer than 24 characters.
-     * @see #getSpecialPropertyNames()
+     * @see #getSpecialProperties()
      */
     public String getInstanceName();
 
@@ -48,33 +45,18 @@ public interface Importer {
     public List<Note> getNotes() throws IOException;
 
     /**
-     * Transient properties which do not have any influence on the persistent
-     * state of the instance. e.g. passwords, filter details.
-     * <p>
-     * Must not share any names in common with {@link #getSpecialPropertyNames()}.
-     * <p>
-     * Upstream should take extra precautions when dealing with properties
-     * named {@code password}.
+     * A JavaBean with properties that do not have any influence on the identity
+     * of the instance, e.g. passwords, filter details.
      * 
-     * @return the names of the implementation-specific properties, and their
-     * expected type. The ordering is a hint for user interfaces.
+     * @return a JavaBean
      */
-    public Collection<String> getPropertyNames();
+    public Object getOtherProperties();
 
     /**
-     * Special properties are ones which uniquely define the persistent state
-     * of the instance. e.g. filenames, usernames, URLs.
-     * <p>
-     * Upstream will provide file selection dialogs for dealing with properties
-     * named {@code filename}.
+     * A JavaBean with properties that uniquely identify the instance across
+     * sessions, e.g. filenames, usernames, URLs.
      * 
-     * @return the names of the implementation-specific properties, and their
-     * expected type. The ordering is a hint for user interfaces.
+     * @return a JavaBean
      */
-    public Collection<String> getSpecialPropertyNames();
-
-    /**
-     * @param properties to be used by the implementation.
-     */
-    public void setProperties(Properties properties);
+    public Object getSpecialProperties();
 }

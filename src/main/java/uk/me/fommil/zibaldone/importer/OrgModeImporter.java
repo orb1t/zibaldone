@@ -5,6 +5,7 @@
 package uk.me.fommil.zibaldone.importer;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Objects;
 import uk.me.fommil.zibaldone.Note;
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,7 +17,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -36,7 +36,7 @@ public class OrgModeImporter implements Importer {
 
     private static final Logger log = Logger.getLogger(OrgModeImporter.class.getName());
 
-    private volatile File file;
+    private final Special special = new Special();
 
     /**
      * @param args
@@ -45,9 +45,7 @@ public class OrgModeImporter implements Importer {
     public static void main(String[] args) throws Exception {
 
         OrgModeImporter importer = new OrgModeImporter();
-        Properties properties = new Properties();
-        properties.setProperty("filename", "../data/QT2-notes.org");
-        importer.setProperties(properties);
+        importer.getSpecialProperties().setFile(new File("../data/QT2-notes.org"));
         List<Note> notes = importer.getNotes();
 
         Reconciler reconciler = new Reconciler();
@@ -56,7 +54,7 @@ public class OrgModeImporter implements Importer {
 
     @Override
     public String getInstanceName() {
-        return getName() + ":" + file.getPath().hashCode();
+        return getName() + ":" + special.hashCode();
     }
 
     @Override
@@ -66,7 +64,7 @@ public class OrgModeImporter implements Importer {
 
     @Override
     public List<Note> getNotes() throws IOException {
-        BufferedReader reader = Files.newReader(file, Charsets.UTF_8);
+        BufferedReader reader = Files.newReader(special.getFile(), Charsets.UTF_8);
         try {
             List<Note> notes = Lists.newArrayList();
             StringBuilder rawNote = new StringBuilder();
@@ -117,22 +115,45 @@ public class OrgModeImporter implements Importer {
     }
 
     @Override
-    public Collection<String> getPropertyNames() {
-        return Collections.emptySet();
+    public Object getOtherProperties() {
+        return null;
     }
 
     @Override
-    public Collection<String> getSpecialPropertyNames() {
-        return Collections.singleton("filename");
+    public Special getSpecialProperties() {
+        return special;
     }
 
-    @Override
-    public void setProperties(Properties properties) {
-        Preconditions.checkNotNull(properties);
-        String filename = properties.getProperty("filename");
-        Preconditions.checkNotNull(filename);
+    public static class Special {
 
-        file = new File(filename);
-        Preconditions.checkArgument(file.isFile(), file);
-    }
+        private File file;
+
+        @Override
+        public boolean equals(Object obj) {
+            // <editor-fold defaultstate="collapsed" desc="boilerplate identity, instanceof and cast">
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof Special)) {
+                return false;
+            }
+            final Special other = (Special) obj;// </editor-fold>
+            return Objects.equal(file, other.file);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(file);
+        }
+
+        // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
+        public File getFile() {
+            return file;
+        }
+
+        public void setFile(File file) {
+            this.file = file;
+        }
+        // </editor-fold>
+    };
 }

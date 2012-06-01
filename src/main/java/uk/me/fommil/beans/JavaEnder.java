@@ -111,6 +111,8 @@ public class JavaEnder {
             Method method = descriptor.getReadMethod();
             try {
                 return method.invoke(bean, new Object[0]);
+            } catch (NullPointerException n) {
+                return null;
             } catch (Exception e) {
                 throw new RuntimeException(bean.getClass() + " doesn't support "
                         + method.getName() + " as a JavaBean getter", e);

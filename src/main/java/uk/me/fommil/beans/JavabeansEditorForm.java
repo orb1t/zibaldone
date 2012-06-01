@@ -8,12 +8,13 @@ package uk.me.fommil.beans;
 
 import com.google.common.base.Preconditions;
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.beans.*;
+import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellEditor;
 import org.jdesktop.swingx.JXTable;
 import uk.me.fommil.beans.JavaEnder.Property;
 
@@ -61,11 +62,31 @@ public final class JavabeansEditorForm extends JPanel {
         JavabeansEditorForm editor = new JavabeansEditorForm();
         JavaEnder ender = new JavaEnder(new Object() {
 
+            private File file;
+
+            private Boolean button = false;
+
             private String name = "test";
 
             // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
             public String getName() {
                 return name;
+            }
+
+            public File getFile() {
+                return file;
+            }
+
+            public void setFile(File file) {
+                this.file = file;
+            }
+
+            public Boolean getButton() {
+                return button;
+            }
+
+            public void setButton(Boolean button) {
+                this.button = button;
             }
 
             public void setName(String name) {
@@ -80,14 +101,14 @@ public final class JavabeansEditorForm extends JPanel {
                 log.info("Received Change: " + evt.getNewValue());
             }
         });
-        ender.addVetoableChangeListener(new VetoableChangeListener() {
-
-            @Override
-            public void vetoableChange(PropertyChangeEvent evt) throws PropertyVetoException {
-                log.info("Received VetoableChange: " + evt.getNewValue());
-                throw new PropertyVetoException("No", evt);
-            }
-        });
+//        ender.addVetoableChangeListener(new VetoableChangeListener() {
+//
+//            @Override
+//            public void vetoableChange(PropertyChangeEvent evt) throws PropertyVetoException {
+//                log.info("Received VetoableChange: " + evt.getNewValue());
+//                throw new PropertyVetoException("No", evt);
+//            }
+//        });
 
         editor.setEnder(ender);
         frame.add(editor, BorderLayout.CENTER);
@@ -100,18 +121,35 @@ public final class JavabeansEditorForm extends JPanel {
 
     public JavabeansEditorForm() {
         super();
-        setLayout(new FlowLayout());
+        setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+
+        add(table);
 
         table.setTableHeader(null);
+        table.setBackground(null);
+        table.setShowGrid(false);
+        table.setCellSelectionEnabled(false);
 
-        JScrollPane scroll = new JScrollPane(table);
-        add(scroll);
+        // TODO: lose the little blue focus boxes
+        // TODO: lose the black background on selection
+        // TODO: use custom editors
+        // TODO: set icon for some rows
+        // TODO: use the Highlighter to mark rows needing input
+        // TODO: set custom renderer for some cells
     }
 
     public void refresh() {
         final List<Property> properties = ender.getProperties();
 
         table.setModel(new AbstractTableModel() {
+            
+            @Override
+            public void setValueAt(Object value, int rowIndex, int columnIndex) {
+                Preconditions.checkArgument(rowIndex >= 0 && rowIndex < getRowCount());
+                Preconditions.checkArgument(columnIndex >= 0 && columnIndex < getColumnCount());
+
+                properties.get(rowIndex).setValue(value);
+            }
 
             @Override
             public int getRowCount() {
@@ -127,9 +165,11 @@ public final class JavabeansEditorForm extends JPanel {
             public Object getValueAt(int rowIndex, int columnIndex) {
                 Preconditions.checkArgument(rowIndex >= 0 && rowIndex < getRowCount());
                 Preconditions.checkArgument(columnIndex >= 0 && columnIndex < getColumnCount());
-                switch(columnIndex) {
-                    case 0: return properties.get(rowIndex).getName();
-                    default: return properties.get(rowIndex).getValue();
+                switch (columnIndex) {
+                    case 0:
+                        return properties.get(rowIndex).getDisplayName();
+                    default:
+                        return properties.get(rowIndex).getValue();
                 }
             }
 
@@ -142,7 +182,9 @@ public final class JavabeansEditorForm extends JPanel {
                 return !properties.get(rowIndex).isExpert();
             }
         });
-
+        table.getColumnModel().getColumn(1).setMinWidth(150);
+        table.packAll();
+        
         invalidate();
     }
 
