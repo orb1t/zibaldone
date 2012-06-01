@@ -7,7 +7,6 @@
 package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.SparseMultigraph;
@@ -129,7 +128,6 @@ public class Mainscreen extends javax.swing.JFrame {
         });
 
         jXImportersContainer.revalidate();
-        validate();
     }
 
     /**

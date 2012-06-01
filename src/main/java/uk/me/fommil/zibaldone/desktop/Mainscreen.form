@@ -22,7 +22,7 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Component id="jToolBar" pref="670" max="32767" attributes="0"/>
+          <Component id="jToolBar" pref="686" max="32767" attributes="0"/>
           <Component id="jJungPanel" alignment="0" max="32767" attributes="0"/>
           <Group type="103" rootIndex="1" groupAlignment="0" attributes="0">
               <Group type="102" alignment="1" attributes="0">
@@ -149,11 +149,6 @@
                   <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
                   <SubComponents>
                     <Container class="org.jdesktop.swingx.JXTaskPaneContainer" name="jXImportersContainer">
-                      <Properties>
-                        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                          <Color type="null"/>
-                        </Property>
-                      </Properties>
                     </Container>
                   </SubComponents>
                 </Container>

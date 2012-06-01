@@ -62,10 +62,6 @@ public class ImporterView extends JXTaskPane {
         gui = new ImporterViewForm();
         add(gui);
 
-        if (properties.size() == 0) {
-            gui.getjXReloadButton().setText("Import");
-        }
-
         if (klass == null) {
             gui.getjXReloadButton().setVisible(false);
         }
@@ -78,13 +74,7 @@ public class ImporterView extends JXTaskPane {
                     field.setEditable(false);
                     field.setForeground(Color.gray);
                 }
-                if (gui.getjXReloadButton().getText().equals("Import")) {
-                    gui.getjXReloadButton().setText("Reload");
-                }
-
                 controller.getImporterController().doImport(klass, properties);
-
-                setSpecial(false);
             }
         });
 
