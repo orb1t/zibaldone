@@ -4,24 +4,43 @@
  * Copyright Samuel Halliday 2012
  * PROPRIETARY/CONFIDENTIAL. Use is subject to licence terms.
  */
-package uk.me.fommil.beans;
+package uk.me.fommil.beans.editors;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyEditor;
 import java.beans.PropertyEditorSupport;
 import javax.swing.*;
+import org.jdesktop.swingx.JXTextField;
 
 /**
  * Allows {@link PropertyEditor}s to be written as popups (by extending this)
- * with a text field and button being provided here for convenience.
+ * with a text field (and icon) being provided here for convenience.
+ * 
+ * @author Samuel Halliday
  */
-public abstract class AbstractSwingPropertyEditor extends PropertyEditorSupport {
+public abstract class JPropertyEditor extends PropertyEditorSupport {
 
-    private final JTextField textField = new JTextField();
+    private final JXTextField textField = new JXTextField("→");
+
+    {
+        textField.setFocusable(false);
+        textField.setEditable(false);
+        textField.setBackground(null);
+        textField.addMouseListener(new MouseAdapter() {
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                showEditor();
+            }
+        });
+    }
 
     @Override
     public boolean supportsCustomEditor() {
@@ -43,31 +62,29 @@ public abstract class AbstractSwingPropertyEditor extends PropertyEditorSupport 
 
     @Override
     public Component getCustomEditor() {
-        Icon icon = getIcon();
-        JButton button;
-        if (icon == null) {
-            button = new JButton("Edit");
-        } else {
-            button = new JButton(icon);
-        }
-        button.addActionListener(action);
-
         JPanel jp = new JPanel();
         GridBagLayout gridbag = new GridBagLayout();
-        GridBagConstraints c = new GridBagConstraints();
+        GridBagConstraints c1 = new GridBagConstraints();
         jp.setLayout(gridbag);
 
-        c.weightx = 1f;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        textField.setEditable(false);
-        gridbag.setConstraints(textField, c);
+        c1.weightx = 1f;
+        c1.anchor = GridBagConstraints.WEST;
+        c1.fill = GridBagConstraints.HORIZONTAL;
+        gridbag.setConstraints(textField, c1);
         jp.add(textField);
 
-        c.weightx = 0;
-        c.anchor = GridBagConstraints.EAST;
-        c.fill = GridBagConstraints.NONE;
-        gridbag.setConstraints(button, c);
-        jp.add(button);
+        Icon icon = getIcon();
+        if (icon != null) {
+            JButton button = new JButton(icon);
+            button.addActionListener(action);
+            button.setFocusable(false);
+            GridBagConstraints c2 = new GridBagConstraints();
+            c2.weightx = 0;
+            c2.anchor = GridBagConstraints.EAST;
+            c2.fill = GridBagConstraints.NONE;
+            gridbag.setConstraints(button, c2);
+            jp.add(button);
+        }
         return jp;
     }
 

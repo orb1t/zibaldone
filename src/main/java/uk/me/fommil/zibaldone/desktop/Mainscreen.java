@@ -13,12 +13,17 @@ import edu.uci.ics.jung.graph.SparseMultigraph;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyEditorManager;
+import java.io.File;
+import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.logging.Logger;
 import javax.swing.UIManager;
 import org.jdesktop.swingx.combobox.MapComboBoxModel;
+import uk.me.fommil.beans.editors.DatePropertyEditor;
+import uk.me.fommil.beans.editors.FilePropertyEditor;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Tag;
@@ -79,25 +84,25 @@ public class Mainscreen extends javax.swing.JFrame {
             String klass = importer.getClass().getCanonicalName();
             importerImpls.put(name, klass);
         }
-        
+
         rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         UIManager.put("JxTaskPaneContainer.useGradient", Boolean.TRUE);
         UIManager.put("JxTaskPaneContainer.backgroundGradientStart", Color.green.darker());
         UIManager.put("JxTaskPaneContainer.backgroundGradientEnd", Color.green.darker().darker());
-        
+
         initComponents();
         jSettingsPanel.setVisible(false);
-        
-        MapComboBoxModel<String, String> importerChoices = new MapComboBoxModel<String,String>(importerImpls);
+
+        MapComboBoxModel<String, String> importerChoices = new MapComboBoxModel<String, String>(importerImpls);
         jImporterSelectorComboBox.setModel(importerChoices);
-        
+
         ListMultimap<String, Properties> importers = controller.getSettings().getImporters();
         for (String klassName : importers.keySet()) {
             for (Properties properties : importers.get(klassName)) {
                 addImporterView(klassName, properties);
             }
         }
-        
+
         // TODO: add the 'null' importer
 
         // TODO: animated settings panel
@@ -311,6 +316,9 @@ public class Mainscreen extends javax.swing.JFrame {
 
     /** @param args */
     public static void main(String args[]) {
+        PropertyEditorManager.registerEditor(File.class, FilePropertyEditor.class);
+        PropertyEditorManager.registerEditor(Date.class, DatePropertyEditor.class);
+
         java.awt.EventQueue.invokeLater(new Runnable() {
 
             @Override

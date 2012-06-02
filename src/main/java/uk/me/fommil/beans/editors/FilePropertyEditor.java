@@ -4,7 +4,7 @@
  * Copyright Samuel Halliday 2012
  * PROPRIETARY/CONFIDENTIAL. Use is subject to licence terms.
  */
-package uk.me.fommil.beans;
+package uk.me.fommil.beans.editors;
 
 import java.io.File;
 import java.util.logging.Logger;
@@ -15,10 +15,14 @@ import javax.swing.JFileChooser;
  *
  * @author Samuel Halliday
  */
-public class FilePropertyEditor extends AbstractSwingPropertyEditor {
+public class FilePropertyEditor extends JPropertyEditor {
 
     private static final Logger log = Logger.getLogger(FilePropertyEditor.class.getName());
 
+    public FilePropertyEditor() {
+        super();
+    }
+    
     @Override
     public void showEditor() {
         JFileChooser chooser = new JFileChooser();

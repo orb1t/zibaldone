@@ -18,8 +18,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
 /**
- * Adapts a {@link PropertyEditor} into a {@link TableCellEditor}
- * and {@link TableCellRenderer}.
+ * Adapts a {@link PropertyEditor} into {@link TableCellEditor} and {@link TableCellRenderer}.
  * 
  * @author Samuel Halliday
  */

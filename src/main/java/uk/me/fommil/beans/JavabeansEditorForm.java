@@ -6,18 +6,23 @@
  */
 package uk.me.fommil.beans;
 
+import uk.me.fommil.beans.editors.FilePropertyEditor;
 import com.google.common.base.Preconditions;
-import java.awt.BorderLayout;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import java.awt.*;
 import java.beans.*;
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
+import javax.swing.table.*;
+import org.jdesktop.swingx.JXImagePanel;
 import org.jdesktop.swingx.JXTable;
 import uk.me.fommil.beans.JavaEnder.Property;
+import uk.me.fommil.beans.editors.DatePropertyEditor;
 
 /**
  * An automatically-generated Swing Form for editing arbitrary objects
@@ -43,11 +48,15 @@ import uk.me.fommil.beans.JavaEnder.Property;
  * <li>{@link PropertyDescriptor#isExpert()} will produce a read-only entry
  * (a useful interpretation of a vague API).</li>
  * </ul>
- * TODO: Convenience methods are provided to make it easy to use these features.
- * <p>
  * This is not capable of detecting changes made to the
  * underlying bean by others, so a call to {@link #refresh()} is recommended
  * if changes are made.
+ * <ul> 
+ * <li>TODO: white text background for default text editor</li>
+ * <li>TODO: lose the black background on selection</li>
+ * <li>TODO: use the Highlighter to mark rows needing input</li>
+ * <li>TODO: Convenience methods are provided to make it easy to use the features.</li>
+ * </ul>
  * 
  * @see <a href="http://stackoverflow.com/questions/10840078">Question on Stack Overflow</a>
  * @author Samuel Halliday
@@ -59,6 +68,7 @@ public final class JavabeansEditorForm extends JPanel {
     /** @param args */
     public static void main(String[] args) {
         PropertyEditorManager.registerEditor(File.class, FilePropertyEditor.class);
+        PropertyEditorManager.registerEditor(Date.class, DatePropertyEditor.class);
 
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -69,11 +79,22 @@ public final class JavabeansEditorForm extends JPanel {
 
             private Boolean button = false;
 
-            private String name = "test";
+            private String name = "text";
+
+//            private Color colour;
+            private Date date;
 
             // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
             public String getName() {
                 return name;
+            }
+
+            public Date getDate() {
+                return date;
+            }
+
+            public void setDate(Date date) {
+                this.date = date;
             }
 
             public File getFile() {
@@ -96,6 +117,16 @@ public final class JavabeansEditorForm extends JPanel {
                 this.name = name;
             }
             // </editor-fold>
+        }, new SimpleBeanInfo() {
+//            @Override
+//            public Image getIcon(int iconKind) {
+//                String logo = "http://docs.oracle.com/javase/6/docs/technotes/guides/deployment/deployment-guide/upgrade-guide/images/java_logo.gif";
+//                try {
+//                    return ImageIO.read(new URL(logo));
+//                } catch (IOException ex) {
+//                }
+//                return null;
+//            }
         });
         ender.addPropertyChangeListener(new PropertyChangeListener() {
 
@@ -115,9 +146,11 @@ public final class JavabeansEditorForm extends JPanel {
 
         editor.setEnder(ender);
         frame.add(editor, BorderLayout.CENTER);
+        frame.setSize(600, 400);
         frame.pack();
         frame.setVisible(true);
     }
+    private final JXImagePanel logo;
 
     // links the table to the ender
     private static class MyTableModel extends AbstractTableModel {
@@ -129,11 +162,11 @@ public final class JavabeansEditorForm extends JPanel {
         }
 
         @Override
-        public void setValueAt(Object value, int rowIndex, int columnIndex) {
-            Preconditions.checkArgument(rowIndex >= 0 && rowIndex < getRowCount());
-            Preconditions.checkArgument(columnIndex >= 0 && columnIndex < getColumnCount());
+        public void setValueAt(Object value, int row, int col) {
+            Preconditions.checkArgument(row >= 0 && row < getRowCount());
+            Preconditions.checkArgument(col >= 0 && col < getColumnCount());
 
-            properties.get(rowIndex).setValue(value);
+            properties.get(row).setValue(value);
         }
 
         @Override
@@ -146,36 +179,56 @@ public final class JavabeansEditorForm extends JPanel {
             return 2;
         }
 
-        public Class<?> getClassAt(int rowIndex, int columnIndex) {
-            Preconditions.checkArgument(rowIndex >= 0 && rowIndex < getRowCount());
-            Preconditions.checkArgument(columnIndex >= 0 && columnIndex < getColumnCount());
-            switch (columnIndex) {
+        public Class<?> getClassAt(int row, int col) {
+            Preconditions.checkArgument(row >= 0 && row < getRowCount());
+            Preconditions.checkArgument(col >= 0 && col < getColumnCount());
+            switch (col) {
                 case 0:
                     return String.class;
                 default:
-                    return properties.get(rowIndex).getPropertyClass();
+                    return properties.get(row).getPropertyClass();
             }
         }
 
         @Override
-        public Object getValueAt(int rowIndex, int columnIndex) {
-            Preconditions.checkArgument(rowIndex >= 0 && rowIndex < getRowCount());
-            Preconditions.checkArgument(columnIndex >= 0 && columnIndex < getColumnCount());
-            switch (columnIndex) {
+        public Object getValueAt(int row, int col) {
+            Preconditions.checkArgument(row >= 0 && row < getRowCount());
+            Preconditions.checkArgument(col >= 0 && col < getColumnCount());
+            switch (col) {
                 case 0:
-                    return properties.get(rowIndex).getDisplayName();
+                    return properties.get(row).getDisplayName();
                 default:
-                    return properties.get(rowIndex).getValue();
+                    return properties.get(row).getValue();
             }
         }
 
         @Override
-        public boolean isCellEditable(int rowIndex, int columnIndex) {
-            Preconditions.checkArgument(rowIndex >= 0 && rowIndex < getRowCount());
-            if (columnIndex == 0) {
+        public boolean isCellEditable(int row, int col) {
+            Preconditions.checkArgument(row >= 0 && row < getRowCount());
+            if (col == 0) {
                 return false;
             }
-            return !properties.get(rowIndex).isExpert();
+            return !properties.get(row).isExpert();
+        }
+
+        @Override
+        public String getColumnName(int col) {
+            Preconditions.checkArgument(col >= 0 && col < getColumnCount());
+            switch (col) {
+                case 0:
+                    return "names";
+                default:
+                    return "values";
+            }
+        }
+
+        public boolean isReadOnly(int row, int col) {
+            switch (col) {
+                case 0:
+                    return true;
+                default:
+                    return properties.get(row).isExpert();
+            }
         }
     }
     private volatile JavaEnder ender;
@@ -185,13 +238,31 @@ public final class JavabeansEditorForm extends JPanel {
 
         @Override
         public TableCellRenderer getCellRenderer(int row, int column) {
-            Class<?> klass = getCellClass(row, column);
+            if (column == 0) {
+                DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
+                renderer.setHorizontalAlignment(JLabel.RIGHT);
+                return renderer;
+                //                TableCellRenderer renderer = getDefaultRenderer(String.class);
+                //                log.info(renderer.getClass().toString());
+                //                if (renderer instanceof DefaultTableCellRenderer) {
+                //                    ((DefaultTableCellRenderer)renderer).setHorizontalAlignment(JLabel.RIGHT);
+                //                }
+                //                if (renderer instanceof DefaultTableRenderer) {
+                //                    // TODO: how to set right aligned text for SwingX renderer?
+                //                }
+                //                return renderer;
+            }
+
+            MyTableModel model = (MyTableModel) getModel();
+            Class<?> klass = model.getClassAt(row, column);
             TableCellRenderer javaBeansRenderer = PropertyTableCellEditorAdapter.forClass(klass);
-            // TODO: default renderer or JavaBeans preferred?
+            TableCellRenderer defaultRenderer = getDefaultRenderer(klass);
+//            if (klass.equals(String.class)) {
+//                return defaultRenderer;
+//            }
             if (javaBeansRenderer != null) {
                 return javaBeansRenderer;
             }
-            TableCellRenderer defaultRenderer = getDefaultRenderer(klass);
             if (defaultRenderer != null) {
                 return defaultRenderer;
             }
@@ -202,29 +273,37 @@ public final class JavabeansEditorForm extends JPanel {
         // code repetition because of TableCell{Renderer, Editor} non-inheritance
         @Override
         public TableCellEditor getCellEditor(int row, int column) {
-            Class<?> klass = getCellClass(row, column);
+            MyTableModel model = (MyTableModel) getModel();
+            if (model.isReadOnly(row, column)) {
+                return null;
+            }
+
+            Class<?> klass = model.getClassAt(row, column);
             TableCellEditor javaBeansRenderer = PropertyTableCellEditorAdapter.forClass(klass);
-            // TODO: default editor or JavaBeans preferred?
+            TableCellEditor defaultRenderer = getDefaultEditor(klass);
+            if (klass.equals(String.class)) {
+                return defaultRenderer;
+            }
             if (javaBeansRenderer != null) {
                 return javaBeansRenderer;
             }
-            TableCellEditor defaultRenderer = getDefaultEditor(klass);
             if (defaultRenderer != null) {
                 return defaultRenderer;
             }
             log.warning("No TableCellEditor for " + klass.getName());
             return null;
         }
-
-        private Class<?> getCellClass(int row, int col) {
-            MyTableModel model = (MyTableModel) getModel();
-            return model.getClassAt(row, col);
-        }
     };
 
     public JavabeansEditorForm() {
         super();
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+
+        JPanel top = new JPanel(new BorderLayout());
+        logo = new JXImagePanel();
+        logo.setSize(0, 0);
+        top.add(logo, BorderLayout.LINE_START);
+        add(top);
 
         add(table);
 
@@ -233,20 +312,56 @@ public final class JavabeansEditorForm extends JPanel {
         table.setShowGrid(false);
         table.setCellSelectionEnabled(false);
 
-        // TODO: use custom editors
-        // TODO: lose the little blue focus boxes
-        // TODO: lose the black background on selection
-        // TODO: set icon for some rows
-        // TODO: use the Highlighter to mark rows needing input
-        // TODO: set custom renderer for some cells
+        Dimension d = table.getIntercellSpacing();
+        int gapWidth = 10;
+        int gapHeight = 10;
+        table.setIntercellSpacing(new Dimension(gapWidth, gapHeight));
+        table.setRowHeight(table.getRowHeight() + gapHeight + 10);
+
+        table.setFocusable(false);
     }
 
     public void refresh() {
-        final List<Property> properties = ender.getProperties();
+        Image icon = ender.getIcon(BeanInfo.ICON_COLOR_32x32);
+        logo.setImage(icon);
+        if (icon == null) {
+            logo.setMinimumSize(new Dimension(0, 0));
+        } else {
+            int width = icon.getWidth(null);
+            int height = icon.getHeight(null);
+            logo.setMinimumSize(new Dimension(width, height));
+        }
+
+        final List<Property> properties = Lists.newArrayList(Iterables.filter(ender.getProperties(), new Predicate<Property>() {
+
+            @Override
+            public boolean apply(Property input) {
+                return !input.isHidden();
+            }
+        }));
         table.setModel(new MyTableModel(properties));
-        table.getColumnModel().getColumn(1).setMinWidth(150);
-        table.packAll();
+        TableColumn names = table.getColumnModel().getColumn(0);
+        int preferred = resetColumnWidths(0);
+        table.getColumn("names").setMaxWidth(preferred);
+        resetColumnWidths(1);
+
         invalidate();
+    }
+
+    private int resetColumnWidths(int column) {
+        int min = Integer.MAX_VALUE;
+        int max = 0;
+        for (int i = 0; i < table.getRowCount(); i++) {
+            int width = (int) table.getCellRect(i, column, true).getWidth();
+            if (width < min) {
+                min = width;
+            }
+            if (width > max) {
+                max = width;
+            }
+        }
+        table.getColumnModel().getColumn(column).setMinWidth(max);
+        return max;
     }
 
     /**

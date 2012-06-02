@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
+import javax.swing.Icon;
 
 /**
  * Abstracts the JavaBeans API providing sensible actions and accessors.
@@ -139,7 +140,7 @@ public class JavaEnder {
                         + method.getName() + " as a JavaBean setter", e);
             }
         }
-
+        
         // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
         public String getShortDescription() {
             return descriptor.getShortDescription();
