@@ -22,7 +22,7 @@ import javax.swing.table.TableCellRenderer;
  * 
  * @author Samuel Halliday
  */
-public class PropertyTableCellEditorAdapter extends AbstractCellEditor implements TableCellEditor, TableCellRenderer {
+public class PropertyEditorTableAdapter extends AbstractCellEditor implements TableCellEditor, TableCellRenderer {
 
     private final PropertyEditor editor;
 
@@ -30,18 +30,18 @@ public class PropertyTableCellEditorAdapter extends AbstractCellEditor implement
      * @param klass
      * @return
      */
-    public static PropertyTableCellEditorAdapter forClass(Class<?> klass) {
+    public static PropertyEditorTableAdapter forClass(Class<?> klass) {
         PropertyEditor editor = PropertyEditorManager.findEditor(klass);
         if (editor == null || !editor.supportsCustomEditor()) {
             return null;
         }
-        return new PropertyTableCellEditorAdapter(editor);
+        return new PropertyEditorTableAdapter(editor);
     }
 
     /**
      * @param editor
      */
-    public PropertyTableCellEditorAdapter(PropertyEditor editor) {
+    public PropertyEditorTableAdapter(PropertyEditor editor) {
         super();
         Preconditions.checkNotNull(editor);
         this.editor = editor;

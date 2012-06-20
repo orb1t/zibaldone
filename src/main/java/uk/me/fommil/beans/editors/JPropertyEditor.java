@@ -6,7 +6,6 @@
  */
 package uk.me.fommil.beans.editors;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -21,7 +20,7 @@ import org.jdesktop.swingx.JXTextField;
 
 /**
  * Allows {@link PropertyEditor}s to be written as popups (by extending this)
- * with a text field (and icon) being provided here for convenience.
+ * with a text field and icon as placeholder.
  * 
  * @author Samuel Halliday
  */
@@ -29,7 +28,8 @@ public abstract class JPropertyEditor extends PropertyEditorSupport {
 
     private final JXTextField textField = new JXTextField("→");
 
-    {
+    public JPropertyEditor() {
+        super();
         textField.setFocusable(false);
         textField.setEditable(false);
         textField.setBackground(null);
@@ -46,6 +46,7 @@ public abstract class JPropertyEditor extends PropertyEditorSupport {
     public boolean supportsCustomEditor() {
         return true;
     }
+
     private final ActionListener action = new ActionListener() {
 
         @Override
@@ -74,17 +75,20 @@ public abstract class JPropertyEditor extends PropertyEditorSupport {
         jp.add(textField);
 
         Icon icon = getIcon();
+        JButton button;
         if (icon != null) {
-            JButton button = new JButton(icon);
-            button.addActionListener(action);
-            button.setFocusable(false);
-            GridBagConstraints c2 = new GridBagConstraints();
-            c2.weightx = 0;
-            c2.anchor = GridBagConstraints.EAST;
-            c2.fill = GridBagConstraints.NONE;
-            gridbag.setConstraints(button, c2);
-            jp.add(button);
+            button = new JButton(icon);
+        } else {
+            button = new JButton("edit");
         }
+        button.addActionListener(action);
+        button.setFocusable(false);
+        GridBagConstraints c2 = new GridBagConstraints();
+        c2.weightx = 0;
+        c2.anchor = GridBagConstraints.EAST;
+        c2.fill = GridBagConstraints.NONE;
+        gridbag.setConstraints(button, c2);
+        jp.add(button);
         return jp;
     }
 

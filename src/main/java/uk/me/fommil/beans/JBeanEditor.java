@@ -21,36 +21,34 @@ import javax.swing.*;
 import javax.swing.table.*;
 import org.jdesktop.swingx.JXImagePanel;
 import org.jdesktop.swingx.JXTable;
-import uk.me.fommil.beans.JavaEnder.Property;
+import uk.me.fommil.beans.BeanHelper.Property;
 import uk.me.fommil.beans.editors.DatePropertyEditor;
 
 /**
  * An automatically-generated Swing Form for editing arbitrary objects
- * matching the JavaBeans get/set pattern.
- * Unless documented here, the JavaBeans API and surrounding ecosystem is ignored.
+ * matching the JavaBeans get/set pattern (properties) and optionally providing
+ * a {@link BeanInfo}.
  * <p>
- * This class was created in order to provide a light-weight,
- * framework-independent, simple editor to do a lot of boilerplate work in
- * GUI design. Existing implementations require the installation of huge
- * frameworks or commercial licences.
+ * This class was created in order to provide a light-weight editor to do a lot
+ * of boilerplate work in GUI design. Existing solutions require huge frameworks
+ * and are not intuitive to users.
  * <p>
- * Editing of properties is supported at runtime through the global provision of
- * a suitable {@link PropertyEditor} to the {@link PropertyEditorManager}, or
- * for a specific property by setting the value to be returned by
- * {@link PropertyDescriptor#createPropertyEditor(Object)} from the
+ * Editing of Javabean properties is supported at runtime through the programmatic
+ * provision of a suitable {@link PropertyEditor} to the {@link PropertyEditorManager},
+ * or - for a specific property - by setting the value to be returned by
+ * {@link PropertyDescriptor#createPropertyEditor(Object)} in the
  * {@link BeanInfo}.
  * <p>
- * If the JavaBean implements {@link BeanInfo}, or one is provided
- * through {@link #setEnder(JavaEnder)}, then it will be used for the following:
+ * The {@link BeanInfo} is used for the following:
  * <ul>
- * <li>{@link BeanInfo#getIcon(int)} is used, if available.</li>
+ * <li>{@link BeanInfo#getIcon(int)} is displayed, if available.</li>
  * <li>{@link PropertyDescriptor#isHidden()} is respected.</li>
  * <li>{@link PropertyDescriptor#isExpert()} will produce a read-only entry
  * (a useful interpretation of a vague API).</li>
  * </ul>
  * This is not capable of detecting changes made to the
- * underlying bean by others, so a call to {@link #refresh()} is recommended
- * if changes are made.
+ * underlying bean by means other than the {@link BeanHelper} API,
+ * in which case a call to {@link #refresh()} is recommended.
  * <ul> 
  * <li>TODO: white text background for default text editor</li>
  * <li>TODO: lose the black background on selection</li>
@@ -61,9 +59,9 @@ import uk.me.fommil.beans.editors.DatePropertyEditor;
  * @see <a href="http://stackoverflow.com/questions/10840078">Question on Stack Overflow</a>
  * @author Samuel Halliday
  */
-public final class JavabeansEditorForm extends JPanel {
+public final class JBeanEditor extends JPanel {
 
-    private static final Logger log = Logger.getLogger(JavabeansEditorForm.class.getName());
+    private static final Logger log = Logger.getLogger(JBeanEditor.class.getName());
 
     /** @param args */
     public static void main(String[] args) {
@@ -72,8 +70,8 @@ public final class JavabeansEditorForm extends JPanel {
 
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        JavabeansEditorForm editor = new JavabeansEditorForm();
-        JavaEnder ender = new JavaEnder(new Object() {
+        JBeanEditor editor = new JBeanEditor();
+        BeanHelper ender = new BeanHelper(new Object() {
 
             private File file;
 
@@ -144,12 +142,13 @@ public final class JavabeansEditorForm extends JPanel {
 //            }
 //        });
 
-        editor.setEnder(ender);
+        editor.setBeanHelper(ender);
         frame.add(editor, BorderLayout.CENTER);
         frame.setSize(600, 400);
         frame.pack();
         frame.setVisible(true);
     }
+
     private final JXImagePanel logo;
 
     // links the table to the ender
@@ -231,7 +230,8 @@ public final class JavabeansEditorForm extends JPanel {
             }
         }
     }
-    private volatile JavaEnder ender;
+
+    private volatile BeanHelper beanHelper;
 
     // allow per-cell rendering and editing via JavaBeans
     private final JXTable table = new JXTable() {
@@ -255,7 +255,7 @@ public final class JavabeansEditorForm extends JPanel {
 
             MyTableModel model = (MyTableModel) getModel();
             Class<?> klass = model.getClassAt(row, column);
-            TableCellRenderer javaBeansRenderer = PropertyTableCellEditorAdapter.forClass(klass);
+            TableCellRenderer javaBeansRenderer = PropertyEditorTableAdapter.forClass(klass);
             TableCellRenderer defaultRenderer = getDefaultRenderer(klass);
 //            if (klass.equals(String.class)) {
 //                return defaultRenderer;
@@ -279,7 +279,7 @@ public final class JavabeansEditorForm extends JPanel {
             }
 
             Class<?> klass = model.getClassAt(row, column);
-            TableCellEditor javaBeansRenderer = PropertyTableCellEditorAdapter.forClass(klass);
+            TableCellEditor javaBeansRenderer = PropertyEditorTableAdapter.forClass(klass);
             TableCellEditor defaultRenderer = getDefaultEditor(klass);
             if (klass.equals(String.class)) {
                 return defaultRenderer;
@@ -295,7 +295,7 @@ public final class JavabeansEditorForm extends JPanel {
         }
     };
 
-    public JavabeansEditorForm() {
+    public JBeanEditor() {
         super();
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
@@ -322,7 +322,7 @@ public final class JavabeansEditorForm extends JPanel {
     }
 
     public void refresh() {
-        Image icon = ender.getIcon(BeanInfo.ICON_COLOR_32x32);
+        Image icon = beanHelper.getIcon(BeanInfo.ICON_COLOR_32x32);
         logo.setImage(icon);
         if (icon == null) {
             logo.setMinimumSize(new Dimension(0, 0));
@@ -332,7 +332,7 @@ public final class JavabeansEditorForm extends JPanel {
             logo.setMinimumSize(new Dimension(width, height));
         }
 
-        final List<Property> properties = Lists.newArrayList(Iterables.filter(ender.getProperties(), new Predicate<Property>() {
+        final List<Property> properties = Lists.newArrayList(Iterables.filter(beanHelper.getProperties(), new Predicate<Property>() {
 
             @Override
             public boolean apply(Property input) {
@@ -369,15 +369,19 @@ public final class JavabeansEditorForm extends JPanel {
      */
     public void setBean(Object bean) {
         Preconditions.checkNotNull(bean);
-        setEnder(new JavaEnder(bean));
+        setBeanHelper(new BeanHelper(bean));
     }
 
     /**
-     * @param ender
+     * @param beanHelper
      */
-    public void setEnder(JavaEnder ender) {
-        Preconditions.checkNotNull(ender);
-        this.ender = ender;
+    public void setBeanHelper(BeanHelper beanHelper) {
+        Preconditions.checkNotNull(beanHelper);
+        this.beanHelper = beanHelper;
         refresh();
+    }
+
+    public BeanHelper getBeanHelper() {
+        return beanHelper;
     }
 }

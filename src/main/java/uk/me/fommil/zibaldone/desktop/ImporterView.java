@@ -16,7 +16,8 @@ import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import javax.swing.JTextField;
 import org.jdesktop.swingx.JXTaskPane;
-import uk.me.fommil.beans.JavabeansEditorForm;
+import uk.me.fommil.beans.BeanHelper;
+import uk.me.fommil.beans.JBeanEditor;
 import uk.me.fommil.zibaldone.Importer;
 
 /**
@@ -54,12 +55,12 @@ public class ImporterView extends JXTaskPane {
         final Importer instance = klass.newInstance();
         setTitle(instance.getName());
 
-        JavabeansEditorForm specialEditor = new JavabeansEditorForm();
+        JBeanEditor specialEditor = new JBeanEditor();
         specialEditor.setBean(instance.getSpecialProperties());
-        
+
         gui = new ImporterViewForm();
         gui.getjPropertiesPanel().add(specialEditor);
-        
+
         add(gui);
 
         if (klass == null) {
@@ -77,7 +78,7 @@ public class ImporterView extends JXTaskPane {
                 controller.getImporterController().doImport(klass, properties);
             }
         });
-        
+
     }
 
     // bit of a hack to remove oneself from a container

@@ -7,22 +7,15 @@
 package uk.me.fommil.beans.editors;
 
 import java.io.File;
-import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 
 /**
- * PropertyEditor that brings up a JFileChooser panel to select a File.
+ * {@link PropertyEditor} that brings up a {@link JFileChooser}.
  *
  * @author Samuel Halliday
  */
 public class FilePropertyEditor extends JPropertyEditor {
 
-    private static final Logger log = Logger.getLogger(FilePropertyEditor.class.getName());
-
-    public FilePropertyEditor() {
-        super();
-    }
-    
     @Override
     public void showEditor() {
         JFileChooser chooser = new JFileChooser();

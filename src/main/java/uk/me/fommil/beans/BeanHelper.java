@@ -10,6 +10,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import java.awt.Image;
 import java.beans.*;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
@@ -17,14 +18,15 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
-import javax.swing.Icon;
 
 /**
  * Abstracts the JavaBeans API providing sensible actions and accessors.
  * Unless documented here, the JavaBeans API and surrounding ecosystem is
  * ignored.
  * <p>
- * In addition, the following listeners are managed:
+ * The following listeners are kept informed of changes made via the
+ * {@link Property} methods, but (unless manually managed) they will not
+ * be informed of changes through other means:
  * <ul>
  * <li>{@link PropertyChangeListener}s - added via
  * {@link #addPropertyChangeListener(PropertyChangeListener)}
@@ -33,16 +35,13 @@ import javax.swing.Icon;
  * {@link #addVetoableChangeListener(VetoableChangeListener)}
  * - are informed prior to any change made here to the JavaBean's properties.</li>
  * </ul>
- * TODO: check what happens if the BeanInfo provides
- * {@link VetoableChangeListener}s or {@link PropertyChangeListener}s. We might
- * want to look at better support for this.
+ * Any other listeners are the business of the bean itself.
  * 
  * @author Samuel Halliday
- * @see <a href="http://en.wikipedia.org/wiki/Bean_(Ender's_Game)">Bean and Ender</a>
  */
-public class JavaEnder {
+public class BeanHelper {
 
-    private static final Logger log = Logger.getLogger(JavaEnder.class.getName());
+    private static final Logger log = Logger.getLogger(BeanHelper.class.getName());
 
     private final Object bean;
 
@@ -53,33 +52,67 @@ public class JavaEnder {
     private final VetoableChangeSupport vetoListeners;
 
     /**
+     * Attempts to obtain a {@link BeanInfo} for the given bean by
+     * instantiating a class of the same name with {@code BeanInfo} appended
+     * to the end.
+     *
+     * @param bean
+     * @return {@code null} if no suitable BeanInfo was found
+     */
+    static public BeanInfo loadBeanInfo(Object bean) {
+        Preconditions.checkNotNull(bean);
+
+        String canonical = bean.getClass().getCanonicalName();
+        if (canonical == null) {
+            return null;
+        }
+        String testName = canonical + "BeanInfo";
+        try {
+            Class<?> klass = Class.forName(testName);
+            if (!klass.isInstance(BeanInfo.class)) {
+                throw new ClassCastException(testName + " not a BeanInfo");
+            }
+            Constructor<?> constructor = klass.getConstructor(new Class<?>[0]);
+            return (BeanInfo) constructor.newInstance(new Object[0]);
+        } catch (ClassNotFoundException ex) {
+        } catch (Exception e) {
+            log.log(Level.INFO, "Reflection problems with " + testName, e);
+        }
+        return null;
+    }
+
+    /**
+     * Creates the helper by using {@link #loadBeanInfo(Object)} to find any
+     * {@link BeanInfo}s, then delegating to {@link #BeanHelper(Object, BeanInfo)}.
+     * 
      * @param bean
      */
-    public JavaEnder(Object bean) {
-        this(bean, null);
+    public BeanHelper(Object bean) {
+        this(bean, loadBeanInfo(bean));
     }
 
     /**
      * @param bean
-     * @param delegate if {@code null} then check if the bean implements
-     * {@link BeanInfo}, otherwise use a {@link SimpleBeanInfo}.
+     * @param beaninfo if {@code null} then creates a {@link SimpleBeanInfo}.
      */
-    public JavaEnder(Object bean, @Nullable BeanInfo delegate) {
+    public BeanHelper(Object bean, @Nullable BeanInfo beaninfo) {
         Preconditions.checkNotNull(bean);
         this.bean = bean;
-        if (delegate != null) {
-            this.beaninfo = delegate;
+        if (beaninfo != null) {
+            this.beaninfo = beaninfo;
         } else {
-            if (bean instanceof BeanInfo) {
-                beaninfo = (BeanInfo) bean;
-            } else {
-                this.beaninfo = new SimpleBeanInfo();
-            }
+            this.beaninfo = new SimpleBeanInfo();
         }
         this.propListeners = new PropertyChangeSupport(bean);
         this.vetoListeners = new VetoableChangeSupport(bean);
     }
 
+    /**
+     * @param iconKind one of
+     * {@link BeanInfo#ICON_MONO_16x16}, {@link BeanInfo#ICON_MONO_32x32},
+     * {@link BeanInfo#ICON_COLOR_16x16}, {@link BeanInfo#ICON_COLOR_32x32}
+     * @return
+     */
     public Image getIcon(int iconKind) {
         return beaninfo.getIcon(iconKind);
     }
@@ -140,7 +173,7 @@ public class JavaEnder {
                         + method.getName() + " as a JavaBean setter", e);
             }
         }
-        
+
         // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
         public String getShortDescription() {
             return descriptor.getShortDescription();

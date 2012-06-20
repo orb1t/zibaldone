@@ -9,6 +9,7 @@ package uk.me.fommil.beans.editors;
 import java.awt.MouseInfo;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyEditor;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,15 +17,13 @@ import javax.swing.JDialog;
 import org.jdesktop.swingx.JXMonthView;
 
 /**
+ * {@link PropertyEditor} that brings up a {@link JXMonthView}.
+ * 
  * @author Samuel Halliday
  */
 public class DatePropertyEditor extends JPropertyEditor {
 
     private final DateFormat format = new SimpleDateFormat("dd/MM/yyyy");
-
-    public DatePropertyEditor() {
-        super();
-    }
 
     @Override
     public void showEditor() {
