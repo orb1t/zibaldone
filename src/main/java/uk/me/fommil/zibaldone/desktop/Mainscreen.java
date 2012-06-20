@@ -143,6 +143,12 @@ public class Mainscreen extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jToolBar = new javax.swing.JToolBar();
+        jSearch = new org.jdesktop.swingx.JXSearchField();
+        jCloudButton = new javax.swing.JToggleButton();
+        jButtonClusters = new javax.swing.JToggleButton();
+        jSeparator1 = new javax.swing.JToolBar.Separator();
+        jButtonSources = new javax.swing.JToggleButton();
         jJungPanel = new uk.me.fommil.zibaldone.desktop.JungGraphView(graph, controller);
         jSettingsPanel = new javax.swing.JPanel();
         jSettingsTabs = new javax.swing.JTabbedPane();
@@ -154,25 +160,44 @@ public class Mainscreen extends javax.swing.JFrame {
         jXImportersContainer = new org.jdesktop.swingx.JXTaskPaneContainer();
         jSynonymsPanel = new javax.swing.JPanel();
         jAdvancedPanel = new javax.swing.JPanel();
-        jToolBar = new javax.swing.JToolBar();
-        jSearch = new org.jdesktop.swingx.JXSearchField();
-        jCloudButton = new javax.swing.JToggleButton();
-        jButtonClusters = new javax.swing.JToggleButton();
-        jSeparator1 = new javax.swing.JToolBar.Separator();
-        jButtonSources = new javax.swing.JToggleButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Zibaldone");
+
+        jToolBar.setFloatable(false);
+        jToolBar.setRollover(true);
+        jToolBar.setBorderPainted(false);
+        jToolBar.add(jSearch);
+
+        jCloudButton.setText("Tags");
+        jToolBar.add(jCloudButton);
+
+        jButtonClusters.setText("Clusters");
+        jToolBar.add(jButtonClusters);
+        jToolBar.add(jSeparator1);
+
+        jButtonSources.setText("Settings");
+        jButtonSources.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                jButtonSourcesStateChanged(evt);
+            }
+        });
+        jToolBar.add(jButtonSources);
+
+        getContentPane().add(jToolBar, java.awt.BorderLayout.PAGE_START);
 
         javax.swing.GroupLayout jJungPanelLayout = new javax.swing.GroupLayout(jJungPanel);
         jJungPanel.setLayout(jJungPanelLayout);
         jJungPanelLayout.setHorizontalGroup(
             jJungPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 670, Short.MAX_VALUE)
+            .addGap(0, 607, Short.MAX_VALUE)
         );
         jJungPanelLayout.setVerticalGroup(
             jJungPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 463, Short.MAX_VALUE)
+            .addGap(0, 394, Short.MAX_VALUE)
         );
+
+        getContentPane().add(jJungPanel, java.awt.BorderLayout.CENTER);
 
         jAddImporterButton.setText("+");
         jAddImporterButton.addActionListener(new java.awt.event.ActionListener() {
@@ -184,7 +209,6 @@ public class Mainscreen extends javax.swing.JFrame {
         jReloadImportersButton.setText("Reload All");
         jReloadImportersButton.setFocusable(false);
 
-        jXImportersContainer.setBackground(null);
         jImporterScrollPane.setViewportView(jXImportersContainer);
 
         javax.swing.GroupLayout jImportersPanelLayout = new javax.swing.GroupLayout(jImportersPanel);
@@ -195,7 +219,7 @@ public class Mainscreen extends javax.swing.JFrame {
                 .addComponent(jAddImporterButton, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jImporterSelectorComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 122, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 251, Short.MAX_VALUE)
                 .addComponent(jReloadImportersButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addGroup(jImportersPanelLayout.createSequentialGroup()
                 .addContainerGap()
@@ -206,7 +230,7 @@ public class Mainscreen extends javax.swing.JFrame {
             jImportersPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jImportersPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jImporterScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)
+                .addComponent(jImporterScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 44, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jImportersPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jAddImporterButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -220,11 +244,11 @@ public class Mainscreen extends javax.swing.JFrame {
         jSynonymsPanel.setLayout(jSynonymsPanelLayout);
         jSynonymsPanelLayout.setHorizontalGroup(
             jSynonymsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 342, Short.MAX_VALUE)
+            .addGap(0, 471, Short.MAX_VALUE)
         );
         jSynonymsPanelLayout.setVerticalGroup(
             jSynonymsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 417, Short.MAX_VALUE)
+            .addGap(0, 85, Short.MAX_VALUE)
         );
 
         jSettingsTabs.addTab("Synonyms", jSynonymsPanel);
@@ -233,11 +257,11 @@ public class Mainscreen extends javax.swing.JFrame {
         jAdvancedPanel.setLayout(jAdvancedPanelLayout);
         jAdvancedPanelLayout.setHorizontalGroup(
             jAdvancedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 342, Short.MAX_VALUE)
+            .addGap(0, 471, Short.MAX_VALUE)
         );
         jAdvancedPanelLayout.setVerticalGroup(
             jAdvancedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 417, Short.MAX_VALUE)
+            .addGap(0, 85, Short.MAX_VALUE)
         );
 
         jSettingsTabs.addTab("Advanced", jAdvancedPanel);
@@ -246,57 +270,16 @@ public class Mainscreen extends javax.swing.JFrame {
         jSettingsPanel.setLayout(jSettingsPanelLayout);
         jSettingsPanelLayout.setHorizontalGroup(
             jSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSettingsTabs, javax.swing.GroupLayout.Alignment.TRAILING)
+            .addGroup(jSettingsPanelLayout.createSequentialGroup()
+                .addComponent(jSettingsTabs, javax.swing.GroupLayout.PREFERRED_SIZE, 492, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         jSettingsPanelLayout.setVerticalGroup(
             jSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jSettingsTabs, javax.swing.GroupLayout.Alignment.TRAILING)
         );
 
-        jToolBar.setFloatable(false);
-        jToolBar.setRollover(true);
-        jToolBar.setBorderPainted(false);
-        jToolBar.add(jSearch);
-
-        jCloudButton.setText("Tags");
-        jToolBar.add(jCloudButton);
-
-        jButtonClusters.setText("Clusters");
-        jToolBar.add(jButtonClusters);
-
-        jSeparator1.setPreferredSize(new java.awt.Dimension(90, 1));
-        jToolBar.add(jSeparator1);
-
-        jButtonSources.setText("Settings");
-        jButtonSources.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                jButtonSourcesStateChanged(evt);
-            }
-        });
-        jToolBar.add(jButtonSources);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, 670, Short.MAX_VALUE)
-            .addComponent(jJungPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                    .addGap(0, 323, Short.MAX_VALUE)
-                    .addComponent(jSettingsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jToolBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jJungPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                    .addGap(0, 44, Short.MAX_VALUE)
-                    .addComponent(jSettingsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-        );
+        getContentPane().add(jSettingsPanel, java.awt.BorderLayout.EAST);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents

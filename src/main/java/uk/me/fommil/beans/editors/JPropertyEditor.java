@@ -20,7 +20,9 @@ import org.jdesktop.swingx.JXTextField;
 
 /**
  * Allows {@link PropertyEditor}s to be written as popups (by extending this)
- * with a text field and icon as placeholder.
+ * with a text field and icon as placeholder. Although not a {@link Component}
+ * itself, the main purpose of this is the return value of
+ * {@link #getCustomEditor()}.
  * 
  * @author Samuel Halliday
  */

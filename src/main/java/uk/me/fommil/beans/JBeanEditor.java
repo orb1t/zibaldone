@@ -6,15 +6,12 @@
  */
 package uk.me.fommil.beans;
 
-import uk.me.fommil.beans.editors.FilePropertyEditor;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import java.awt.*;
 import java.beans.*;
-import java.io.File;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.*;
@@ -22,7 +19,6 @@ import javax.swing.table.*;
 import org.jdesktop.swingx.JXImagePanel;
 import org.jdesktop.swingx.JXTable;
 import uk.me.fommil.beans.BeanHelper.Property;
-import uk.me.fommil.beans.editors.DatePropertyEditor;
 
 /**
  * An automatically-generated Swing Form for editing arbitrary objects
