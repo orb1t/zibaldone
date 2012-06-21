@@ -43,40 +43,40 @@ public class ImporterViewForm extends javax.swing.JPanel {
     private void initComponents() {
 
         jPropertiesPanel = new javax.swing.JPanel();
+        jToolBar1 = new javax.swing.JToolBar();
         jXReloadButton = new org.jdesktop.swingx.JXButton();
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 25), new java.awt.Dimension(0, 1000));
         jXRemoveButton = new org.jdesktop.swingx.JXButton();
 
         setBackground(null);
+        setLayout(new java.awt.BorderLayout());
 
-        jPropertiesPanel.setBackground(null);
-        jPropertiesPanel.setLayout(new java.awt.GridLayout(0, 2));
+        jPropertiesPanel.setLayout(new java.awt.BorderLayout());
+        add(jPropertiesPanel, java.awt.BorderLayout.CENTER);
+
+        jToolBar1.setFloatable(false);
+        jToolBar1.setOrientation(1);
 
         jXReloadButton.setText("Reload");
+        jXReloadButton.setFocusable(false);
+        jXReloadButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jXReloadButton.setMaximumSize(new java.awt.Dimension(54, 18));
+        jXReloadButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(jXReloadButton);
+        jToolBar1.add(filler1);
 
         jXRemoveButton.setText("Remove");
+        jXRemoveButton.setFocusable(false);
+        jXRemoveButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jXRemoveButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(jXRemoveButton);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jPropertiesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jXReloadButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jXRemoveButton, javax.swing.GroupLayout.DEFAULT_SIZE, 99, Short.MAX_VALUE)))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jXRemoveButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jXReloadButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addComponent(jPropertiesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
+        add(jToolBar1, java.awt.BorderLayout.EAST);
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.Box.Filler filler1;
     private javax.swing.JPanel jPropertiesPanel;
+    private javax.swing.JToolBar jToolBar1;
     private org.jdesktop.swingx.JXButton jXReloadButton;
     private org.jdesktop.swingx.JXButton jXRemoveButton;
     // End of variables declaration//GEN-END:variables

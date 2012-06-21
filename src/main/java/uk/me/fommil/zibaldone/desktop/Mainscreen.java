@@ -147,17 +147,18 @@ public class Mainscreen extends javax.swing.JFrame {
         jSearch = new org.jdesktop.swingx.JXSearchField();
         jCloudButton = new javax.swing.JToggleButton();
         jButtonClusters = new javax.swing.JToggleButton();
-        jSeparator1 = new javax.swing.JToolBar.Separator();
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(50, 0), new java.awt.Dimension(1000, 0));
         jButtonSources = new javax.swing.JToggleButton();
         jJungPanel = new uk.me.fommil.zibaldone.desktop.JungGraphView(graph, controller);
         jSettingsPanel = new javax.swing.JPanel();
         jSettingsTabs = new javax.swing.JTabbedPane();
         jImportersPanel = new javax.swing.JPanel();
-        jAddImporterButton = new org.jdesktop.swingx.JXButton();
-        jReloadImportersButton = new org.jdesktop.swingx.JXButton();
-        jImporterSelectorComboBox = new javax.swing.JComboBox();
         jImporterScrollPane = new javax.swing.JScrollPane();
         jXImportersContainer = new org.jdesktop.swingx.JXTaskPaneContainer();
+        jToolBar1 = new javax.swing.JToolBar();
+        jAddImporterButton = new org.jdesktop.swingx.JXButton();
+        jImporterSelectorComboBox = new javax.swing.JComboBox();
+        jReloadImportersButton = new org.jdesktop.swingx.JXButton();
         jSynonymsPanel = new javax.swing.JPanel();
         jAdvancedPanel = new javax.swing.JPanel();
 
@@ -167,6 +168,10 @@ public class Mainscreen extends javax.swing.JFrame {
         jToolBar.setFloatable(false);
         jToolBar.setRollover(true);
         jToolBar.setBorderPainted(false);
+        jToolBar.setPreferredSize(new java.awt.Dimension(480, 42));
+
+        jSearch.setMaximumSize(new java.awt.Dimension(1000, 2147483647));
+        jSearch.setMinimumSize(new java.awt.Dimension(100, 28));
         jToolBar.add(jSearch);
 
         jCloudButton.setText("Tags");
@@ -174,7 +179,7 @@ public class Mainscreen extends javax.swing.JFrame {
 
         jButtonClusters.setText("Clusters");
         jToolBar.add(jButtonClusters);
-        jToolBar.add(jSeparator1);
+        jToolBar.add(filler1);
 
         jButtonSources.setText("Settings");
         jButtonSources.addChangeListener(new javax.swing.event.ChangeListener() {
@@ -190,7 +195,7 @@ public class Mainscreen extends javax.swing.JFrame {
         jJungPanel.setLayout(jJungPanelLayout);
         jJungPanelLayout.setHorizontalGroup(
             jJungPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 607, Short.MAX_VALUE)
+            .addGap(0, 287, Short.MAX_VALUE)
         );
         jJungPanelLayout.setVerticalGroup(
             jJungPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -199,85 +204,46 @@ public class Mainscreen extends javax.swing.JFrame {
 
         getContentPane().add(jJungPanel, java.awt.BorderLayout.CENTER);
 
+        jSettingsPanel.setPreferredSize(new java.awt.Dimension(320, 400));
+        jSettingsPanel.setLayout(new java.awt.BorderLayout());
+
+        jImportersPanel.setLayout(new java.awt.BorderLayout());
+
+        jImporterScrollPane.setViewportView(jXImportersContainer);
+
+        jImportersPanel.add(jImporterScrollPane, java.awt.BorderLayout.CENTER);
+
+        jToolBar1.setFloatable(false);
+
         jAddImporterButton.setText("+");
+        jAddImporterButton.setFocusable(false);
+        jAddImporterButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jAddImporterButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jAddImporterButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jAddImporterButtonActionPerformed(evt);
             }
         });
+        jToolBar1.add(jAddImporterButton);
+        jToolBar1.add(jImporterSelectorComboBox);
 
         jReloadImportersButton.setText("Reload All");
         jReloadImportersButton.setFocusable(false);
+        jReloadImportersButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jReloadImportersButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(jReloadImportersButton);
 
-        jImporterScrollPane.setViewportView(jXImportersContainer);
-
-        javax.swing.GroupLayout jImportersPanelLayout = new javax.swing.GroupLayout(jImportersPanel);
-        jImportersPanel.setLayout(jImportersPanelLayout);
-        jImportersPanelLayout.setHorizontalGroup(
-            jImportersPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jImportersPanelLayout.createSequentialGroup()
-                .addComponent(jAddImporterButton, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jImporterSelectorComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 251, Short.MAX_VALUE)
-                .addComponent(jReloadImportersButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addGroup(jImportersPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jImporterScrollPane)
-                .addContainerGap())
-        );
-        jImportersPanelLayout.setVerticalGroup(
-            jImportersPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jImportersPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jImporterScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 44, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jImportersPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jAddImporterButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jReloadImportersButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jImporterSelectorComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-        );
+        jImportersPanel.add(jToolBar1, java.awt.BorderLayout.SOUTH);
 
         jSettingsTabs.addTab("Importers", jImportersPanel);
 
-        javax.swing.GroupLayout jSynonymsPanelLayout = new javax.swing.GroupLayout(jSynonymsPanel);
-        jSynonymsPanel.setLayout(jSynonymsPanelLayout);
-        jSynonymsPanelLayout.setHorizontalGroup(
-            jSynonymsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 471, Short.MAX_VALUE)
-        );
-        jSynonymsPanelLayout.setVerticalGroup(
-            jSynonymsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 85, Short.MAX_VALUE)
-        );
-
+        jSynonymsPanel.setLayout(new java.awt.BorderLayout());
         jSettingsTabs.addTab("Synonyms", jSynonymsPanel);
 
-        javax.swing.GroupLayout jAdvancedPanelLayout = new javax.swing.GroupLayout(jAdvancedPanel);
-        jAdvancedPanel.setLayout(jAdvancedPanelLayout);
-        jAdvancedPanelLayout.setHorizontalGroup(
-            jAdvancedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 471, Short.MAX_VALUE)
-        );
-        jAdvancedPanelLayout.setVerticalGroup(
-            jAdvancedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 85, Short.MAX_VALUE)
-        );
-
+        jAdvancedPanel.setLayout(new java.awt.BorderLayout());
         jSettingsTabs.addTab("Advanced", jAdvancedPanel);
 
-        javax.swing.GroupLayout jSettingsPanelLayout = new javax.swing.GroupLayout(jSettingsPanel);
-        jSettingsPanel.setLayout(jSettingsPanelLayout);
-        jSettingsPanelLayout.setHorizontalGroup(
-            jSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jSettingsPanelLayout.createSequentialGroup()
-                .addComponent(jSettingsTabs, javax.swing.GroupLayout.PREFERRED_SIZE, 492, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
-        jSettingsPanelLayout.setVerticalGroup(
-            jSettingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSettingsTabs, javax.swing.GroupLayout.Alignment.TRAILING)
-        );
+        jSettingsPanel.add(jSettingsTabs, java.awt.BorderLayout.CENTER);
 
         getContentPane().add(jSettingsPanel, java.awt.BorderLayout.EAST);
 
@@ -314,6 +280,7 @@ public class Mainscreen extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.Box.Filler filler1;
     private org.jdesktop.swingx.JXButton jAddImporterButton;
     private javax.swing.JPanel jAdvancedPanel;
     private javax.swing.JToggleButton jButtonClusters;
@@ -325,11 +292,11 @@ public class Mainscreen extends javax.swing.JFrame {
     private uk.me.fommil.zibaldone.desktop.JungGraphView jJungPanel;
     private org.jdesktop.swingx.JXButton jReloadImportersButton;
     private org.jdesktop.swingx.JXSearchField jSearch;
-    private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JPanel jSettingsPanel;
     private javax.swing.JTabbedPane jSettingsTabs;
     private javax.swing.JPanel jSynonymsPanel;
     private javax.swing.JToolBar jToolBar;
+    private javax.swing.JToolBar jToolBar1;
     private org.jdesktop.swingx.JXTaskPaneContainer jXImportersContainer;
     // End of variables declaration//GEN-END:variables
 }

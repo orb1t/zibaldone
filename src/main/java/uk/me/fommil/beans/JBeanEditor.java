@@ -148,6 +148,9 @@ public final class JBeanEditor extends JPanel {
 
         @Override
         public TableCellRenderer getCellRenderer(int row, int column) {
+            
+            // TODO: maybe we should only return editors, no renderers
+            
             if (column == 0) {
                 DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
                 renderer.setHorizontalAlignment(JLabel.RIGHT);
@@ -203,6 +206,21 @@ public final class JBeanEditor extends JPanel {
             log.warning("No TableCellEditor for " + klass.getName());
             return null;
         }
+
+        // Set the width of the column by the largest entry in the column
+        @Override
+        public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+            final Component prepareRenderer = super.prepareRenderer(renderer, row, column);
+            final TableColumn tableColumn = getColumnModel().getColumn(column);
+            int componentWidth = prepareRenderer.getMinimumSize().width + getIntercellSpacing().width;
+            if (tableColumn.getWidth() < componentWidth) {
+                tableColumn.setMinWidth(componentWidth);
+                if (column == 0) {
+                    tableColumn.setMaxWidth(componentWidth);
+                }                
+            }
+            return prepareRenderer;
+        }
     };
 
     public JBeanEditor() {
@@ -250,28 +268,10 @@ public final class JBeanEditor extends JPanel {
             }
         }));
         table.setModel(new MyTableModel(properties));
-        TableColumn names = table.getColumnModel().getColumn(0);
-        int preferred = resetColumnWidths(0);
-        table.getColumn("names").setMaxWidth(preferred);
-        resetColumnWidths(1);
-
+        
+        table.getColumnModel().getColumn(0).setPreferredWidth(0);
+        table.getColumnModel().getColumn(1).setPreferredWidth(0);
         invalidate();
-    }
-
-    private int resetColumnWidths(int column) {
-        int min = Integer.MAX_VALUE;
-        int max = 0;
-        for (int i = 0; i < table.getRowCount(); i++) {
-            int width = (int) table.getCellRect(i, column, true).getWidth();
-            if (width < min) {
-                min = width;
-            }
-            if (width > max) {
-                max = width;
-            }
-        }
-        table.getColumnModel().getColumn(column).setMinWidth(max);
-        return max;
     }
 
     /**
