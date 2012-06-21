@@ -65,6 +65,9 @@ public abstract class JPropertyEditor extends PropertyEditorSupport {
 
     @Override
     public Component getCustomEditor() {
+        
+        // TODO: wouldn't this be a lot cleaner with BorderLayout?
+        
         JPanel jp = new JPanel();
         GridBagLayout gridbag = new GridBagLayout();
         GridBagConstraints c1 = new GridBagConstraints();

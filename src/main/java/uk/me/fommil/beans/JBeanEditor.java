@@ -8,7 +8,7 @@ package uk.me.fommil.beans;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
+import static com.google.common.collect.Iterables.filter;
 import com.google.common.collect.Lists;
 import java.awt.*;
 import java.beans.*;
@@ -41,6 +41,8 @@ import uk.me.fommil.beans.BeanHelper.Property;
  * <li>{@link PropertyDescriptor#isHidden()} is respected.</li>
  * <li>{@link PropertyDescriptor#isExpert()} will produce a read-only entry
  * (a useful interpretation of a vague API).</li>
+ * <li>{@link PropertyDescriptor#getShortDescription()} will be shown as the
+ * tooltip text for the entry.</li>
  * </ul>
  * This is not capable of detecting changes made to the
  * underlying bean by means other than the {@link BeanHelper} API,
@@ -48,7 +50,6 @@ import uk.me.fommil.beans.BeanHelper.Property;
  * <ul> 
  * <li>TODO: white text background for default text editor</li>
  * <li>TODO: lose the black background on focus (flashes when boolean is edited)</li>
- * <li>TODO: support for values which have much bigger heights (e.g. Image)</li>
  * </ul>
  * 
  * @see <a href="http://stackoverflow.com/questions/10840078">Origin on Stack Overflow</a>
@@ -56,9 +57,17 @@ import uk.me.fommil.beans.BeanHelper.Property;
  */
 public final class JBeanEditor extends JPanel {
 
+    /*
+     * Implementation note: this uses JXTable as a backend because that
+     * provides support for some basic object types and exposes functionality
+     * to access entries by row/column index. If, at a later date, the
+     * JXTable backend causes problems, it should be possible to rewrite this
+     * as a pure JPanel with an appropriate Layout, e.g. GridBagLayout.
+     */
+    
     private static final Logger log = Logger.getLogger(JBeanEditor.class.getName());
 
-    private final JXImagePanel logo = new JXImagePanel();
+    private final JPanel top = new JPanel();
 
     private volatile BeanHelper beanHelper;
 
@@ -67,8 +76,8 @@ public final class JBeanEditor extends JPanel {
 
         private final List<Property> properties;
 
-        public MyTableModel(List<Property> properties) {
-            this.properties = properties;
+        public MyTableModel(Iterable<Property> properties) {
+            this.properties = Lists.newArrayList(properties);
         }
 
         @Override
@@ -132,6 +141,11 @@ public final class JBeanEditor extends JPanel {
             }
         }
 
+        public String getToolTipText(int row) {
+            Preconditions.checkArgument(row >= 0 && row < getRowCount()); 
+            return properties.get(row).getShortDescription();
+        }
+        
         public boolean isReadOnly(int row, int col) {
             switch (col) {
                 case 0:
@@ -147,14 +161,15 @@ public final class JBeanEditor extends JPanel {
 
         @Override
         public TableCellRenderer getCellRenderer(int row, int column) {
+            MyTableModel model = (MyTableModel) getModel();
             if (column == 0) {
                 DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
+                renderer.setToolTipText(model.getToolTipText(row));
                 renderer.setHorizontalAlignment(JLabel.RIGHT);
                 return renderer;
             }
 
             // code repetition with getCellEditor because of TableCell{Renderer, Editor} non-inheritance
-            MyTableModel model = (MyTableModel) getModel();
             Class<?> klass = model.getClassAt(row, column);
             TableCellRenderer javaBeansRenderer = PropertyEditorTableAdapter.forClass(klass);
             if (javaBeansRenderer != null) {
@@ -187,17 +202,22 @@ public final class JBeanEditor extends JPanel {
             return defaultEditor;
         }
 
-        // Set the width of the column by the largest renderer entry in the column
+        // Set the width/height of columns/rows by the largest rendering entry
         @Override
         public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
             final Component prepareRenderer = super.prepareRenderer(renderer, row, column);
             final TableColumn tableColumn = getColumnModel().getColumn(column);
-            int componentWidth = prepareRenderer.getMinimumSize().width + getIntercellSpacing().width;
-            if (tableColumn.getWidth() < componentWidth) {
-                tableColumn.setMinWidth(componentWidth);
+            Dimension componentSize = prepareRenderer.getMinimumSize();
+            // ?? this required extra margin padding is a mystery to me...
+            componentSize.setSize(componentSize.width + getColumnMargin(), componentSize.height + getRowMargin());
+            if (tableColumn.getWidth() < componentSize.width) {
+                tableColumn.setMinWidth(componentSize.width);
                 if (column == 0) {
-                    tableColumn.setMaxWidth(componentWidth);
+                    tableColumn.setMaxWidth(componentSize.width);
                 }
+            }
+            if (getRowHeight(row) < componentSize.height) {
+                setRowHeight(row, componentSize.height);
             }
             return prepareRenderer;
         }
@@ -207,45 +227,45 @@ public final class JBeanEditor extends JPanel {
         super();
         setLayout(new BorderLayout());
 
-        JPanel top = new JPanel();
-        logo.setSize(0, 0);
-        top.add(logo);
-        add(top, BorderLayout.NORTH);
-
-        add(table, BorderLayout.CENTER);
-
         table.setTableHeader(null);
         table.setBackground(null);
         table.setShowGrid(false);
         table.setCellSelectionEnabled(false);
-
-        Dimension spacing = new Dimension(10, 5);
-        table.setIntercellSpacing(spacing);
-        table.setRowHeight(table.getRowHeight() + 2 * spacing.height);
-
         table.setFocusable(false);
+        add(table, BorderLayout.CENTER);
+
+        // should we expose spacing as a user property?
+        Dimension spacing = new Dimension(10, 0);
+        table.setIntercellSpacing(spacing);
+
+        // DEBUGGING: visual inspection
+        table.setBackground(Color.red);
     }
 
     public void refresh() {
         Image icon = beanHelper.getIcon(BeanInfo.ICON_COLOR_32x32);
-        logo.setImage(icon);
         if (icon == null) {
-            logo.setMinimumSize(new Dimension(0, 0));
+            remove(top);
         } else {
-            int width = icon.getWidth(null);
-            int height = icon.getHeight(null);
-            logo.setMinimumSize(new Dimension(width, height));
+            JXImagePanel logo = new JXImagePanel();
+            logo.setImage(icon);
+            add(logo, BorderLayout.NORTH);
         }
 
-        final List<Property> properties = Lists.newArrayList(Iterables.filter(beanHelper.getProperties(), new Predicate<Property>() {
+        final Iterable<Property> properties = filter(beanHelper.getProperties(),
+                new Predicate<Property>() {
 
-            @Override
-            public boolean apply(Property input) {
-                return !input.isHidden();
-            }
-        }));
+                    @Override
+                    public boolean apply(Property input) {
+                        return !input.isHidden();
+                    }
+                });
         table.setModel(new MyTableModel(properties));
 
+        // should we expose minimum row/column sizes as a user property?
+        table.setRowHeight(18); // essentially the minimum row height
+        table.getColumnModel().getColumn(0).setMinWidth(0);
+        table.getColumnModel().getColumn(1).setMinWidth(0);
         table.getColumnModel().getColumn(0).setPreferredWidth(0);
         table.getColumnModel().getColumn(1).setPreferredWidth(0);
         invalidate();
