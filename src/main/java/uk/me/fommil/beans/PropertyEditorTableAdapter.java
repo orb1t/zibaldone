@@ -24,6 +24,8 @@ import javax.swing.table.TableCellRenderer;
  */
 public class PropertyEditorTableAdapter extends AbstractCellEditor implements TableCellEditor, TableCellRenderer {
 
+    private static final long serialVersionUID = 1L;
+
     private final PropertyEditor editor;
 
     /**

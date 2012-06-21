@@ -12,6 +12,7 @@ import static com.google.common.collect.Iterables.filter;
 import com.google.common.collect.Lists;
 import java.awt.*;
 import java.beans.*;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.*;
@@ -60,6 +61,8 @@ public final class JBeanEditor extends JPanel {
      * JXTable backend causes problems, it should be possible to rewrite this
      * as a pure JPanel with an appropriate Layout, e.g. GridBagLayout.
      */
+    private static final long serialVersionUID = 1L;
+
     private static final Logger log = Logger.getLogger(JBeanEditor.class.getName());
 
     private final JPanel top = new JPanel();
@@ -68,6 +71,8 @@ public final class JBeanEditor extends JPanel {
 
     // links the table to the BeanHelper
     private static class MyTableModel extends AbstractTableModel {
+
+        private static final long serialVersionUID = 1L;
 
         private final List<Property> properties;
 
@@ -110,7 +115,7 @@ public final class JBeanEditor extends JPanel {
             Preconditions.checkArgument(col >= 0 && col < getColumnCount());
             switch (col) {
                 case 0:
-                    return properties.get(row).getDisplayName();
+                    return properties.get(row).getDisplayName() + ":";
                 default:
                     return properties.get(row).getValue();
             }
@@ -153,6 +158,8 @@ public final class JBeanEditor extends JPanel {
 
     // allow per-cell rendering and editing via JavaBeans
     private final JXTable table = new JXTable() {
+
+        private static final long serialVersionUID = 1L;
 
         @Override
         public TableCellRenderer getCellRenderer(int row, int column) {
@@ -197,25 +204,36 @@ public final class JBeanEditor extends JPanel {
             return defaultEditor;
         }
 
-        // Set the width/height of columns/rows by the largest rendering entry
+        @Override
+        public Component prepareEditor(TableCellEditor editor, int row, int column) {
+            Component prepareEditor = super.prepareEditor(editor, row, column);
+            customiseMinimumDimensions(prepareEditor.getMinimumSize(), row, column);
+            return prepareEditor;
+        }
+
         @Override
         public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
-            final Component prepareRenderer = super.prepareRenderer(renderer, row, column);
-            final TableColumn tableColumn = getColumnModel().getColumn(column);
-            Dimension componentSize = prepareRenderer.getMinimumSize();
+            Component prepareRenderer = super.prepareRenderer(renderer, row, column);
+            customiseMinimumDimensions(prepareRenderer.getMinimumSize(), row, column);
+            return prepareRenderer;
+        }
+
+        // Set the width/height of columns/rows by the largest rendering entry
+        private void customiseMinimumDimensions(Dimension dim, int row, int column) {
+            TableColumn tableColumn = getColumnModel().getColumn(column);
             // ?? this required extra margin padding is a mystery to me...
-            componentSize.setSize(componentSize.width + getColumnMargin(), componentSize.height + getRowMargin());
+            dim.setSize(dim.width + getColumnMargin(), dim.height + getRowMargin());
             // potential bug: refresh() is needed to reduce size of unusually large temporary entries
-            if (tableColumn.getWidth() < componentSize.width) {
-                tableColumn.setMinWidth(componentSize.width);
+            log.info("width = " + dim.width + " used = " + tableColumn.getWidth());
+            if (tableColumn.getWidth() < dim.width) {
+                tableColumn.setMinWidth(dim.width);
                 if (column == 0) {
-                    tableColumn.setMaxWidth(componentSize.width);
+                    tableColumn.setMaxWidth(dim.width);
                 }
             }
-            if (getRowHeight(row) < componentSize.height) {
-                setRowHeight(row, componentSize.height);
+            if (getRowHeight(row) < dim.height) {
+                setRowHeight(row, dim.height);
             }
-            return prepareRenderer;
         }
     };
 
@@ -231,7 +249,7 @@ public final class JBeanEditor extends JPanel {
         add(table, BorderLayout.CENTER);
 
         // should we expose spacing as a user property?
-        Dimension spacing = new Dimension(10, 0);
+        Dimension spacing = new Dimension(5, 0);
         table.setIntercellSpacing(spacing);
 
         // DEBUGGING: visual inspection
@@ -239,31 +257,34 @@ public final class JBeanEditor extends JPanel {
     }
 
     public void refresh() {
-        Image icon = beanHelper.getIcon(BeanInfo.ICON_COLOR_32x32);
-        if (icon == null) {
-            remove(top);
-        } else {
-            JXImagePanel logo = new JXImagePanel();
-            logo.setImage(icon);
-            add(logo, BorderLayout.NORTH);
+        Iterable<Property> properties = Collections.emptyList();
+
+        if (beanHelper != null) {
+            Image icon = beanHelper.getIcon(BeanInfo.ICON_COLOR_32x32);
+            if (icon == null) {
+                remove(top);
+            } else {
+                JXImagePanel logo = new JXImagePanel();
+                logo.setImage(icon);
+                add(logo, BorderLayout.NORTH);
+            }
+            properties = filter(beanHelper.getProperties(),
+                    new Predicate<Property>() {
+
+                        @Override
+                        public boolean apply(Property input) {
+                            return !input.isHidden();
+                        }
+                    });
         }
 
-        final Iterable<Property> properties = filter(beanHelper.getProperties(),
-                new Predicate<Property>() {
-
-                    @Override
-                    public boolean apply(Property input) {
-                        return !input.isHidden();
-                    }
-                });
         table.setModel(new MyTableModel(properties));
 
         // should we expose minimum row/column sizes as a user property?
         table.setRowHeight(18); // essentially the minimum row height
-        table.getColumnModel().getColumn(0).setMinWidth(0);
-        table.getColumnModel().getColumn(1).setMinWidth(0);
-        table.getColumnModel().getColumn(0).setPreferredWidth(0);
-        table.getColumnModel().getColumn(1).setPreferredWidth(0);
+        table.getColumnModel().getColumn(0).setMinWidth(1);
+        table.getColumnModel().getColumn(0).setMaxWidth(1);
+        table.getColumnModel().getColumn(1).setMinWidth(1);
 
         invalidate();
     }

@@ -8,6 +8,7 @@ package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.*;
 import java.util.List;
@@ -16,7 +17,6 @@ import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import javax.swing.JTextField;
 import org.jdesktop.swingx.JXTaskPane;
-import uk.me.fommil.beans.BeanHelper;
 import uk.me.fommil.beans.JBeanEditor;
 import uk.me.fommil.zibaldone.Importer;
 
@@ -59,7 +59,7 @@ public class ImporterView extends JXTaskPane {
         specialEditor.setBean(instance.getSpecialProperties());
 
         gui = new ImporterViewForm();
-        gui.getjPropertiesPanel().add(specialEditor);
+        gui.getjPropertiesPanel().add(specialEditor, BorderLayout.CENTER);
 
         add(gui);
 
@@ -78,7 +78,6 @@ public class ImporterView extends JXTaskPane {
                 controller.getImporterController().doImport(klass, properties);
             }
         });
-
     }
 
     // bit of a hack to remove oneself from a container
