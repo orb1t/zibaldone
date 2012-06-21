@@ -47,10 +47,6 @@ import uk.me.fommil.beans.BeanHelper.Property;
  * This is not capable of detecting changes made to the
  * underlying bean by means other than the {@link BeanHelper} API,
  * in which case a call to {@link #refresh()} is recommended.
- * <ul> 
- * <li>TODO: white text background for default text editor</li>
- * <li>TODO: lose the black background on focus (flashes when boolean is edited)</li>
- * </ul>
  * 
  * @see <a href="http://stackoverflow.com/questions/10840078">Origin on Stack Overflow</a>
  * @author Samuel Halliday
@@ -64,7 +60,6 @@ public final class JBeanEditor extends JPanel {
      * JXTable backend causes problems, it should be possible to rewrite this
      * as a pure JPanel with an appropriate Layout, e.g. GridBagLayout.
      */
-    
     private static final Logger log = Logger.getLogger(JBeanEditor.class.getName());
 
     private final JPanel top = new JPanel();
@@ -142,10 +137,10 @@ public final class JBeanEditor extends JPanel {
         }
 
         public String getToolTipText(int row) {
-            Preconditions.checkArgument(row >= 0 && row < getRowCount()); 
+            Preconditions.checkArgument(row >= 0 && row < getRowCount());
             return properties.get(row).getShortDescription();
         }
-        
+
         public boolean isReadOnly(int row, int col) {
             switch (col) {
                 case 0:
@@ -269,6 +264,7 @@ public final class JBeanEditor extends JPanel {
         table.getColumnModel().getColumn(1).setMinWidth(0);
         table.getColumnModel().getColumn(0).setPreferredWidth(0);
         table.getColumnModel().getColumn(1).setPreferredWidth(0);
+
         invalidate();
     }
 

@@ -35,10 +35,8 @@ public abstract class JPropertyEditor extends PropertyEditorSupport {
         super();
         textField.setFocusable(false);
         textField.setEditable(false);
-        // not using JXTextField because the prompt background can't be set
-        // and the background text extends beyond the text field anyway.
-//        textField.setBackground(Color.WHITE);
-//        textField.setPromptBackround(Color.WHITE);
+        // http://www.java.net/forum/topic/javadesktop/java-desktop-technologies/swinglabs/jxtextfield-background-weirdness
+        // textField.setPromptBackround(Color.WHITE);
         textField.addMouseListener(new MouseAdapter() {
 
             @Override
