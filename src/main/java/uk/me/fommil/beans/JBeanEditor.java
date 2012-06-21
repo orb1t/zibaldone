@@ -210,6 +210,7 @@ public final class JBeanEditor extends JPanel {
             Dimension componentSize = prepareRenderer.getMinimumSize();
             // ?? this required extra margin padding is a mystery to me...
             componentSize.setSize(componentSize.width + getColumnMargin(), componentSize.height + getRowMargin());
+            // potential bug: refresh() is needed to reduce size of unusually large temporary entries
             if (tableColumn.getWidth() < componentSize.width) {
                 tableColumn.setMinWidth(componentSize.width);
                 if (column == 0) {

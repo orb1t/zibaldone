@@ -6,9 +6,10 @@
  */
 package uk.me.fommil.beans.editors;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -16,7 +17,7 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyEditor;
 import java.beans.PropertyEditorSupport;
 import javax.swing.*;
-import org.jdesktop.swingx.JXTextField;
+import org.jdesktop.swingx.JXButton;
 
 /**
  * Allows {@link PropertyEditor}s to be written as popups (by extending this)
@@ -28,13 +29,16 @@ import org.jdesktop.swingx.JXTextField;
  */
 public abstract class JPropertyEditor extends PropertyEditorSupport {
 
-    private final JXTextField textField = new JXTextField("→");
+    private final JTextField textField = new JTextField("→");
 
     public JPropertyEditor() {
         super();
         textField.setFocusable(false);
         textField.setEditable(false);
-        textField.setBackground(null);
+        // not using JXTextField because the prompt background can't be set
+        // and the background text extends beyond the text field anyway.
+//        textField.setBackground(Color.WHITE);
+//        textField.setPromptBackround(Color.WHITE);
         textField.addMouseListener(new MouseAdapter() {
 
             @Override
@@ -61,39 +65,30 @@ public abstract class JPropertyEditor extends PropertyEditorSupport {
     public void setValue(Object value) {
         super.setValue(value);
         textField.setText(getAsText());
+        // ?? would be nice to set the preferred size here
     }
 
     @Override
     public Component getCustomEditor() {
-        
-        // TODO: wouldn't this be a lot cleaner with BorderLayout?
-        
         JPanel jp = new JPanel();
-        GridBagLayout gridbag = new GridBagLayout();
-        GridBagConstraints c1 = new GridBagConstraints();
-        jp.setLayout(gridbag);
-
-        c1.weightx = 1f;
-        c1.anchor = GridBagConstraints.WEST;
-        c1.fill = GridBagConstraints.HORIZONTAL;
-        gridbag.setConstraints(textField, c1);
-        jp.add(textField);
+        jp.setLayout(new BorderLayout());
+        jp.add(textField, BorderLayout.CENTER);
 
         Icon icon = getIcon();
-        JButton button;
+        JXButton button;
         if (icon != null) {
-            button = new JButton(icon);
+            button = new JXButton(icon);
         } else {
-            button = new JButton("edit");
+            button = new JXButton("edit");
         }
         button.addActionListener(action);
         button.setFocusable(false);
-        GridBagConstraints c2 = new GridBagConstraints();
-        c2.weightx = 0;
-        c2.anchor = GridBagConstraints.EAST;
-        c2.fill = GridBagConstraints.NONE;
-        gridbag.setConstraints(button, c2);
-        jp.add(button);
+        JToolBar toolbar = new JToolBar(JToolBar.VERTICAL);
+        toolbar.setFloatable(false);
+        toolbar.setLayout(new FlowLayout(FlowLayout.CENTER));
+        toolbar.add(button);
+        jp.add(toolbar, BorderLayout.EAST);
+
         return jp;
     }
 
