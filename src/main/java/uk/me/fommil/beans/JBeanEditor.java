@@ -27,7 +27,7 @@ import uk.me.fommil.beans.BeanHelper.Property;
  * <p>
  * This class was created in order to provide a light-weight editor to do a lot
  * of boilerplate work in GUI design. Existing solutions require huge frameworks
- * and are not intuitive to users.
+ * and are neither attractive nor intuitive to end users.
  * <p>
  * Editing of Javabean properties is supported at runtime through the programmatic
  * provision of a suitable {@link PropertyEditor} to the {@link PropertyEditorManager},
@@ -47,21 +47,22 @@ import uk.me.fommil.beans.BeanHelper.Property;
  * in which case a call to {@link #refresh()} is recommended.
  * <ul> 
  * <li>TODO: white text background for default text editor</li>
- * <li>TODO: lose the black background on selection</li>
- * <li>TODO: use the Highlighter to mark rows needing input</li>
- * <li>TODO: Convenience methods are provided to make it easy to use the features.</li>
+ * <li>TODO: lose the black background on focus (flashes when boolean is edited)</li>
+ * <li>TODO: support for values which have much bigger heights (e.g. Image)</li>
  * </ul>
  * 
- * @see <a href="http://stackoverflow.com/questions/10840078">Question on Stack Overflow</a>
+ * @see <a href="http://stackoverflow.com/questions/10840078">Origin on Stack Overflow</a>
  * @author Samuel Halliday
  */
 public final class JBeanEditor extends JPanel {
 
     private static final Logger log = Logger.getLogger(JBeanEditor.class.getName());
 
-    private final JXImagePanel logo;
+    private final JXImagePanel logo = new JXImagePanel();
 
-    // links the table to the ender
+    private volatile BeanHelper beanHelper;
+
+    // links the table to the BeanHelper
     private static class MyTableModel extends AbstractTableModel {
 
         private final List<Property> properties;
@@ -141,49 +142,27 @@ public final class JBeanEditor extends JPanel {
         }
     }
 
-    private volatile BeanHelper beanHelper;
-
     // allow per-cell rendering and editing via JavaBeans
     private final JXTable table = new JXTable() {
 
         @Override
         public TableCellRenderer getCellRenderer(int row, int column) {
-            
-            // TODO: maybe we should only return editors, no renderers
-            
             if (column == 0) {
                 DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
                 renderer.setHorizontalAlignment(JLabel.RIGHT);
                 return renderer;
-                //                TableCellRenderer renderer = getDefaultRenderer(String.class);
-                //                log.info(renderer.getClass().toString());
-                //                if (renderer instanceof DefaultTableCellRenderer) {
-                //                    ((DefaultTableCellRenderer)renderer).setHorizontalAlignment(JLabel.RIGHT);
-                //                }
-                //                if (renderer instanceof DefaultTableRenderer) {
-                //                    // TODO: how to set right aligned text for SwingX renderer?
-                //                }
-                //                return renderer;
             }
 
+            // code repetition with getCellEditor because of TableCell{Renderer, Editor} non-inheritance
             MyTableModel model = (MyTableModel) getModel();
             Class<?> klass = model.getClassAt(row, column);
             TableCellRenderer javaBeansRenderer = PropertyEditorTableAdapter.forClass(klass);
-            TableCellRenderer defaultRenderer = getDefaultRenderer(klass);
-//            if (klass.equals(String.class)) {
-//                return defaultRenderer;
-//            }
             if (javaBeansRenderer != null) {
                 return javaBeansRenderer;
             }
-            if (defaultRenderer != null) {
-                return defaultRenderer;
-            }
-            log.warning("No TableCellRenderer for " + klass.getName());
-            return null;
+            return getDefaultRenderer(klass);
         }
 
-        // code repetition because of TableCell{Renderer, Editor} non-inheritance
         @Override
         public TableCellEditor getCellEditor(int row, int column) {
             MyTableModel model = (MyTableModel) getModel();
@@ -191,23 +170,24 @@ public final class JBeanEditor extends JPanel {
                 return null;
             }
 
+            // code repetition with getCellRenderer because of TableCell{Renderer, Editor} non-inheritance
             Class<?> klass = model.getClassAt(row, column);
-            TableCellEditor javaBeansRenderer = PropertyEditorTableAdapter.forClass(klass);
-            TableCellEditor defaultRenderer = getDefaultEditor(klass);
-            if (klass.equals(String.class)) {
-                return defaultRenderer;
+            TableCellEditor javaBeansEditor = PropertyEditorTableAdapter.forClass(klass);
+            if (javaBeansEditor != null) {
+                return javaBeansEditor;
             }
-            if (javaBeansRenderer != null) {
-                return javaBeansRenderer;
+            TableCellEditor defaultEditor = getDefaultEditor(klass);
+            if (defaultEditor == null) {
+                log.warning("No TableCellEditor for " + klass.getName());
             }
-            if (defaultRenderer != null) {
-                return defaultRenderer;
+            if (defaultEditor instanceof DefaultCellEditor) {
+                // default double-click is bad user interaction
+                ((DefaultCellEditor) defaultEditor).setClickCountToStart(0);
             }
-            log.warning("No TableCellEditor for " + klass.getName());
-            return null;
+            return defaultEditor;
         }
 
-        // Set the width of the column by the largest entry in the column
+        // Set the width of the column by the largest renderer entry in the column
         @Override
         public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
             final Component prepareRenderer = super.prepareRenderer(renderer, row, column);
@@ -217,7 +197,7 @@ public final class JBeanEditor extends JPanel {
                 tableColumn.setMinWidth(componentWidth);
                 if (column == 0) {
                     tableColumn.setMaxWidth(componentWidth);
-                }                
+                }
             }
             return prepareRenderer;
         }
@@ -225,26 +205,23 @@ public final class JBeanEditor extends JPanel {
 
     public JBeanEditor() {
         super();
-        setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+        setLayout(new BorderLayout());
 
-        JPanel top = new JPanel(new BorderLayout());
-        logo = new JXImagePanel();
+        JPanel top = new JPanel();
         logo.setSize(0, 0);
-        top.add(logo, BorderLayout.LINE_START);
-        add(top);
+        top.add(logo);
+        add(top, BorderLayout.NORTH);
 
-        add(table);
+        add(table, BorderLayout.CENTER);
 
         table.setTableHeader(null);
         table.setBackground(null);
         table.setShowGrid(false);
         table.setCellSelectionEnabled(false);
 
-        Dimension d = table.getIntercellSpacing();
-        int gapWidth = 10;
-        int gapHeight = 10;
-        table.setIntercellSpacing(new Dimension(gapWidth, gapHeight));
-        table.setRowHeight(table.getRowHeight() + gapHeight + 10);
+        Dimension spacing = new Dimension(10, 5);
+        table.setIntercellSpacing(spacing);
+        table.setRowHeight(table.getRowHeight() + 2 * spacing.height);
 
         table.setFocusable(false);
     }
@@ -268,7 +245,7 @@ public final class JBeanEditor extends JPanel {
             }
         }));
         table.setModel(new MyTableModel(properties));
-        
+
         table.getColumnModel().getColumn(0).setPreferredWidth(0);
         table.getColumnModel().getColumn(1).setPreferredWidth(0);
         invalidate();

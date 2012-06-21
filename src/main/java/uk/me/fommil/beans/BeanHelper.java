@@ -198,6 +198,25 @@ public class BeanHelper {
     }
 
     /**
+     * @param name
+     * @return
+     */
+    public Property getProperty(String name) {
+        Preconditions.checkNotNull(name);
+        Preconditions.checkArgument(!name.isEmpty());
+        PropertyDescriptor[] descriptors = getPropertyDescriptors();
+        if (descriptors == null || descriptors.length == 0) {
+            return null;
+        }
+        for (PropertyDescriptor descriptor : descriptors) {
+            if (name.equals(descriptor.getName())) {
+                return new Property(descriptor);
+            }
+        }
+        return null;
+    }
+
+    /**
      * @return the properties that are considered to be "bean like"
      */
     public List<Property> getProperties() {
