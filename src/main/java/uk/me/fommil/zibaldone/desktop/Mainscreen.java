@@ -10,7 +10,6 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.SparseMultigraph;
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyEditorManager;
@@ -20,7 +19,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.logging.Logger;
-import javax.swing.UIManager;
 import org.jdesktop.swingx.combobox.MapComboBoxModel;
 import uk.me.fommil.beans.editors.DatePropertyEditor;
 import uk.me.fommil.beans.editors.FilePropertyEditor;
@@ -75,6 +73,7 @@ public class Mainscreen extends javax.swing.JFrame {
     }
 
     public Mainscreen(ObservableGraph<Note, Double> graph) {
+        rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         this.graph = graph;
         controller = new JungMainController(graph);
 
@@ -84,12 +83,7 @@ public class Mainscreen extends javax.swing.JFrame {
             String klass = importer.getClass().getCanonicalName();
             importerImpls.put(name, klass);
         }
-
-        rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
-        UIManager.put("JxTaskPaneContainer.useGradient", Boolean.TRUE);
-        UIManager.put("JxTaskPaneContainer.backgroundGradientStart", Color.green.darker());
-        UIManager.put("JxTaskPaneContainer.backgroundGradientEnd", Color.green.darker().darker());
-
+        
         initComponents();
         jSettingsPanel.setVisible(false);
 
@@ -112,10 +106,9 @@ public class Mainscreen extends javax.swing.JFrame {
     }
 
     private void addImporterView(String klassName, Properties properties) {
-        Class<Importer> klass;
         final ImporterView importerView;
         try {
-            klass = (Class<Importer>) Class.forName(klassName);
+            Class<Importer> klass = (Class<Importer>) Class.forName(klassName);
             importerView = new ImporterView(controller, klass, properties);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -191,17 +184,7 @@ public class Mainscreen extends javax.swing.JFrame {
 
         getContentPane().add(jToolBar, java.awt.BorderLayout.PAGE_START);
 
-        javax.swing.GroupLayout jJungPanelLayout = new javax.swing.GroupLayout(jJungPanel);
-        jJungPanel.setLayout(jJungPanelLayout);
-        jJungPanelLayout.setHorizontalGroup(
-            jJungPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 287, Short.MAX_VALUE)
-        );
-        jJungPanelLayout.setVerticalGroup(
-            jJungPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 394, Short.MAX_VALUE)
-        );
-
+        jJungPanel.setLayout(new java.awt.BorderLayout());
         getContentPane().add(jJungPanel, java.awt.BorderLayout.CENTER);
 
         jSettingsPanel.setPreferredSize(new java.awt.Dimension(320, 400));

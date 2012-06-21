@@ -204,12 +204,12 @@ public final class JBeanEditor extends JPanel {
             return defaultEditor;
         }
 
-        @Override
-        public Component prepareEditor(TableCellEditor editor, int row, int column) {
-            Component prepareEditor = super.prepareEditor(editor, row, column);
-            customiseMinimumDimensions(prepareEditor.getMinimumSize(), row, column);
-            return prepareEditor;
-        }
+//        @Override
+//        public Component prepareEditor(TableCellEditor editor, int row, int column) {
+//            Component prepareEditor = super.prepareEditor(editor, row, column);
+//            customiseMinimumDimensions(prepareEditor.getMinimumSize(), row, column);
+//            return prepareEditor;
+//        }
 
         @Override
         public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
@@ -224,7 +224,6 @@ public final class JBeanEditor extends JPanel {
             // ?? this required extra margin padding is a mystery to me...
             dim.setSize(dim.width + getColumnMargin(), dim.height + getRowMargin());
             // potential bug: refresh() is needed to reduce size of unusually large temporary entries
-            log.info("width = " + dim.width + " used = " + tableColumn.getWidth());
             if (tableColumn.getWidth() < dim.width) {
                 tableColumn.setMinWidth(dim.width);
                 if (column == 0) {
@@ -241,6 +240,8 @@ public final class JBeanEditor extends JPanel {
         super();
         setLayout(new BorderLayout());
 
+        // TODO: investigate Opacity
+        
         table.setTableHeader(null);
         table.setBackground(null);
         table.setShowGrid(false);
@@ -251,9 +252,6 @@ public final class JBeanEditor extends JPanel {
         // should we expose spacing as a user property?
         Dimension spacing = new Dimension(5, 0);
         table.setIntercellSpacing(spacing);
-
-        // DEBUGGING: visual inspection
-        table.setBackground(Color.red);
     }
 
     public void refresh() {

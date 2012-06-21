@@ -15,17 +15,21 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.jdesktop.swingx.JXTaskPane;
+import org.jdesktop.swingx.JXTaskPaneContainer;
 import uk.me.fommil.beans.JBeanEditor;
 import uk.me.fommil.zibaldone.Importer;
 
 /**
  * Displays a user-editable {@link Importer}.
  * 
+ * TODO: merge with ImporterViewForm (needs better SwingX support in Netbeans)
+ * 
  * @author Samuel Halliday
  */
-public class ImporterView extends JXTaskPane {
+public class ImporterView extends JPanel {
 
     private static final Logger log = Logger.getLogger(ImporterView.class.getName());
 
@@ -46,6 +50,7 @@ public class ImporterView extends JXTaskPane {
      */
     public ImporterView(final JungMainController controller, @Nullable final Class<Importer> klass, final Properties properties) throws InstantiationException, IllegalAccessException {
         super();
+        setLayout(new BorderLayout());
         Preconditions.checkNotNull(controller);
         Preconditions.checkNotNull(properties);
         this.controller = controller;
@@ -53,7 +58,12 @@ public class ImporterView extends JXTaskPane {
         this.properties = properties;
 
         final Importer instance = klass.newInstance();
-        setTitle(instance.getName());
+
+        JXTaskPane container = new JXTaskPane();
+        container.setTitle(instance.getName());
+        container.setLayout(new BorderLayout());
+
+        add(container, BorderLayout.CENTER);
 
         JBeanEditor specialEditor = new JBeanEditor();
         specialEditor.setBean(instance.getSpecialProperties());
@@ -61,7 +71,7 @@ public class ImporterView extends JXTaskPane {
         gui = new ImporterViewForm();
         gui.getjPropertiesPanel().add(specialEditor, BorderLayout.CENTER);
 
-        add(gui);
+        container.add(gui, BorderLayout.CENTER);
 
         if (klass == null) {
             gui.getjXReloadButton().setVisible(false);

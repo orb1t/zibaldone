@@ -29,12 +29,13 @@ import org.jdesktop.swingx.JXButton;
  */
 public abstract class JPropertyEditor extends PropertyEditorSupport {
 
-    private final JTextField textField = new JTextField("→");
+    private final JLabel textField = new JLabel("→");
 
     public JPropertyEditor() {
         super();
         textField.setFocusable(false);
-        textField.setEditable(false);
+//        textField.setEditable(false);
+//        textField.setBackground(null);
         // http://www.java.net/forum/topic/javadesktop/java-desktop-technologies/swinglabs/jxtextfield-background-weirdness
         // textField.setPromptBackround(Color.WHITE);
         textField.addMouseListener(new MouseAdapter() {
