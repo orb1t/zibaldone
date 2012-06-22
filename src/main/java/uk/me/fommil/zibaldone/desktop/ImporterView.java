@@ -6,12 +6,16 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
+import com.google.common.base.Objects;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import org.jdesktop.swingx.JXTaskPane;
 import uk.me.fommil.zibaldone.Importer;
 
@@ -21,6 +25,8 @@ import uk.me.fommil.zibaldone.Importer;
  * @author Samuel Halliday
  */
 public class ImporterView extends JXTaskPane {
+
+    private static final Logger log = Logger.getLogger(ImporterView.class.getName());
 
     private static final long serialVersionUID = 1L;
 
@@ -55,19 +61,6 @@ public class ImporterView extends JXTaskPane {
         }
     }
 
-    // use GUI and get parent
-//    // bit of a hack to remove oneself from a container
-//    public void addSelfRemovalListener(final ActionListener listener) {
-//        jXRemoveButton.addActionListener(new ActionListener() {
-//
-//            @Override
-//            public void actionPerformed(ActionEvent ae) {
-//                controller.getImporterController().doRemove(klass, properties);
-//
-//                listener.actionPerformed(new ActionEvent(this, 0, "self removal"));
-//            }
-//        });
-//    }
     @Override
     public Dimension getMaximumSize() {
         Dimension preferred = getPreferredSize();
@@ -75,14 +68,35 @@ public class ImporterView extends JXTaskPane {
         return preferred;
     }
 
-    // refuse changes to "special" settings
     private void lockDownSpecial() {
+        // refuse changes to "special" settings
         jBeanEditor.getBeanHelper().addVetoableChangeListener(new VetoableChangeListener() {
 
+            private volatile PropertyChangeEvent last;
+
             @Override
-            public void vetoableChange(PropertyChangeEvent evt) throws PropertyVetoException {
+            public void vetoableChange(final PropertyChangeEvent evt) throws PropertyVetoException {
                 if (controller.isSpecial(evt.getPropertyName())) {
-                    throw new PropertyVetoException(evt.getPropertyName() + " is special", evt);
+                    if (last != null) {
+                        if (Objects.equal(last.getSource(), evt.getSource())
+                                && Objects.equal(last.getPropertyName(), evt.getPropertyName())
+                                && Objects.equal(last.getOldValue(), evt.getNewValue())) {
+                            // rollback event, stupid VetoableChangeSupport
+                            return;
+                        }
+                    }
+                    last = evt;
+                    SwingUtilities.invokeLater(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            JOptionPane.showMessageDialog(ImporterView.this,
+                                    evt.getPropertyName() + " cannot be changed once the Importer has been used.",
+                                    "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    });
+
+                    throw new PropertyVetoException(evt.getPropertyName() + " is locked", evt);
                 }
             }
         });
@@ -158,10 +172,6 @@ public class ImporterView extends JXTaskPane {
         if (!locked.getAndSet(true)) {
             lockDownSpecial();
         }
-        for (String name : controller.getImporter().getSpecialPropertyNames()) {
-            jBeanEditor.getBeanHelper().getProperty(name).setExpert(true);
-        }
-        jBeanEditor.refresh();
     }//GEN-LAST:event_jXReloadButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -157,6 +157,16 @@ public class BeanHelper {
          * @param value a veto from a listener will result in a silent failure
          */
         public void setValue(Object value) {
+            setValue(value, null);
+        }
+
+        /**
+         * @param value a veto from a listener will result in a silent failure
+         * @param propagationId this is a "reserved" value in Javabeans, but we
+         * expose this to track where a change originated - making it possible to
+         * ignore events that you created.
+         */
+        public void setValue(Object value, Object propagationId) {
             Object old = getValue();
             Method method = descriptor.getWriteMethod();
             try {
@@ -167,15 +177,13 @@ public class BeanHelper {
             }
             try {
                 method.invoke(bean, value);
-                propListeners.firePropertyChange(getName(), old, value);
+                PropertyChangeEvent pce = new PropertyChangeEvent(bean, getName(), old, value);
+                pce.setPropagationId(propagationId);
+                propListeners.firePropertyChange(pce);
             } catch (Exception e) {
                 throw new RuntimeException(bean.getClass() + " doesn't support "
                         + method.getName() + " as a JavaBean setter", e);
             }
-        }
-
-        public void setExpert(boolean expert) {
-            descriptor.setExpert(expert);
         }
 
         // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">

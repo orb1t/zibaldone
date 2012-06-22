@@ -40,7 +40,7 @@ import uk.me.fommil.beans.BeanHelper.Property;
  * <ul>
  * <li>{@link BeanInfo#getIcon(int)} is displayed, if available.</li>
  * <li>{@link PropertyDescriptor#isHidden()} is respected.</li>
- * <li>{@link PropertyDescriptor#isExpert()} is passed as a hint to the {@link PropertyEditor}.</li>
+ * <li>{@link PropertyDescriptor#isExpert()} results in the property name being shaded.</li>
  * <li>{@link PropertyDescriptor#getShortDescription()} will be shown as the
  * tooltip text for the entry.</li>
  * </ul>
@@ -89,7 +89,7 @@ public final class JBeanEditor extends JPanel {
             Preconditions.checkArgument(row >= 0 && row < getRowCount());
             Preconditions.checkArgument(col >= 0 && col < getColumnCount());
 
-            properties.get(row).setValue(value);
+            properties.get(row).setValue(value, JBeanEditor.class);
         }
 
         @Override
@@ -131,7 +131,7 @@ public final class JBeanEditor extends JPanel {
             if (col == 0) {
                 return false;
             }
-            return !properties.get(row).isExpert();
+            return true;
         }
 
         @Override
@@ -165,13 +165,12 @@ public final class JBeanEditor extends JPanel {
         @Override
         public TableCellRenderer getCellRenderer(int row, int column) {
             MyTableModel model = (MyTableModel) getModel();
-            boolean expert = model.isExpert(row, column);
             if (column == 0) {
                 // ?? JXTable default renderer doesn't align right
                 DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
                 renderer.setToolTipText(model.getToolTipText(row));
                 renderer.setHorizontalAlignment(JLabel.RIGHT);
-                if (expert) {
+                if (model.isExpert(row, column)) {
                     renderer.setForeground(Color.GRAY);
                 }
                 return renderer;
@@ -179,7 +178,7 @@ public final class JBeanEditor extends JPanel {
 
             // code repetition with getCellEditor because of TableCell{Renderer, Editor} non-inheritance
             Class<?> klass = model.getClassAt(row, column);
-            PropertyEditorTableAdapter javaBeansRenderer = PropertyEditorTableAdapter.forClass(klass, expert);
+            PropertyEditorTableAdapter javaBeansRenderer = PropertyEditorTableAdapter.forClass(klass);
             if (javaBeansRenderer != null) {
                 return javaBeansRenderer;
             }
@@ -194,9 +193,8 @@ public final class JBeanEditor extends JPanel {
             }
 
             // code repetition with getCellRenderer because of TableCell{Renderer, Editor} non-inheritance
-            boolean expert = model.isExpert(row, column);
             Class<?> klass = model.getClassAt(row, column);
-            PropertyEditorTableAdapter javaBeansEditor = PropertyEditorTableAdapter.forClass(klass, expert);
+            PropertyEditorTableAdapter javaBeansEditor = PropertyEditorTableAdapter.forClass(klass);
             if (javaBeansEditor != null) {
                 return javaBeansEditor;
             }
@@ -246,10 +244,8 @@ public final class JBeanEditor extends JPanel {
         super();
         setLayout(new BorderLayout());
 
-        // TODO: investigate Opacity
-
         table.setTableHeader(null);
-        table.setBackground(null); // ?? why is this needed?
+//        table.setBackground(null); // ?? why is this needed?
         table.setShowGrid(false);
         table.setCellSelectionEnabled(false);
         table.setFocusable(false);
@@ -302,12 +298,27 @@ public final class JBeanEditor extends JPanel {
         setBeanHelper(new BeanHelper(bean));
     }
 
+    private final PropertyChangeListener beanChangeListener = new PropertyChangeListener() {
+
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (evt.getSource() != beanHelper.getBean() || evt.getPropagationId() == JBeanEditor.class) {
+                return;
+            }
+            refresh();
+        }
+    };
+
     /**
      * @param beanHelper
      */
-    public void setBeanHelper(BeanHelper beanHelper) {
+    public void setBeanHelper(final BeanHelper beanHelper) {
         Preconditions.checkNotNull(beanHelper);
+        if (this.beanHelper != null) {
+            this.beanHelper.removePropertyChangeListener(beanChangeListener);
+        }
         this.beanHelper = beanHelper;
+        this.beanHelper.addPropertyChangeListener(beanChangeListener);
         refresh();
     }
 

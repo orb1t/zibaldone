@@ -7,7 +7,6 @@
 package uk.me.fommil.beans.editors;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -22,9 +21,6 @@ import org.jdesktop.swingx.JXButton;
  * with a text field and icon as placeholder. Although not a {@link Component}
  * itself, the main purpose of this is the return value of
  * {@link #getCustomEditor()}.
- * <p>
- * The {@code expert} flag is supported and will result in text being rendered
- * in GRAY and without an edit button (i.e. a read-only property).
  * 
  * @author Samuel Halliday
  */
@@ -57,36 +53,28 @@ public abstract class JPropertyEditor extends PropertyEditorSupport {
         // ?? would be nice to set the preferred size here
     }
 
-    public Component getCustomEditor(boolean expert) {
+    @Override
+    public Component getCustomEditor() {
         JPanel jp = new JPanel();
         jp.setLayout(new BorderLayout());
         jp.add(label, BorderLayout.CENTER);
 
-        if (expert) {
-            label.setForeground(Color.GRAY);
+        Icon icon = getIcon();
+        JXButton button;
+        if (icon != null) {
+            button = new JXButton(icon);
         } else {
-            Icon icon = getIcon();
-            JXButton button;
-            if (icon != null) {
-                button = new JXButton(icon);
-            } else {
-                button = new JXButton("edit");
-            }
-            button.addActionListener(action);
-            button.setFocusable(false);
-            JToolBar toolbar = new JToolBar(JToolBar.VERTICAL);
-            toolbar.setFloatable(false);
-            toolbar.setLayout(new FlowLayout(FlowLayout.CENTER));
-            toolbar.add(button);
-            jp.add(toolbar, BorderLayout.WEST);
+            button = new JXButton("edit");
         }
+        button.addActionListener(action);
+        button.setFocusable(false);
+        JToolBar toolbar = new JToolBar(JToolBar.VERTICAL);
+        toolbar.setFloatable(false);
+        toolbar.setLayout(new FlowLayout(FlowLayout.CENTER));
+        toolbar.add(button);
+        jp.add(toolbar, BorderLayout.WEST);
 
         return jp;
-    }
-
-    @Override
-    public Component getCustomEditor() {
-        return getCustomEditor(false);
     }
 
     /**

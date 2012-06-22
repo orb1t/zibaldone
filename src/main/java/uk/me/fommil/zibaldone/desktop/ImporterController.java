@@ -57,8 +57,7 @@ public class ImporterController {
     }
 
     public boolean isSpecial(String propertyName) {
-        // TODO: implement method
-        throw new UnsupportedOperationException("not implemented yet");
+        return importer.getSpecialPropertyNames().contains(propertyName);
     }
 
     public void doImport() {
