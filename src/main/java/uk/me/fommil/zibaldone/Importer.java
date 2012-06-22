@@ -18,6 +18,13 @@ import java.util.*;
  * @author Samuel Halliday
  */
 public interface Importer {
+    
+    /**
+     * Empty interface indicating an Importer's settings Javabeans object.
+     */
+    public interface Settings {
+        
+    }
 
     /**
      * @return a name which identifies the instance name. It should
@@ -45,18 +52,25 @@ public interface Importer {
     public List<Note> getNotes() throws IOException;
 
     /**
-     * A JavaBean with properties that do not have any influence on the identity
-     * of the instance, e.g. passwords, filter details.
+     * A JavaBean with properties that may influence the identity of the instance.
      * 
      * @return a JavaBean
+     * @see #setSettings(Object)
      */
-    public Object getOtherProperties();
+    public Settings getSettings();
 
     /**
-     * A JavaBean with properties that uniquely identify the instance across
-     * sessions, e.g. filenames, usernames, URLs.
-     * 
-     * @return a JavaBean
+     * @param settings
+     * @see #getSettings()
      */
-    public Object getSpecialProperties();
+    public void setSettings(Settings settings);
+
+    
+    /**
+     * The names of the JavaBean properties that uniquely identify the instance
+     * across sessions, e.g. filenames, usernames, URLs.
+     * 
+     * @return list of JavaBean property names
+     */
+    public List<String> getSpecialPropertyNames();
 }

@@ -6,9 +6,10 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
-import java.util.List;
-import java.util.Properties;
+import com.google.common.base.Preconditions;
+import javax.annotation.Nullable;
 import uk.me.fommil.zibaldone.Importer;
+import uk.me.fommil.zibaldone.Importer.Settings;
 
 /**
  * Specialist MVC Controller for working with {@link Importer}s.
@@ -17,20 +18,53 @@ import uk.me.fommil.zibaldone.Importer;
  */
 public class ImporterController {
 
-    public List<Class<Importer>> getImplementations() {
-        // TODO: implement method
-        throw new UnsupportedOperationException("not implemented yet");
+    /**
+     * @param klass
+     * @param settings {@code null} for defaults
+     * @return
+     */
+    public static ImporterController forClass(
+            Class<Importer> klass, @Nullable Settings settings) {
+        Preconditions.checkNotNull(klass);
+
+        final Importer importer;
+        try {
+            importer = klass.newInstance();
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Failed to load Importer: " + klass.getName(), ex);
+        }
+        if (settings != null) {
+            importer.setSettings(settings);
+        }
+
+        return new ImporterController(importer);
     }
 
-    // FIXME: should this really be so abstract? Can't we just expose the Importers in the API?
+    private final Importer importer;
+
+    /**
+     * @param importer
+     */
+    public ImporterController(Importer importer) {
+        this.importer = importer;
+    }
+
+    public Importer.Settings getSettings() {
+        return importer.getSettings();
+    }
     
-    public void doImport(Class<Importer> klass, Properties properties) {
+    public boolean isSpecial(String propertyName) {
         // TODO: implement method
         throw new UnsupportedOperationException("not implemented yet");
     }
 
-    void doRemove(Class<Importer> klass, Properties properties) {
+    public void doImport() {
         // TODO: implement method
-//        throw new UnsupportedOperationException("not implemented yet");
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    public void doRemove() {
+        // TODO: implement method
+        throw new UnsupportedOperationException("not implemented yet");
     }
 }

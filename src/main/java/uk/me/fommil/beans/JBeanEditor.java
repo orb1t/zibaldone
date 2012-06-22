@@ -40,14 +40,17 @@ import uk.me.fommil.beans.BeanHelper.Property;
  * <ul>
  * <li>{@link BeanInfo#getIcon(int)} is displayed, if available.</li>
  * <li>{@link PropertyDescriptor#isHidden()} is respected.</li>
- * <li>{@link PropertyDescriptor#isExpert()} will produce a read-only entry
- * (a useful interpretation of a vague API).</li>
+ * <li>{@link PropertyDescriptor#isExpert()} will attempt to use a "renderer"
+ * instead of an "editor" for the property (a useful interpretation of a vague API)</li>
  * <li>{@link PropertyDescriptor#getShortDescription()} will be shown as the
  * tooltip text for the entry.</li>
  * </ul>
  * This is not capable of detecting changes made to the
  * underlying bean by means other than the {@link BeanHelper} API,
  * in which case a call to {@link #refresh()} is recommended.
+ * <p>
+ * Read-only entries can be enforced using the {@link VetoableChangeListener}
+ * exposed by the {@link BeanHelper} support class.
  * 
  * @see <a href="http://stackoverflow.com/questions/10840078">Origin on Stack Overflow</a>
  * @author Samuel Halliday
@@ -146,7 +149,7 @@ public final class JBeanEditor extends JPanel {
             return properties.get(row).getShortDescription();
         }
 
-        public boolean isReadOnly(int row, int col) {
+        public boolean isExpert(int row, int col) {
             switch (col) {
                 case 0:
                     return true;
@@ -183,7 +186,9 @@ public final class JBeanEditor extends JPanel {
         @Override
         public TableCellEditor getCellEditor(int row, int column) {
             MyTableModel model = (MyTableModel) getModel();
-            if (model.isReadOnly(row, column)) {
+            if (model.isExpert(row, column)) {
+                // TODO: this means that the renderer is shown, but the renderer
+                // might actually allow editing of the entry
                 return null;
             }
 
@@ -210,7 +215,6 @@ public final class JBeanEditor extends JPanel {
 //            customiseMinimumDimensions(prepareEditor.getMinimumSize(), row, column);
 //            return prepareEditor;
 //        }
-
         @Override
         public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
             Component prepareRenderer = super.prepareRenderer(renderer, row, column);
@@ -241,9 +245,9 @@ public final class JBeanEditor extends JPanel {
         setLayout(new BorderLayout());
 
         // TODO: investigate Opacity
-        
+
         table.setTableHeader(null);
-        table.setBackground(null);
+        table.setBackground(null); // ?? why is this needed?
         table.setShowGrid(false);
         table.setCellSelectionEnabled(false);
         table.setFocusable(false);

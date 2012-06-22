@@ -10,11 +10,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
+import java.util.ServiceLoader;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Relator;
@@ -64,22 +66,6 @@ public class JungMainController {
         throw new UnsupportedOperationException("not implemented yet");
     }
 
-    public SynonymController getSynonymController() {
-        return new SynonymController();
-    }
-
-    public JungClusterController getClusterController() {
-        return new JungClusterController(graph);
-    }
-
-    public ImporterController getImporterController() {
-        return new ImporterController();
-    }
-
-    public ExporterController getExporterController() {
-        return new ExporterController();
-    }
-
     /**
      * @return all tags with their usage counts
      */
@@ -89,12 +75,28 @@ public class JungMainController {
     }
 
     /**
+     * @return the {@link Importer} implementations, indexed by their name.
+     */
+    public Map<String, Class<Importer>> getImporterImplementations() {        
+        ServiceLoader<Importer> importerService = ServiceLoader.load(Importer.class);
+        HashMap<String, Class<Importer>> importerImpls = Maps.newHashMap();
+        for (Importer importer : importerService) {
+            String name = importer.getName();
+            Class<Importer> klass = (Class<Importer>) importer.getClass();
+            importerImpls.put(name, klass);
+        }
+        return importerImpls;
+    }
+
+    /**
      * Keeps all the settings in one place. Callers are encouraged to
      * edit mutable entries in-place but should immediately call one of
      * the controller's actions.
      * <p>
      * TODO: persist across sessions
+     * TODO: this is really just a temporary "reminder" object collecting all user settings
      */
+    @Deprecated
     public static class Settings implements Serializable {
 
         private boolean serendipity, tags = true, content, user;
@@ -111,7 +113,7 @@ public class JungMainController {
 
         private final List<String> includeClusters = Lists.newArrayList();
 
-        private final ListMultimap<String, Properties> importers = ArrayListMultimap.create();
+        private final ListMultimap<Class<Importer>, Importer.Settings> importers = ArrayListMultimap.create();
 
         // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
         public boolean isContent() {
@@ -185,7 +187,7 @@ public class JungMainController {
             return includeClusters;
         }
 
-        public ListMultimap<String, Properties> getImporters() {
+        public ListMultimap<Class<Importer>, Importer.Settings> getImporters() {
             return importers;
         }
         // </editor-fold>
