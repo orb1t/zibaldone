@@ -7,10 +7,14 @@
 package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Importer.Settings;
+import uk.me.fommil.zibaldone.Note;
+import uk.me.fommil.zibaldone.Reconciler;
 
 /**
  * Specialist MVC Controller for working with {@link Importer}s.
@@ -60,9 +64,11 @@ public class ImporterController {
         return importer.getSpecialPropertyNames().contains(propertyName);
     }
 
-    public void doImport() {
-        // TODO: implement method
-        log.warning("doImport() not implemented yet");
+    public void doImport() throws IOException {
+        List<Note> notes = importer.getNotes();
+
+        Reconciler reconciler = new Reconciler();
+        reconciler.reconcile(importer, notes);
     }
 
     public void doRemove() {

@@ -11,8 +11,11 @@ import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.LoggingMXBean;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -92,7 +95,7 @@ public class ImporterView extends JXTaskPane {
                         public void run() {
                             JOptionPane.showMessageDialog(ImporterView.this,
                                     evt.getPropertyName() + " cannot be changed once the Importer has been used.",
-                                    "Error", JOptionPane.ERROR_MESSAGE);
+                                    "Warning", JOptionPane.WARNING_MESSAGE);
                         }
                     });
 
@@ -168,7 +171,15 @@ public class ImporterView extends JXTaskPane {
     }//GEN-LAST:event_jXRemoveButtonActionPerformed
 
     private void jXReloadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jXReloadButtonActionPerformed
-        controller.doImport();
+        try {
+            // TODO: some timescale feedback to user would be nice
+            controller.doImport();
+        } catch (IOException ex) {
+            log.log(Level.WARNING, "failed import", ex);
+            JOptionPane.showMessageDialog(this, "There was a problem with the data source.",
+                    "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         if (!locked.getAndSet(true)) {
             lockDownSpecial();
         }
