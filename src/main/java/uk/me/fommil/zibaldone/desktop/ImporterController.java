@@ -30,7 +30,7 @@ public class ImporterController {
      * @param settings {@code null} for defaults
      * @return
      */
-    public static ImporterController forClass(
+    public static Importer forClass(
             Class<Importer> klass, @Nullable Settings settings) {
         Preconditions.checkNotNull(klass);
 
@@ -44,15 +44,19 @@ public class ImporterController {
             importer.setSettings(settings);
         }
 
-        return new ImporterController(importer);
+        return importer;
     }
+
+    private final JungMainController main;
 
     private final Importer importer;
 
     /**
+     * @param main
      * @param importer
      */
-    public ImporterController(Importer importer) {
+    public ImporterController(JungMainController main, Importer importer) {
+        this.main = main;
         this.importer = importer;
     }
 
@@ -66,9 +70,9 @@ public class ImporterController {
 
     public void doImport() throws IOException {
         List<Note> notes = importer.getNotes();
-
         Reconciler reconciler = new Reconciler();
         reconciler.reconcile(importer, notes);
+        main.doRefresh();
     }
 
     public void doRemove() {
