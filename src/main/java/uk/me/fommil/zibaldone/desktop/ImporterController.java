@@ -7,6 +7,7 @@
 package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Importer.Settings;
@@ -17,6 +18,8 @@ import uk.me.fommil.zibaldone.Importer.Settings;
  * @author Samuel Halliday
  */
 public class ImporterController {
+
+    private static final Logger log = Logger.getLogger(ImporterController.class.getName());
 
     /**
      * @param klass
@@ -52,7 +55,7 @@ public class ImporterController {
     public Importer.Settings getSettings() {
         return importer.getSettings();
     }
-    
+
     public boolean isSpecial(String propertyName) {
         // TODO: implement method
         throw new UnsupportedOperationException("not implemented yet");
@@ -65,6 +68,6 @@ public class ImporterController {
 
     public void doRemove() {
         // TODO: implement method
-        throw new UnsupportedOperationException("not implemented yet");
+        log.warning("doRemove() not implemented yet");
     }
 }

@@ -12,6 +12,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.swing.JPanel;
 import uk.me.fommil.beans.JBeanEditor;
 import uk.me.fommil.zibaldone.Importer;
 
@@ -131,8 +132,9 @@ public class ImporterView extends javax.swing.JPanel {
 
     private void jXRemoveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jXRemoveButtonActionPerformed
         controller.doRemove();
-        getParent().remove(this);
-        getParent().invalidate();
+        JPanel parent = (JPanel) getParent();
+        parent.remove(this);
+        parent.revalidate();
     }//GEN-LAST:event_jXRemoveButtonActionPerformed
 
     private void jXReloadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jXReloadButtonActionPerformed

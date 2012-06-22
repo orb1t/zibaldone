@@ -232,6 +232,7 @@ public class Mainscreen extends javax.swing.JFrame {
         ImporterController importerController = ImporterController.forClass(klass, null);
         ImporterView importerView = new ImporterView(importerController, false);
         jXImportersPanel.add(importerView);
+        jXImportersPanel.revalidate();
 
         Importer.Settings settings = importerController.getSettings();
         controller.getSettings().getImporters().put(klass, settings);

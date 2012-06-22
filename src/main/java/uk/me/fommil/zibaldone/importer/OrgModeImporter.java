@@ -36,7 +36,7 @@ public class OrgModeImporter implements Importer {
 
     private static final Logger log = Logger.getLogger(OrgModeImporter.class.getName());
 
-    private final Special special = new Special();
+    private volatile Config special = new Config();
 
     /**
      * @param args
@@ -45,7 +45,7 @@ public class OrgModeImporter implements Importer {
     public static void main(String[] args) throws Exception {
 
         OrgModeImporter importer = new OrgModeImporter();
-        importer.getSpecialProperties().setFile(new File("../data/QT2-notes.org"));
+        importer.getSettings().setFile(new File("../data/QT2-notes.org"));
         List<Note> notes = importer.getNotes();
 
         Reconciler reconciler = new Reconciler();
@@ -115,16 +115,21 @@ public class OrgModeImporter implements Importer {
     }
 
     @Override
-    public Object getOtherProperties() {
-        return null;
-    }
-
-    @Override
-    public Special getSpecialProperties() {
+    public Config getSettings() {
         return special;
     }
 
-    public static class Special {
+    @Override
+    public void setSettings(Settings settings) {
+        this.special = (Config) settings;
+    }
+
+    @Override
+    public List<String> getSpecialPropertyNames() {
+        return Lists.newArrayList("file");
+    }
+
+    public static class Config implements Settings {
 
         private File file;
 
@@ -134,10 +139,10 @@ public class OrgModeImporter implements Importer {
             if (this == obj) {
                 return true;
             }
-            if (!(obj instanceof Special)) {
+            if (!(obj instanceof Config)) {
                 return false;
             }
-            final Special other = (Special) obj;// </editor-fold>
+            final Config other = (Config) obj;// </editor-fold>
             return Objects.equal(file, other.file);
         }
 
