@@ -12,6 +12,7 @@ import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.JPanel;
+import org.jdesktop.swingx.JXTaskPane;
 import uk.me.fommil.zibaldone.Importer;
 
 /**
@@ -19,7 +20,7 @@ import uk.me.fommil.zibaldone.Importer;
  *
  * @author Samuel Halliday
  */
-public class ImporterView extends javax.swing.JPanel {
+public class ImporterView extends JXTaskPane {
 
     private static final long serialVersionUID = 1L;
 
@@ -41,6 +42,9 @@ public class ImporterView extends javax.swing.JPanel {
      */
     public ImporterView(ImporterController controller, boolean used) {
         initComponents();
+        setCollapsed(used);
+        setTitle(controller.getImporter().getName());
+
         this.controller = controller;
         locked = new AtomicBoolean(used);
 
@@ -91,13 +95,16 @@ public class ImporterView extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
         jToolBar = new javax.swing.JToolBar();
         jXReloadButton = new org.jdesktop.swingx.JXButton();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 25), new java.awt.Dimension(0, 1000));
         jXRemoveButton = new org.jdesktop.swingx.JXButton();
+        jPanel2 = new javax.swing.JPanel();
         jBeanEditor = new uk.me.fommil.beans.JBeanEditor();
+        jSeparator1 = new javax.swing.JSeparator();
 
-        setLayout(new java.awt.BorderLayout());
+        jPanel1.setLayout(new java.awt.BorderLayout());
 
         jToolBar.setFloatable(false);
         jToolBar.setOrientation(1);
@@ -126,8 +133,17 @@ public class ImporterView extends javax.swing.JPanel {
         });
         jToolBar.add(jXRemoveButton);
 
-        add(jToolBar, java.awt.BorderLayout.EAST);
-        add(jBeanEditor, java.awt.BorderLayout.CENTER);
+        jPanel1.add(jToolBar, java.awt.BorderLayout.EAST);
+
+        jPanel2.setLayout(new java.awt.BorderLayout());
+        jPanel2.add(jBeanEditor, java.awt.BorderLayout.CENTER);
+
+        jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
+        jPanel2.add(jSeparator1, java.awt.BorderLayout.EAST);
+
+        jPanel1.add(jPanel2, java.awt.BorderLayout.CENTER);
+
+        add(jPanel1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jXRemoveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jXRemoveButtonActionPerformed
@@ -151,6 +167,9 @@ public class ImporterView extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.Box.Filler filler1;
     private uk.me.fommil.beans.JBeanEditor jBeanEditor;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JToolBar jToolBar;
     private org.jdesktop.swingx.JXButton jXReloadButton;
     private org.jdesktop.swingx.JXButton jXRemoveButton;

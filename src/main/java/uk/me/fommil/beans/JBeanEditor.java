@@ -290,7 +290,8 @@ public final class JBeanEditor extends JPanel {
         table.getColumnModel().getColumn(0).setMaxWidth(1);
         table.getColumnModel().getColumn(1).setMinWidth(1);
 
-        invalidate();
+        table.packAll();
+        revalidate();
     }
 
     /**

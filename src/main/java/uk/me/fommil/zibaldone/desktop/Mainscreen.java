@@ -13,7 +13,6 @@ import java.beans.PropertyEditorManager;
 import java.io.File;
 import java.util.Date;
 import java.util.logging.Logger;
-import org.jdesktop.swingx.JXTaskPane;
 import org.jdesktop.swingx.combobox.MapComboBoxModel;
 import uk.me.fommil.beans.editors.DatePropertyEditor;
 import uk.me.fommil.beans.editors.FilePropertyEditor;
@@ -114,14 +113,9 @@ public class Mainscreen extends javax.swing.JFrame {
     }
 
     private Importer.Settings addImporter(Class<Importer> klass, Importer.Settings settings) {
-        boolean used = settings == null ? false : true;
         ImporterController importerController = ImporterController.forClass(klass, settings);
-        ImporterView importerView = new ImporterView(importerController, used);
-        JXTaskPane taskPane = new JXTaskPane();
-        taskPane.setTitle(importerController.getImporter().getName());
-        taskPane.setCollapsed(used);
-        taskPane.add(importerView);
-        jXImportersPanel.add(taskPane);
+        ImporterView importerView = new ImporterView(importerController, settings != null);
+        jXImportersPanel.add(importerView);
         jXImportersPanel.revalidate();
         return importerController.getImporter().getSettings();
     }
