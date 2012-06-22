@@ -16,6 +16,7 @@ import javax.swing.AbstractCellEditor;
 import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import uk.me.fommil.beans.editors.JPropertyEditor;
 
 /**
  * Adapts a {@link PropertyEditor} into {@link TableCellEditor} and {@link TableCellRenderer}.
@@ -28,25 +29,38 @@ public class PropertyEditorTableAdapter extends AbstractCellEditor implements Ta
 
     private final PropertyEditor editor;
 
+    private final boolean expert;
+
     /**
      * @param klass
      * @return
      */
     public static PropertyEditorTableAdapter forClass(Class<?> klass) {
+        return forClass(klass, false);
+    }
+
+    /**
+     * @param klass
+     * @param expert true is a hint to some implementations to disable editing
+     * @return
+     */
+    public static PropertyEditorTableAdapter forClass(Class<?> klass, boolean expert) {
         PropertyEditor editor = PropertyEditorManager.findEditor(klass);
         if (editor == null || !editor.supportsCustomEditor()) {
             return null;
         }
-        return new PropertyEditorTableAdapter(editor);
+        return new PropertyEditorTableAdapter(editor, expert);
     }
 
     /**
      * @param editor
+     * @param expert true is a hint to some implementations to disable editing
      */
-    public PropertyEditorTableAdapter(PropertyEditor editor) {
+    public PropertyEditorTableAdapter(PropertyEditor editor, boolean expert) {
         super();
         Preconditions.checkNotNull(editor);
         this.editor = editor;
+        this.expert = expert;
         Preconditions.checkArgument(editor.supportsCustomEditor());
         editor.addPropertyChangeListener(new PropertyChangeListener() {
 
@@ -60,7 +74,14 @@ public class PropertyEditorTableAdapter extends AbstractCellEditor implements Ta
     @Override
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
         editor.setValue(value);
-        Component editorComponent = editor.getCustomEditor();
+        Component editorComponent;
+
+        if (editor instanceof JPropertyEditor) {
+            editorComponent = ((JPropertyEditor) editor).getCustomEditor(expert);
+        } else {
+            editorComponent = editor.getCustomEditor();
+        }
+
         Preconditions.checkState(editorComponent != null);
         return editorComponent;
     }

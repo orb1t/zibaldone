@@ -40,8 +40,7 @@ import uk.me.fommil.beans.BeanHelper.Property;
  * <ul>
  * <li>{@link BeanInfo#getIcon(int)} is displayed, if available.</li>
  * <li>{@link PropertyDescriptor#isHidden()} is respected.</li>
- * <li>{@link PropertyDescriptor#isExpert()} will attempt to use a "renderer"
- * instead of an "editor" for the property (a useful interpretation of a vague API)</li>
+ * <li>{@link PropertyDescriptor#isExpert()} is passed as a hint to the {@link PropertyEditor}.</li>
  * <li>{@link PropertyDescriptor#getShortDescription()} will be shown as the
  * tooltip text for the entry.</li>
  * </ul>
@@ -50,7 +49,9 @@ import uk.me.fommil.beans.BeanHelper.Property;
  * in which case a call to {@link #refresh()} is recommended.
  * <p>
  * Read-only entries can be enforced using the {@link VetoableChangeListener}
- * exposed by the {@link BeanHelper} support class.
+ * exposed by the {@link BeanHelper} support class, but be warned that users
+ * will still see the {@link PropertyEditor} and expect to be able to edit
+ * the property.
  * 
  * @see <a href="http://stackoverflow.com/questions/10840078">Origin on Stack Overflow</a>
  * @author Samuel Halliday
@@ -150,12 +151,9 @@ public final class JBeanEditor extends JPanel {
         }
 
         public boolean isExpert(int row, int col) {
-            switch (col) {
-                case 0:
-                    return true;
-                default:
-                    return properties.get(row).isExpert();
-            }
+            Preconditions.checkArgument(row >= 0 && row < getRowCount());
+            Preconditions.checkArgument(col >= 0 && col < getColumnCount());
+            return properties.get(row).isExpert();
         }
     }
 
@@ -167,16 +165,21 @@ public final class JBeanEditor extends JPanel {
         @Override
         public TableCellRenderer getCellRenderer(int row, int column) {
             MyTableModel model = (MyTableModel) getModel();
+            boolean expert = model.isExpert(row, column);
             if (column == 0) {
+                // ?? JXTable default renderer doesn't align right
                 DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
                 renderer.setToolTipText(model.getToolTipText(row));
                 renderer.setHorizontalAlignment(JLabel.RIGHT);
+                if (expert) {
+                    renderer.setForeground(Color.GRAY);
+                }
                 return renderer;
             }
 
             // code repetition with getCellEditor because of TableCell{Renderer, Editor} non-inheritance
             Class<?> klass = model.getClassAt(row, column);
-            TableCellRenderer javaBeansRenderer = PropertyEditorTableAdapter.forClass(klass);
+            PropertyEditorTableAdapter javaBeansRenderer = PropertyEditorTableAdapter.forClass(klass, expert);
             if (javaBeansRenderer != null) {
                 return javaBeansRenderer;
             }
@@ -186,15 +189,14 @@ public final class JBeanEditor extends JPanel {
         @Override
         public TableCellEditor getCellEditor(int row, int column) {
             MyTableModel model = (MyTableModel) getModel();
-            if (model.isExpert(row, column)) {
-                // TODO: this means that the renderer is shown, but the renderer
-                // might actually allow editing of the entry
+            if (column == 0) {
                 return null;
             }
 
             // code repetition with getCellRenderer because of TableCell{Renderer, Editor} non-inheritance
+            boolean expert = model.isExpert(row, column);
             Class<?> klass = model.getClassAt(row, column);
-            TableCellEditor javaBeansEditor = PropertyEditorTableAdapter.forClass(klass);
+            PropertyEditorTableAdapter javaBeansEditor = PropertyEditorTableAdapter.forClass(klass, expert);
             if (javaBeansEditor != null) {
                 return javaBeansEditor;
             }

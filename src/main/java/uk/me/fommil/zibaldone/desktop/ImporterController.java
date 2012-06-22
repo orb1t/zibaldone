@@ -52,8 +52,8 @@ public class ImporterController {
         this.importer = importer;
     }
 
-    public Importer.Settings getSettings() {
-        return importer.getSettings();
+    public Importer getImporter() {
+        return importer;
     }
 
     public boolean isSpecial(String propertyName) {
@@ -63,7 +63,7 @@ public class ImporterController {
 
     public void doImport() {
         // TODO: implement method
-        throw new UnsupportedOperationException("not implemented yet");
+        log.warning("doImport() not implemented yet");
     }
 
     public void doRemove() {

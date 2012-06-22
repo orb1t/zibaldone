@@ -12,8 +12,6 @@ import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.beans.PropertyEditor;
 import java.beans.PropertyEditorSupport;
 import javax.swing.*;
@@ -24,27 +22,19 @@ import org.jdesktop.swingx.JXButton;
  * with a text field and icon as placeholder. Although not a {@link Component}
  * itself, the main purpose of this is the return value of
  * {@link #getCustomEditor()}.
+ * <p>
+ * The {@code expert} flag is supported and will result in text being rendered
+ * in GRAY and without an edit button (i.e. a read-only property).
  * 
  * @author Samuel Halliday
  */
 public abstract class JPropertyEditor extends PropertyEditorSupport {
 
-    private final JLabel textField = new JLabel("→");
+    private final JLabel label = new JLabel();
 
     public JPropertyEditor() {
         super();
-        textField.setFocusable(false);
-//        textField.setEditable(false);
-//        textField.setBackground(null);
-        // http://www.java.net/forum/topic/javadesktop/java-desktop-technologies/swinglabs/jxtextfield-background-weirdness
-        // textField.setPromptBackround(Color.WHITE);
-        textField.addMouseListener(new MouseAdapter() {
-
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                showEditor();
-            }
-        });
+        label.setFocusable(false);
     }
 
     @Override
@@ -63,32 +53,40 @@ public abstract class JPropertyEditor extends PropertyEditorSupport {
     @Override
     public void setValue(Object value) {
         super.setValue(value);
-        textField.setText(getAsText());
+        label.setText(getAsText());
         // ?? would be nice to set the preferred size here
+    }
+
+    public Component getCustomEditor(boolean expert) {
+        JPanel jp = new JPanel();
+        jp.setLayout(new BorderLayout());
+        jp.add(label, BorderLayout.CENTER);
+
+        if (expert) {
+            label.setForeground(Color.GRAY);
+        } else {
+            Icon icon = getIcon();
+            JXButton button;
+            if (icon != null) {
+                button = new JXButton(icon);
+            } else {
+                button = new JXButton("edit");
+            }
+            button.addActionListener(action);
+            button.setFocusable(false);
+            JToolBar toolbar = new JToolBar(JToolBar.VERTICAL);
+            toolbar.setFloatable(false);
+            toolbar.setLayout(new FlowLayout(FlowLayout.CENTER));
+            toolbar.add(button);
+            jp.add(toolbar, BorderLayout.WEST);
+        }
+
+        return jp;
     }
 
     @Override
     public Component getCustomEditor() {
-        JPanel jp = new JPanel();
-        jp.setLayout(new BorderLayout());
-        jp.add(textField, BorderLayout.CENTER);
-
-        Icon icon = getIcon();
-        JXButton button;
-        if (icon != null) {
-            button = new JXButton(icon);
-        } else {
-            button = new JXButton("edit");
-        }
-        button.addActionListener(action);
-        button.setFocusable(false);
-        JToolBar toolbar = new JToolBar(JToolBar.VERTICAL);
-        toolbar.setFloatable(false);
-        toolbar.setLayout(new FlowLayout(FlowLayout.CENTER));
-        toolbar.add(button);
-        jp.add(toolbar, BorderLayout.EAST);
-
-        return jp;
+        return getCustomEditor(false);
     }
 
     /**

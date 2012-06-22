@@ -6,14 +6,12 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.JPanel;
-import uk.me.fommil.beans.JBeanEditor;
 import uk.me.fommil.zibaldone.Importer;
 
 /**
@@ -22,6 +20,8 @@ import uk.me.fommil.zibaldone.Importer;
  * @author Samuel Halliday
  */
 public class ImporterView extends javax.swing.JPanel {
+
+    private static final long serialVersionUID = 1L;
 
     private final ImporterController controller;
 
@@ -44,7 +44,7 @@ public class ImporterView extends javax.swing.JPanel {
         this.controller = controller;
         locked = new AtomicBoolean(used);
 
-        jBeanEditor.setBean(controller.getSettings());
+        jBeanEditor.setBean(controller.getImporter().getSettings());
 
         if (used) {
             lockDownSpecial();
@@ -142,6 +142,10 @@ public class ImporterView extends javax.swing.JPanel {
         if (!locked.getAndSet(true)) {
             lockDownSpecial();
         }
+        for (String name : controller.getImporter().getSpecialPropertyNames()) {
+            jBeanEditor.getBeanHelper().getProperty(name).setExpert(true);
+        }
+        jBeanEditor.refresh();
     }//GEN-LAST:event_jXReloadButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

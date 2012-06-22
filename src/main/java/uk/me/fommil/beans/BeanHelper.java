@@ -174,6 +174,10 @@ public class BeanHelper {
             }
         }
 
+        public void setExpert(boolean expert) {
+            descriptor.setExpert(expert);
+        }
+
         // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
         public String getShortDescription() {
             return descriptor.getShortDescription();

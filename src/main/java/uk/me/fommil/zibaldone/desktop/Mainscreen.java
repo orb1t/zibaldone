@@ -13,6 +13,7 @@ import java.beans.PropertyEditorManager;
 import java.io.File;
 import java.util.Date;
 import java.util.logging.Logger;
+import org.jdesktop.swingx.JXTaskPane;
 import org.jdesktop.swingx.combobox.MapComboBoxModel;
 import uk.me.fommil.beans.editors.DatePropertyEditor;
 import uk.me.fommil.beans.editors.FilePropertyEditor;
@@ -27,6 +28,8 @@ import uk.me.fommil.zibaldone.Tag;
 public class Mainscreen extends javax.swing.JFrame {
 
     private static final Logger log = Logger.getLogger(Mainscreen.class.getName());
+
+    private static final long serialVersionUID = 1L;
 
     /** @param args */
     public static void main(String args[]) {
@@ -90,7 +93,7 @@ public class Mainscreen extends javax.swing.JFrame {
 
 
         initComponents();
-        jSettingsPanel.setVisible(false);
+        jSettingsTabs.setVisible(false);
 
         // TODO: dynamic lookup of available importers by querying controller
         MapComboBoxModel<String, Class<Importer>> importerChoices = new MapComboBoxModel<String, Class<Importer>>(controller.getImporterImplementations());
@@ -99,18 +102,28 @@ public class Mainscreen extends javax.swing.JFrame {
         ListMultimap<Class<Importer>, Importer.Settings> importers = controller.getSettings().getImporters();
         for (Class<Importer> klass : importers.keySet()) {
             for (Settings settings : importers.get(klass)) {
-                ImporterController importerController = ImporterController.forClass(klass, settings);
-                ImporterView importerView = new ImporterView(importerController, true);
-                jXImportersPanel.add(importerView);
+                addImporter(klass, settings);
             }
         }
-
         // TODO: add the 'null' importer
 
         // TODO: animated settings panel
         // TODO: icons for the toolbar buttons
         // TODO: menu entries
         // TODO: use simplericity for a better OS X experience
+    }
+
+    private Importer.Settings addImporter(Class<Importer> klass, Importer.Settings settings) {
+        boolean used = settings == null ? false : true;
+        ImporterController importerController = ImporterController.forClass(klass, settings);
+        ImporterView importerView = new ImporterView(importerController, used);
+        JXTaskPane taskPane = new JXTaskPane();
+        taskPane.setTitle(importerController.getImporter().getName());
+        taskPane.setCollapsed(used);
+        taskPane.add(importerView);
+        jXImportersPanel.add(taskPane);
+        jXImportersPanel.revalidate();
+        return importerController.getImporter().getSettings();
     }
 
     /**
@@ -127,7 +140,6 @@ public class Mainscreen extends javax.swing.JFrame {
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(50, 0), new java.awt.Dimension(1000, 0));
         jButtonSources = new javax.swing.JToggleButton();
         jJungPanel = new uk.me.fommil.zibaldone.desktop.JungGraphView(graph, controller);
-        jSettingsPanel = new javax.swing.JPanel();
         jSettingsTabs = new javax.swing.JTabbedPane();
         jImportersPanel = new javax.swing.JPanel();
         jToolBar1 = new javax.swing.JToolBar();
@@ -171,8 +183,7 @@ public class Mainscreen extends javax.swing.JFrame {
         jJungPanel.setLayout(new java.awt.BorderLayout());
         getContentPane().add(jJungPanel, java.awt.BorderLayout.CENTER);
 
-        jSettingsPanel.setPreferredSize(new java.awt.Dimension(320, 400));
-        jSettingsPanel.setLayout(new java.awt.BorderLayout());
+        jSettingsTabs.setPreferredSize(new java.awt.Dimension(320, 480));
 
         jImportersPanel.setLayout(new java.awt.BorderLayout());
 
@@ -213,28 +224,20 @@ public class Mainscreen extends javax.swing.JFrame {
         jAdvancedPanel.setLayout(new java.awt.BorderLayout());
         jSettingsTabs.addTab("Advanced", jAdvancedPanel);
 
-        jSettingsPanel.add(jSettingsTabs, java.awt.BorderLayout.CENTER);
-
-        getContentPane().add(jSettingsPanel, java.awt.BorderLayout.EAST);
+        getContentPane().add(jSettingsTabs, java.awt.BorderLayout.EAST);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonSourcesStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jButtonSourcesStateChanged
-        jSettingsPanel.setVisible(jButtonSources.isSelected());
+        jSettingsTabs.setVisible(jButtonSources.isSelected());
     }//GEN-LAST:event_jButtonSourcesStateChanged
 
     @SuppressWarnings("unchecked")
     private void jAddImporterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jAddImporterButtonActionPerformed
         String name = (String) jImporterSelectorComboBox.getSelectedItem();
         Class<Importer> klass = controller.getImporterImplementations().get(name);
-
-        ImporterController importerController = ImporterController.forClass(klass, null);
-        ImporterView importerView = new ImporterView(importerController, false);
-        jXImportersPanel.add(importerView);
-        jXImportersPanel.revalidate();
-
-        Importer.Settings settings = importerController.getSettings();
+        Importer.Settings settings = addImporter(klass, null);
         controller.getSettings().getImporters().put(klass, settings);
     }//GEN-LAST:event_jAddImporterButtonActionPerformed
 
@@ -252,7 +255,6 @@ public class Mainscreen extends javax.swing.JFrame {
     private org.jdesktop.swingx.JXButton jReloadImportersButton;
     private javax.swing.JScrollPane jScrollPane1;
     private org.jdesktop.swingx.JXSearchField jSearch;
-    private javax.swing.JPanel jSettingsPanel;
     private javax.swing.JTabbedPane jSettingsTabs;
     private javax.swing.JPanel jSynonymsPanel;
     private javax.swing.JToolBar jToolBar;
