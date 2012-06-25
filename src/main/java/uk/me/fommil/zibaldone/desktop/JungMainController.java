@@ -42,6 +42,8 @@ import uk.me.fommil.zibaldone.relator.TagRelator;
 public class JungMainController {
 
     /**
+     * TODO: check this further... might not be true
+     * 
      * JUNG enforces unique objects on edges, so it is not possible to
      * use just the weights as edges: so we use this.
      */
@@ -126,15 +128,20 @@ public class JungMainController {
         // a shame the API doesn't guarantee silent adding of vertices
         for (Note note1 : notes) {
             for (Note note2 : notes) {
+                if (note1 == note2 || graph.getNeighbors(note1).contains(note2)) {
+                    continue;
+                }
+                                
                 Relation relation = new Relation(note1, note2);
                 relation.setRelator(relator);
                 // TODO: think about how sparsity is handled
-                if (relation.getWeight() < 0.95) {
+                if (relation.getWeight() < 0.1) {
                     graph.addEdge(relation, note1, note2);
                 }
             }
         }
-
+        
+        log.info(graph.getVertexCount() + " vertices, " + graph.getEdgeCount() + " edges");
     }
 
     /**

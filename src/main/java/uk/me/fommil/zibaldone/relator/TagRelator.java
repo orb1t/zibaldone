@@ -36,7 +36,7 @@ public class TagRelator implements Relator {
 
     // tags that appear in an Synonym are resolved to an arbitrary tag
     private final Map<Tag, Tag> resolve = Maps.newHashMap();
-
+    
     /**
      * Assumes that the provided {@link Synonym} instances do not change
      * after construction and also ignores their type - so every

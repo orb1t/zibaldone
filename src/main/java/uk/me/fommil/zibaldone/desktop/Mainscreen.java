@@ -11,6 +11,7 @@ import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.SparseMultigraph;
 import java.beans.PropertyEditorManager;
 import java.io.File;
+import java.util.Collections;
 import java.util.Date;
 import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
@@ -21,30 +22,33 @@ import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Importer.Settings;
 import uk.me.fommil.zibaldone.Note;
+import uk.me.fommil.zibaldone.Synonym;
 import uk.me.fommil.zibaldone.Tag;
 import uk.me.fommil.zibaldone.desktop.JungMainController.Relation;
+import uk.me.fommil.zibaldone.relator.TagRelator;
 
 /**
  * @author Samuel Halliday
  */
 public class Mainscreen extends javax.swing.JFrame {
-
+    
     private static final Logger log = Logger.getLogger(Mainscreen.class.getName());
-
+    
     private static final long serialVersionUID = 1L;
 
     /** @param args */
     public static void main(String args[]) {
         PropertyEditorManager.registerEditor(File.class, FilePropertyEditor.class);
         PropertyEditorManager.registerEditor(Date.class, DatePropertyEditor.class);
-
+        
         final EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
-
+        
         java.awt.EventQueue.invokeLater(new Runnable() {
-
+            
             @Override
             public void run() {
                 ObservableGraph<Note, Relation> graph = new ObservableGraph<Note, Relation>(new SparseMultigraph<Note, Relation>());
+//                ObservableGraph<Note, Relation> graph = getGraphForTheBenefitOfNetbeans();
 
                 Mainscreen main = new Mainscreen(emf, graph);
                 main.setVisible(true);
@@ -56,12 +60,29 @@ public class Mainscreen extends javax.swing.JFrame {
      * @return a suitable model for use in GUI Editors such as in Netbeans.
      */
     static ObservableGraph<Note, Relation> getGraphForTheBenefitOfNetbeans() {
-        return new ObservableGraph<Note, Relation>(new SparseMultigraph<Note, Relation>());
+        ObservableGraph<Note, Relation> graph = new ObservableGraph<Note, Relation>(new SparseMultigraph<Note, Relation>());
+        Note a = new Note();
+        a.setTags(Tag.asTags("smug", "silly", "ugly"));
+        Note b = new Note();
+        b.setTags(Tag.asTags("smug", "silly"));
+        Note c = new Note();
+        c.setTags(Tag.asTags("ugly"));
+        Relation ab = new Relation(a, b);
+        ab.setRelator(new TagRelator(Collections.<Synonym>emptyList()));
+        Relation ac = new Relation(a, c);
+        ac.setRelator(new TagRelator(Collections.<Synonym>emptyList()));
+        Relation bc = new Relation(b, c);
+        bc.setRelator(new TagRelator(Collections.<Synonym>emptyList()));;
+        graph.addVertex(a);
+        graph.addVertex(b);
+        graph.addVertex(c);
+        graph.addEdge(ab, a, b);
+        graph.addEdge(ac, a, c);
+        graph.addEdge(bc, b, c);
+        return graph;
     }
-
+    
     private final JungMainController controller;
-
-    private final ObservableGraph<Note, Relation> graph;
 
     /**
      * @deprecated only to be used by GUI Editors.
@@ -76,17 +97,16 @@ public class Mainscreen extends javax.swing.JFrame {
      * @param graph
      */
     public Mainscreen(EntityManagerFactory emf, ObservableGraph<Note, Relation> graph) {
-        this.graph = graph;
         rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         controller = new JungMainController(emf, graph);
-
+        
         initComponents();
         jSettingsTabs.setVisible(false);
 
         // TODO: dynamic lookup of available importers by querying controller
         MapComboBoxModel<String, Class<Importer>> importerChoices = new MapComboBoxModel<String, Class<Importer>>(controller.getImporterImplementations());
         jImporterSelectorComboBox.setModel(importerChoices);
-
+        
         ListMultimap<Class<Importer>, Importer.Settings> importers = controller.getSettings().getImporters();
         for (Class<Importer> klass : importers.keySet()) {
             for (Settings settings : importers.get(klass)) {
@@ -94,13 +114,14 @@ public class Mainscreen extends javax.swing.JFrame {
             }
         }
         // TODO: add the 'null' importer
-
+        
+        log.info(jJungPanel.getSize() + " pixels");
         // TODO: animated settings panel
         // TODO: icons for the toolbar buttons
         // TODO: menu entries
         // TODO: use simplericity for a better OS X experience
     }
-
+    
     private Importer.Settings addImporter(Class<Importer> klass, Importer.Settings settings) {
         Importer importer = ImporterController.forClass(klass, settings);
         ImporterController importerController = new ImporterController(controller, importer);
@@ -216,7 +237,7 @@ public class Mainscreen extends javax.swing.JFrame {
     private void jButtonSourcesStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jButtonSourcesStateChanged
         jSettingsTabs.setVisible(jButtonSources.isSelected());
     }//GEN-LAST:event_jButtonSourcesStateChanged
-
+    
     @SuppressWarnings("unchecked")
     private void jAddImporterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jAddImporterButtonActionPerformed
         String name = (String) jImporterSelectorComboBox.getSelectedItem();
