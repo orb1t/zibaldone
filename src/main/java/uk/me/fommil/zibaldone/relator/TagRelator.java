@@ -65,6 +65,9 @@ public class TagRelator implements Relator {
         Preconditions.checkNotNull(b);
         Set<Tag> aResolved = resolve(a.getTags());
         Set<Tag> bResolved = resolve(b.getTags());
+        if (aResolved.isEmpty() || bResolved.isEmpty()) {
+            return 1;
+        }
         if (aResolved.equals(bResolved)) {
             return 0;
         }
@@ -73,10 +76,10 @@ public class TagRelator implements Relator {
         if (overlapTags == 0) {
             return 1.0;
         }
-
         int totalTags = Sets.union(aResolved, bResolved).size();
+        
         // choices choices... how to scale?
-        double overlap = (double) overlapTags / totalTags;
+        double overlap = ((double) overlapTags) / totalTags;
         return (1 - overlap);
     }
 

@@ -16,10 +16,9 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
-import uk.me.fommil.zibaldone.Importer;
-import uk.me.fommil.zibaldone.Note;
-import uk.me.fommil.zibaldone.Reconciler;
-import uk.me.fommil.zibaldone.Relator;
+import uk.me.fommil.utils.Convenience;
+import uk.me.fommil.utils.Convenience.SelfLoop;
+import uk.me.fommil.zibaldone.*;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
 import uk.me.fommil.zibaldone.relator.TagRelator;
 
@@ -42,7 +41,7 @@ import uk.me.fommil.zibaldone.relator.TagRelator;
 public class JungMainController {
 
     /**
-     * TODO: check this further... might not be true
+     * FIXME: this is not true, but is it useful to keep this object?
      * 
      * JUNG enforces unique objects on edges, so it is not possible to
      * use just the weights as edges: so we use this.
@@ -123,24 +122,26 @@ public class JungMainController {
 
         // TODO: choose relevant relator
         SynonymController synonymController = new SynonymController(emf);
-        Relator relator = new TagRelator(synonymController.getActiveSynonyms());
+//        final Relator relator = new TagRelator(synonymController.getActiveSynonyms());
+        final Relator relator = new TagRelator(Collections.<Synonym>emptyList());
 
-        // a shame the API doesn't guarantee silent adding of vertices
-        for (Note note1 : notes) {
-            for (Note note2 : notes) {
-                if (note1 == note2 || graph.getNeighbors(note1).contains(note2)) {
-                    continue;
-                }
-                                
-                Relation relation = new Relation(note1, note2);
+        Convenience.selfLoop(notes, new SelfLoop<Note>() {
+
+            @Override
+            public void action(Note first, Note second) {
+                Relation relation = new Relation(first, second);
                 relation.setRelator(relator);
-                // TODO: think about how sparsity is handled
-                if (relation.getWeight() < 0.1) {
-                    graph.addEdge(relation, note1, note2);
+                // TODO: weight zero should be combined together in a sub-graph
+                // like in the SubLayoutDemo (AggregateLayout)
+
+                double weight = relation.getWeight();
+                if (0 < weight && weight < 1) {
+                    log.info(weight + " between " + first.getTags() + " | " + second.getTags());
+                    graph.addEdge(relation, first, second);
                 }
             }
-        }
-        
+        });
+
         log.info(graph.getVertexCount() + " vertices, " + graph.getEdgeCount() + " edges");
     }
 

@@ -31,20 +31,20 @@ import uk.me.fommil.zibaldone.relator.TagRelator;
  * @author Samuel Halliday
  */
 public class Mainscreen extends javax.swing.JFrame {
-    
+
     private static final Logger log = Logger.getLogger(Mainscreen.class.getName());
-    
+
     private static final long serialVersionUID = 1L;
 
     /** @param args */
     public static void main(String args[]) {
         PropertyEditorManager.registerEditor(File.class, FilePropertyEditor.class);
         PropertyEditorManager.registerEditor(Date.class, DatePropertyEditor.class);
-        
+
         final EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
-        
+
         java.awt.EventQueue.invokeLater(new Runnable() {
-            
+
             @Override
             public void run() {
                 ObservableGraph<Note, Relation> graph = new ObservableGraph<Note, Relation>(new SparseMultigraph<Note, Relation>());
@@ -81,7 +81,7 @@ public class Mainscreen extends javax.swing.JFrame {
         graph.addEdge(bc, b, c);
         return graph;
     }
-    
+
     private final JungMainController controller;
 
     /**
@@ -99,29 +99,29 @@ public class Mainscreen extends javax.swing.JFrame {
     public Mainscreen(EntityManagerFactory emf, ObservableGraph<Note, Relation> graph) {
         rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         controller = new JungMainController(emf, graph);
-        
+
         initComponents();
         jSettingsTabs.setVisible(false);
 
         // TODO: dynamic lookup of available importers by querying controller
         MapComboBoxModel<String, Class<Importer>> importerChoices = new MapComboBoxModel<String, Class<Importer>>(controller.getImporterImplementations());
         jImporterSelectorComboBox.setModel(importerChoices);
-        
+
         ListMultimap<Class<Importer>, Importer.Settings> importers = controller.getSettings().getImporters();
         for (Class<Importer> klass : importers.keySet()) {
             for (Settings settings : importers.get(klass)) {
                 addImporter(klass, settings);
             }
         }
-        // TODO: add the 'null' importer
-        
-        log.info(jJungPanel.getSize() + " pixels");
+
+        // TODO: add the 'null' importer        
+        // TODO: JSplitPane for settings size
         // TODO: animated settings panel
         // TODO: icons for the toolbar buttons
         // TODO: menu entries
         // TODO: use simplericity for a better OS X experience
     }
-    
+
     private Importer.Settings addImporter(Class<Importer> klass, Importer.Settings settings) {
         Importer importer = ImporterController.forClass(klass, settings);
         ImporterController importerController = new ImporterController(controller, importer);
@@ -142,6 +142,7 @@ public class Mainscreen extends javax.swing.JFrame {
         jSearch = new org.jdesktop.swingx.JXSearchField();
         jCloudButton = new javax.swing.JToggleButton();
         jButtonClusters = new javax.swing.JToggleButton();
+        jButtonLayout = new javax.swing.JToggleButton();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(50, 0), new java.awt.Dimension(1000, 0));
         jButtonSources = new javax.swing.JToggleButton();
         jJungPanel = new uk.me.fommil.zibaldone.desktop.JungGraphView(controller);
@@ -154,11 +155,12 @@ public class Mainscreen extends javax.swing.JFrame {
         jReloadImportersButton = new org.jdesktop.swingx.JXButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         jXImportersPanel = new org.jdesktop.swingx.JXTaskPaneContainer();
-        jSynonymsPanel = new javax.swing.JPanel();
         jAdvancedPanel = new javax.swing.JPanel();
+        jSynonymsPanel = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Zibaldone");
+        setMinimumSize(new java.awt.Dimension(900, 600));
 
         jToolBar.setFloatable(false);
         jToolBar.setRollover(true);
@@ -173,6 +175,12 @@ public class Mainscreen extends javax.swing.JFrame {
 
         jButtonClusters.setText("Clusters");
         jToolBar.add(jButtonClusters);
+
+        jButtonLayout.setText("Relators");
+        jButtonLayout.setFocusable(false);
+        jButtonLayout.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButtonLayout.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar.add(jButtonLayout);
         jToolBar.add(filler1);
 
         jButtonSources.setText("Settings");
@@ -223,11 +231,11 @@ public class Mainscreen extends javax.swing.JFrame {
 
         jSettingsTabs.addTab("Importers", jImportersPanel);
 
+        jAdvancedPanel.setLayout(new java.awt.BorderLayout());
+        jSettingsTabs.addTab("Relators", jAdvancedPanel);
+
         jSynonymsPanel.setLayout(new java.awt.BorderLayout());
         jSettingsTabs.addTab("Synonyms", jSynonymsPanel);
-
-        jAdvancedPanel.setLayout(new java.awt.BorderLayout());
-        jSettingsTabs.addTab("Advanced", jAdvancedPanel);
 
         getContentPane().add(jSettingsTabs, java.awt.BorderLayout.EAST);
 
@@ -237,7 +245,7 @@ public class Mainscreen extends javax.swing.JFrame {
     private void jButtonSourcesStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jButtonSourcesStateChanged
         jSettingsTabs.setVisible(jButtonSources.isSelected());
     }//GEN-LAST:event_jButtonSourcesStateChanged
-    
+
     @SuppressWarnings("unchecked")
     private void jAddImporterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jAddImporterButtonActionPerformed
         String name = (String) jImporterSelectorComboBox.getSelectedItem();
@@ -252,6 +260,7 @@ public class Mainscreen extends javax.swing.JFrame {
     private org.jdesktop.swingx.JXButton jAddImporterButton;
     private javax.swing.JPanel jAdvancedPanel;
     private javax.swing.JToggleButton jButtonClusters;
+    private javax.swing.JToggleButton jButtonLayout;
     private javax.swing.JToggleButton jButtonSources;
     private javax.swing.JToggleButton jCloudButton;
     private javax.swing.JComboBox jImporterSelectorComboBox;
