@@ -23,7 +23,10 @@ import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import java.util.*;
+import javax.persistence.EntityManagerFactory;
+import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.*;
+import uk.me.fommil.zibaldone.persistence.NoteDao;
 
 /**
  * Parse Emacs <a href="http://orgmode.org/">Org-Mode</a> files.
@@ -43,13 +46,18 @@ public class OrgModeImporter implements Importer {
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
+        final EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
 
         OrgModeImporter importer = new OrgModeImporter();
         importer.getSettings().setFile(new File("../data/QT2-notes.org"));
         List<Note> notes = importer.getNotes();
 
-        Reconciler reconciler = new Reconciler();
+        Reconciler reconciler = new Reconciler(emf);
         reconciler.reconcile(importer, notes);
+        
+        NoteDao noteDao = new NoteDao(emf);
+        noteDao.count();
+        List<Note> dbNotes = noteDao.readAll();
     }
 
     @Override

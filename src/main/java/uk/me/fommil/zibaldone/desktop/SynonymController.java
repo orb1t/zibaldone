@@ -8,8 +8,13 @@ package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import java.util.List;
+import javax.persistence.EntityManagerFactory;
+import uk.me.fommil.zibaldone.Relator;
 import uk.me.fommil.zibaldone.Synonym;
+import uk.me.fommil.zibaldone.Tag;
+import uk.me.fommil.zibaldone.persistence.SynonymDao;
 
 /**
  * Specialist MVC Controller for {@link Synonym} actions.
@@ -18,19 +23,37 @@ import uk.me.fommil.zibaldone.Synonym;
  */
 public class SynonymController {
 
+    private final EntityManagerFactory emf;
+
+    /**
+     * @param emf
+     */
+    public SynonymController(EntityManagerFactory emf) {
+        this.emf = emf;
+    }
+
     /**
      * @return all active tag synonyms, indexed by type.
      */
-    public ListMultimap<Synonym.Context, String> getSynonyms() {
+    public ListMultimap<Synonym.Context, Tag> getSynonymTags() {
         // TODO: implement method
         throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    /**
+     * @return all synonyms relevant to the {@link Relator}s: i.e. manual plus
+     * automatic, minus ignored.
+     */
+    public List<Synonym> getActiveSynonyms() {
+        SynonymDao dao = new SynonymDao(emf);
+        return Lists.newArrayList(dao.readActive().values());
     }
 
     /**
      * Add a user-defined synonym, possibly merging existing synonyms
      * together.
      * <p>
-     * The caller is advised to query {@link #getSynonyms()} immediately.
+     * The caller is advised to query {@link #getSynonymTags()} immediately.
      * 
      * @param tags
      */
@@ -47,7 +70,7 @@ public class SynonymController {
      * {@link #addSynonym(List)} is the recommended procedure in which
      * to modify an existing user-defined synonym.
      * <p>
-     * The caller is advised to query {@link #getSynonyms()} immediately.
+     * The caller is advised to query {@link #getSynonymTags()} immediately.
      * 
      * @param tags
      */

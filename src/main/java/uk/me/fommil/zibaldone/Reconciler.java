@@ -17,7 +17,6 @@ import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import org.tartarus.snowball.SnowballProgram;
 import org.tartarus.snowball.ext.EnglishStemmer;
-import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.persistence.SynonymDao;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
 
@@ -33,6 +32,16 @@ public class Reconciler {
     private static final Logger log = Logger.getLogger(Reconciler.class.getName());
 
     private final SnowballProgram stemmer = new EnglishStemmer();
+
+    private final EntityManagerFactory emf;
+
+    /**
+     * @param emf
+     */
+    public Reconciler(EntityManagerFactory emf) {
+        Preconditions.checkNotNull(emf);
+        this.emf = emf;
+    }
 
     /**
      * Convenience method for {@link #reconcile(java.util.Map)}.
@@ -56,65 +65,60 @@ public class Reconciler {
     public synchronized void reconcile(Map<Importer, List<Note>> all) {
         Preconditions.checkNotNull(all);
 
-        EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
-        try {
-            NoteDao dao = new NoteDao(emf);
-            long start = dao.count();
-            for (Entry<Importer, List<Note>> entry : all.entrySet()) {
-                String name = entry.getKey().getInstanceName();
-                log.info("Reconciling: " + name);
+        NoteDao dao = new NoteDao(emf);
+        long start = dao.count();
+        for (Entry<Importer, List<Note>> entry : all.entrySet()) {
+            String name = entry.getKey().getInstanceName();
+            log.info("Reconciling: " + name);
 
-                List<Note> notes = entry.getValue();
+            List<Note> notes = entry.getValue();
 
-                if (dao.countForImporter(name) == 0) {
-                    for (int i = 0; i < notes.size(); i++) {
-                        NoteId id = new NoteId();
-                        id.setId((long) i);
-                        id.setSource(name);
-                        notes.get(i).setId(id);
-                    }
-
-                    dao.create(notes);
-                } else {
-                    // TODO: implement reconciliation
-                    throw new UnsupportedOperationException("not implemented yet");
+            if (dao.countForImporter(name) == 0) {
+                for (int i = 0; i < notes.size(); i++) {
+                    NoteId id = new NoteId();
+                    id.setId((long) i);
+                    id.setSource(name);
+                    notes.get(i).setId(id);
                 }
-            }
-            long end = dao.count();
-            log.info("Persisted " + (end - start) + " Notes");
 
-            Set<Tag> tags = dao.getAllTags();
-            log.info(tags.size() + " unique Tags: " + tags);
-            Multimap<Tag, Tag> stems = ArrayListMultimap.create();
-
-            for (Tag tag : tags) {
-                Tag stem = tokeniseAndStem(tag);
-                if (!stems.containsKey(stem)) {
-                    stems.put(stem, tag);
-                } else {
-                    if (!stems.get(stem).contains(tag)) {
-                        stems.put(stem, tag);
-                    }
-                }
+                dao.create(notes);
+            } else {
+                // TODO: implement reconciliation
+                throw new UnsupportedOperationException("not implemented yet");
             }
-            log.info(stems.keySet().size() + " unique Stems: " + stems);
-
-            // gather all the stemmed words
-            List<Synonym> synonyms = Lists.newArrayList();
-            for (Tag stem : stems.keySet()) {
-                Set<Tag> originals = Sets.newHashSet(stems.get(stem));
-                Synonym synonym = new Synonym();
-                synonym.setContext(Synonym.Context.AUTOMATIC);
-                synonym.setStem(stem);
-                synonym.setTags(originals);
-                synonyms.add(synonym);
-            }
-            SynonymDao equivDao = new SynonymDao(emf);
-            equivDao.updateAllAutomatics(synonyms);
-            log.info(equivDao.count() + " Synonyms: " + synonyms);
-        } finally {
-            emf.close();
         }
+        long end = dao.count();
+        log.info("Persisted " + (end - start) + " Notes");
+
+        Set<Tag> tags = dao.getAllTags();
+        log.info(tags.size() + " unique Tags: " + tags);
+        Multimap<Tag, Tag> stems = ArrayListMultimap.create();
+
+        for (Tag tag : tags) {
+            Tag stem = tokeniseAndStem(tag);
+            if (!stems.containsKey(stem)) {
+                stems.put(stem, tag);
+            } else {
+                if (!stems.get(stem).contains(tag)) {
+                    stems.put(stem, tag);
+                }
+            }
+        }
+        log.info(stems.keySet().size() + " unique Stems: " + stems);
+
+        // gather all the stemmed words
+        List<Synonym> synonyms = Lists.newArrayList();
+        for (Tag stem : stems.keySet()) {
+            Set<Tag> originals = Sets.newHashSet(stems.get(stem));
+            Synonym synonym = new Synonym();
+            synonym.setContext(Synonym.Context.AUTOMATIC);
+            synonym.setStem(stem);
+            synonym.setTags(originals);
+            synonyms.add(synonym);
+        }
+        SynonymDao equivDao = new SynonymDao(emf);
+        equivDao.updateAllAutomatics(synonyms);
+        log.info(equivDao.count() + " Synonyms: " + synonyms);
     }
 
     private Tag tokeniseAndStem(Tag tag) {

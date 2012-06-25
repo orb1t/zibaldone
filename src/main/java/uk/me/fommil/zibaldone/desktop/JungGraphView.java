@@ -9,15 +9,18 @@ package uk.me.fommil.zibaldone.desktop;
 import com.google.common.base.Preconditions;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout;
 import edu.uci.ics.jung.graph.ObservableGraph;
-import edu.uci.ics.jung.graph.SparseMultigraph;
 import edu.uci.ics.jung.graph.event.GraphEvent;
 import edu.uci.ics.jung.graph.event.GraphEventListener;
 import edu.uci.ics.jung.visualization.BasicVisualizationServer;
+import java.awt.BorderLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.apache.commons.collections15.Transformer;
+import uk.me.fommil.zibaldone.Cluster;
 import uk.me.fommil.zibaldone.Note;
+import uk.me.fommil.zibaldone.desktop.JungMainController.Relation;
 
 /**
  * Draws the network graph of the {@link Note}s and {@link Cluster}s
@@ -26,52 +29,42 @@ import uk.me.fommil.zibaldone.Note;
  * @see JungMainController
  * @author Samuel Halliday
  */
-public class JungGraphView extends JPanel implements GraphEventListener<Note, Double> {
+public class JungGraphView extends JPanel implements GraphEventListener<Note, Relation> {
 
-    private final ObservableGraph<Note, Double> graph;
+    private static final Logger log = Logger.getLogger(JungGraphView.class.getName());
 
-    private final SpringLayout<Note, Double> graphLayout;
-
-    private final BasicVisualizationServer<Note, Double> graphVisualiser;
+    private static final long serialVersionUID = 1L;
 
     private final JungMainController controller;
+
+    private static final Transformer<Relation, Integer> WEIGHTS = new Transformer<Relation, Integer>() {
+
+        @Override
+        public Integer transform(Relation input) {
+            Preconditions.checkNotNull(input);
+            return Math.round((float) (input.getWeight() * 1000.0));
+        }
+    };
 
     /**
      * @deprecated only to be used by GUI Editors.
      */
     @Deprecated
     public JungGraphView() {
-        this(Mainscreen.getGraphForTheBenefitOfNetbeans());
-    }
-
-    private JungGraphView(ObservableGraph<Note, Double> graph) {
-        this(graph, new JungMainController(graph));
+        this.controller = null;
     }
 
     /**
-     * @param graph
      * @param controller 
      */
-    public JungGraphView(ObservableGraph<Note, Double> graph, JungMainController controller) {
-        Preconditions.checkNotNull(graph);
-        this.graph = graph;
+    public JungGraphView(JungMainController controller) {
+        Preconditions.checkNotNull(controller);
         this.controller = controller;
+        setLayout(new BorderLayout());
 
-        Transformer<Double, Integer> weights = new Transformer<Double, Integer>() {
-
-            @Override
-            public Integer transform(Double input) {
-                Preconditions.checkNotNull(input);
-                Preconditions.checkArgument(input >= 0 && input <= 1, input);
-
-                // TODO: might want to have a "clipped" view which can
-                // remove edges after some threshold.
-
-                return Math.round((float) (input * 1000.0));
-            }
-        };
-        graphLayout = new SpringLayout<Note, Double>(graph, weights);
-        graphVisualiser = new BasicVisualizationServer<Note, Double>(graphLayout);
+        ObservableGraph<Note, Relation> graph = controller.getGraph();
+        final SpringLayout<Note, Relation> graphLayout = new SpringLayout<Note, Relation>(graph, WEIGHTS);
+        BasicVisualizationServer<Note, Relation> graphVisualiser = new BasicVisualizationServer<Note, Relation>(graphLayout);
 
         addComponentListener(new ComponentAdapter() {
 
@@ -81,13 +74,16 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, Do
             }
         });
 
-        add(graphVisualiser);
+        add(graphVisualiser, BorderLayout.CENTER);
 
-        graph.addGraphEventListener(this);
+//        graph.addGraphEventListener(this);
     }
 
     @Override
-    public void handleGraphEvent(GraphEvent<Note, Double> evt) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void handleGraphEvent(GraphEvent<Note, Relation> evt) {
+        //if (evt.getType().equals(GraphEvent.Type.))
+        
+        log.info("Not Implemented Yet");
+//        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

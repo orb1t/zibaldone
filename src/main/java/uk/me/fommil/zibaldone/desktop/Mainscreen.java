@@ -13,13 +13,16 @@ import java.beans.PropertyEditorManager;
 import java.io.File;
 import java.util.Date;
 import java.util.logging.Logger;
+import javax.persistence.EntityManagerFactory;
 import org.jdesktop.swingx.combobox.MapComboBoxModel;
 import uk.me.fommil.beans.editors.DatePropertyEditor;
 import uk.me.fommil.beans.editors.FilePropertyEditor;
+import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Importer.Settings;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Tag;
+import uk.me.fommil.zibaldone.desktop.JungMainController.Relation;
 
 /**
  * @author Samuel Halliday
@@ -35,13 +38,15 @@ public class Mainscreen extends javax.swing.JFrame {
         PropertyEditorManager.registerEditor(File.class, FilePropertyEditor.class);
         PropertyEditorManager.registerEditor(Date.class, DatePropertyEditor.class);
 
+        final EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
+
         java.awt.EventQueue.invokeLater(new Runnable() {
 
             @Override
             public void run() {
-                ObservableGraph<Note, Double> graph = new ObservableGraph<Note, Double>(new SparseMultigraph<Note, Double>());
+                ObservableGraph<Note, Relation> graph = new ObservableGraph<Note, Relation>(new SparseMultigraph<Note, Relation>());
 
-                Mainscreen main = new Mainscreen(graph);
+                Mainscreen main = new Mainscreen(emf, graph);
                 main.setVisible(true);
             }
         });
@@ -50,46 +55,30 @@ public class Mainscreen extends javax.swing.JFrame {
     /**
      * @return a suitable model for use in GUI Editors such as in Netbeans.
      */
-    static ObservableGraph<Note, Double> getGraphForTheBenefitOfNetbeans() {
-        ObservableGraph<Note, Double> graph = new ObservableGraph<Note, Double>(new SparseMultigraph<Note, Double>());
-
-        Note a = new Note();
-        a.setTitle("A");
-        a.setTags(Tag.asTags("smug", "silly"));
-        Note b = new Note();
-        b.setTitle("B");
-        b.setTags(Tag.asTags("smug", "lovely"));
-        Note c = new Note();
-        c.setTitle("C");
-        c.setTags(Tag.asTags("smug", "lovely"));
-
-        graph.addVertex(a);
-        graph.addVertex(b);
-        graph.addVertex(c);
-
-        graph.addEdge(0.1, a, b);
-        graph.addEdge(0.4, a, c);
-
-        return graph;
+    static ObservableGraph<Note, Relation> getGraphForTheBenefitOfNetbeans() {
+        return new ObservableGraph<Note, Relation>(new SparseMultigraph<Note, Relation>());
     }
 
     private final JungMainController controller;
 
-    private final ObservableGraph<Note, Double> graph;
+    private final ObservableGraph<Note, Relation> graph;
 
     /**
      * @deprecated only to be used by GUI Editors.
      */
     @Deprecated
     public Mainscreen() {
-        this(getGraphForTheBenefitOfNetbeans());
+        this(null, getGraphForTheBenefitOfNetbeans());
     }
 
-    public Mainscreen(ObservableGraph<Note, Double> graph) {
-        rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
+    /**
+     * @param emf
+     * @param graph
+     */
+    public Mainscreen(EntityManagerFactory emf, ObservableGraph<Note, Relation> graph) {
         this.graph = graph;
-        controller = new JungMainController(graph);
-
+        rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
+        controller = new JungMainController(emf, graph);
 
         initComponents();
         jSettingsTabs.setVisible(false);
@@ -134,7 +123,7 @@ public class Mainscreen extends javax.swing.JFrame {
         jButtonClusters = new javax.swing.JToggleButton();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(50, 0), new java.awt.Dimension(1000, 0));
         jButtonSources = new javax.swing.JToggleButton();
-        jJungPanel = new uk.me.fommil.zibaldone.desktop.JungGraphView(graph, controller);
+        jJungPanel = new uk.me.fommil.zibaldone.desktop.JungGraphView(controller);
         jSettingsTabs = new javax.swing.JTabbedPane();
         jImportersPanel = new javax.swing.JPanel();
         jToolBar1 = new javax.swing.JToolBar();

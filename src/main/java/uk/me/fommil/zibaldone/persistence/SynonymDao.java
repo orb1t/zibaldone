@@ -7,8 +7,10 @@
 package uk.me.fommil.zibaldone.persistence;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Synonym;
@@ -24,6 +26,7 @@ import uk.me.fommil.zibaldone.Tag;
  * @author Samuel Halliday
  */
 public class SynonymDao extends CrudDao<Long, Synonym> {
+    private static final Logger log = Logger.getLogger(SynonymDao.class.getName());
 
     /**
      * @param emf
@@ -65,8 +68,8 @@ public class SynonymDao extends CrudDao<Long, Synonym> {
      * that have a complimentary {@link Context#AUTOMATIC_IGNORED} instance.
      */
     public ListMultimap<Synonym.Context, Synonym> readActive() {
-        // TODO: implement method
-        throw new UnsupportedOperationException("not implemented yet");
+        log.info("Not Implemented Yet");
+        return ArrayListMultimap.create();
     }
         
     /**

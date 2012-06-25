@@ -18,13 +18,23 @@ import java.util.*;
  * @author Samuel Halliday
  */
 public interface Importer {
-    
+
     /**
      * Empty interface indicating an Importer's settings Javabeans object.
      */
     public interface Settings {
-        
     }
+
+    /**
+     * The names of the JavaBean properties that uniquely identify the instance
+     * across sessions, e.g. filenames, usernames, URLs.
+     * 
+     * @return list of JavaBean property names
+     * @deprecated enforce serial forms of implementations, so that the DB
+     * identifier is no longer managed by the Importers.
+     */
+    @Deprecated
+    public List<String> getSpecialPropertyNames();
 
     /**
      * @return a name which identifies the instance name. It should
@@ -33,7 +43,10 @@ public interface Importer {
      * 
      * The returned string must not be longer than 24 characters.
      * @see #getSpecialProperties()
+     * @deprecated enforce serial forms of implementations, so that the DB
+     * identifier is no longer managed by the Importers.
      */
+    @Deprecated
     public String getInstanceName();
 
     /**
@@ -64,13 +77,4 @@ public interface Importer {
      * @see #getSettings()
      */
     public void setSettings(Settings settings);
-
-    
-    /**
-     * The names of the JavaBean properties that uniquely identify the instance
-     * across sessions, e.g. filenames, usernames, URLs.
-     * 
-     * @return list of JavaBean property names
-     */
-    public List<String> getSpecialPropertyNames();
 }

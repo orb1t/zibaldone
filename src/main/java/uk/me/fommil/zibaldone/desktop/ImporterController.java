@@ -56,6 +56,8 @@ public class ImporterController {
      * @param importer
      */
     public ImporterController(JungMainController main, Importer importer) {
+        Preconditions.checkNotNull(main);
+        Preconditions.checkNotNull(importer);
         this.main = main;
         this.importer = importer;
     }
@@ -70,7 +72,7 @@ public class ImporterController {
 
     public void doImport() throws IOException {
         List<Note> notes = importer.getNotes();
-        Reconciler reconciler = new Reconciler();
+        Reconciler reconciler = main.getReconciler();
         reconciler.reconcile(importer, notes);
         main.doRefresh();
     }

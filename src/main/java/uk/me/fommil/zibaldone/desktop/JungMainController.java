@@ -13,13 +13,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ServiceLoader;
+import java.util.*;
+import java.util.logging.Logger;
+import javax.persistence.EntityManagerFactory;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Note;
+import uk.me.fommil.zibaldone.Reconciler;
 import uk.me.fommil.zibaldone.Relator;
+import uk.me.fommil.zibaldone.persistence.NoteDao;
+import uk.me.fommil.zibaldone.relator.TagRelator;
 
 /**
  * An MVC Controller that uses JUNG to organise the core
@@ -39,14 +41,64 @@ import uk.me.fommil.zibaldone.Relator;
  */
 public class JungMainController {
 
-    private final ObservableGraph<Note, Double> graph;
+    /**
+     * JUNG enforces unique objects on edges, so it is not possible to
+     * use just the weights as edges: so we use this.
+     */
+    public static class Relation {
+
+        private final Note noteA, noteB;
+
+        /**
+         * @param a
+         * @param b
+         */
+        public Relation(Note a, Note b) {
+            this.noteA = a;
+            this.noteB = b;
+        }
+
+        private Relator relator;
+
+        public double getWeight() {
+            return relator.relate(noteA, noteB);
+        }
+
+        // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
+        public Relator getRelator() {
+            return relator;
+        }
+
+        public void setRelator(Relator relator) {
+            this.relator = relator;
+        }
+
+        public Note getNoteA() {
+            return noteA;
+        }
+
+        public Note getNoteB() {
+            return noteB;
+        }
+        // </editor-fold>        
+    }
+
+    private static final Logger log = Logger.getLogger(JungMainController.class.getName());
+
+    private final EntityManagerFactory emf;
+
+    private final ObservableGraph<Note, Relation> graph;
 
     private final Settings settings = new Settings();
 
     /**
+     * @param emf
      * @param graph the model
      */
-    public JungMainController(ObservableGraph<Note, Double> graph) {
+    public JungMainController(EntityManagerFactory emf, ObservableGraph<Note, Relation> graph) {
+        Preconditions.checkNotNull(emf);
+        Preconditions.checkNotNull(graph);
+        this.emf = emf;
         this.graph = graph;
     }
 
@@ -54,30 +106,56 @@ public class JungMainController {
      * Updates the model based on current settings.
      */
     public void doRefresh() {
-        // TODO: implement method
-        throw new UnsupportedOperationException("not implemented yet");
+        // TODO: update/delete/add instead of bruteforce clear/create
+
+        Collection<Note> vertices = graph.getVertices();
+        for (Note note : vertices) {
+            graph.removeVertex(note);
+        }
+
+        NoteDao noteDao = new NoteDao(emf);
+        List<Note> notes = noteDao.readAll();
+        for (Note note : notes) {
+            graph.addVertex(note);
+        }
+
+        // TODO: choose relevant relator
+        SynonymController synonymController = new SynonymController(emf);
+        Relator relator = new TagRelator(synonymController.getActiveSynonyms());
+
+        // a shame the API doesn't guarantee silent adding of vertices
+        for (Note note1 : notes) {
+            for (Note note2 : notes) {
+                Relation relation = new Relation(note1, note2);
+                relation.setRelator(relator);
+                // TODO: think about how sparsity is handled
+                if (relation.getWeight() < 0.95) {
+                    graph.addEdge(relation, note1, note2);
+                }
+            }
+        }
+
     }
 
     /**
      * Automatically create a cluster, as a starting point.
      */
     public void doAutoCluster() {
-        // TODO: implement method
-        throw new UnsupportedOperationException("not implemented yet");
+        log.info("Not Implemented Yet");
     }
 
     /**
      * @return all tags with their usage counts
      */
     public Map<String, Integer> getTags() {
-        // TODO: implement method
-        throw new UnsupportedOperationException("not implemented yet");
+        log.info("Not Implemented Yet");
+        return Maps.newHashMap();
     }
 
     /**
      * @return the {@link Importer} implementations, indexed by their name.
      */
-    public Map<String, Class<Importer>> getImporterImplementations() {        
+    public Map<String, Class<Importer>> getImporterImplementations() {
         ServiceLoader<Importer> importerService = ServiceLoader.load(Importer.class);
         HashMap<String, Class<Importer>> importerImpls = Maps.newHashMap();
         for (Importer importer : importerService) {
@@ -88,13 +166,20 @@ public class JungMainController {
         return importerImpls;
     }
 
+    public Reconciler getReconciler() {
+        return new Reconciler(emf);
+    }
+
+    public ObservableGraph<Note, Relation> getGraph() {
+        return graph;
+    }
+
     /**
      * Keeps all the settings in one place. Callers are encouraged to
      * edit mutable entries in-place but should immediately call one of
      * the controller's actions.
-     * <p>
-     * TODO: persist across sessions
-     * TODO: this is really just a temporary "reminder" object collecting all user settings
+     *
+     * @deprecated TODO: persist across sessions
      */
     @Deprecated
     public static class Settings implements Serializable {

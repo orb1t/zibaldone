@@ -29,7 +29,7 @@ public class Note implements Serializable {
     @Column
     private String title;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     private Set<Tag> tags = Sets.newHashSet();
 
     @Lob

@@ -84,7 +84,7 @@
     </Container>
     <Container class="uk.me.fommil.zibaldone.desktop.JungGraphView" name="jJungPanel">
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new uk.me.fommil.zibaldone.desktop.JungGraphView(graph, controller)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new uk.me.fommil.zibaldone.desktop.JungGraphView(controller)"/>
       </AuxValues>
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription">
