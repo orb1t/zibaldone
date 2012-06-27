@@ -7,16 +7,12 @@
 package uk.me.fommil.zibaldone.desktop;
 
 import java.awt.Dimension;
-import java.beans.PropertyChangeEvent;
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import org.jdesktop.swingx.JXTaskPane;
-import uk.me.fommil.beans.VetoableChangeListenerAdapter;
+import uk.me.fommil.utils.Swing;
 import uk.me.fommil.zibaldone.Importer;
 
 /**
@@ -31,8 +27,6 @@ public class ImporterView extends JXTaskPane {
     private static final long serialVersionUID = 1L;
 
     private final ImporterController controller;
-
-    private final AtomicBoolean locked;
 
     /**
      * @deprecated exists only for GUI Editors
@@ -52,13 +46,8 @@ public class ImporterView extends JXTaskPane {
         setTitle(controller.getImporter().getName());
 
         this.controller = controller;
-        locked = new AtomicBoolean(used);
 
         jBeanEditor.setBean(controller.getImporter().getSettings());
-
-        if (used) {
-            lockDownSpecial();
-        }
     }
 
     @Override
@@ -66,32 +55,6 @@ public class ImporterView extends JXTaskPane {
         Dimension preferred = getPreferredSize();
         preferred.width = Integer.MAX_VALUE;
         return preferred;
-    }
-
-    private void lockDownSpecial() {
-        jXReloadButton.setText("Reload");
-        // refuse changes to "special" settings
-        jBeanEditor.getBeanHelper().addVetoableChangeListener(new VetoableChangeListenerAdapter() {
-
-            @Override
-            public boolean isVetoed(final PropertyChangeEvent evt) {
-                if (controller.isSpecial(evt.getPropertyName())) {
-                    warning(evt.getPropertyName() + " cannot be changed once the Importer has been used.");
-                    return true;
-                }
-                return false;
-            }
-        });
-    }
-
-    private void warning(final String warning) {
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                JOptionPane.showMessageDialog(ImporterView.this, warning, "Warning", JOptionPane.WARNING_MESSAGE);
-            }
-        });
     }
 
     /**
@@ -165,11 +128,7 @@ public class ImporterView extends JXTaskPane {
             controller.doImport();
         } catch (IOException ex) {
             log.log(Level.WARNING, "failed import", ex);
-            warning("There was a problem with the data source.");
-            return;
-        }
-        if (!locked.getAndSet(true)) {
-            lockDownSpecial();
+            Swing.warning(this, "There was a problem with the data source.");
         }
     }//GEN-LAST:event_jXReloadButtonActionPerformed
 

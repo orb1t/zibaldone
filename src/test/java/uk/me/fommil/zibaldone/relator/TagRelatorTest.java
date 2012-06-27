@@ -20,7 +20,7 @@ import uk.me.fommil.zibaldone.Tag;
  * @author Samuel Halliday
  */
 public class TagRelatorTest {
-
+    
     private Synonym synonym(String... words) {
         Synonym e = new Synonym();
         Set<Tag> tags = Tag.asTags(words);
@@ -28,7 +28,7 @@ public class TagRelatorTest {
         e.setContext(Synonym.Context.USER_DEFINED);
         return e;
     }
-
+    
     @Test
     public void testRelate() {
         List<Synonym> synonyms = Lists.newArrayList();
@@ -37,8 +37,9 @@ public class TagRelatorTest {
         synonyms.add(synonym("ugly", "discusting", "rank"));
         synonyms.add(synonym("good", "bad", "ugly"));
         synonyms.add(synonym("smug", "smugness", "smuggy"));
-
-        TagRelator relator = new TagRelator(synonyms);
+        
+        TagRelator relator = new TagRelator();
+        relator.refresh(synonyms);
         {
             Note a = new Note();
             a.setTags(Tag.asTags("smug", "silly"));
@@ -61,7 +62,7 @@ public class TagRelatorTest {
             assertEquals(0.66, relator.relate(a, b), 0.01);
         }
     }
-
+    
     @Test
     public void testConstructor() {
         // corner case
@@ -70,13 +71,14 @@ public class TagRelatorTest {
         synonyms.add(synonym("b", "c"));
         synonyms.add(synonym("c", "d"));
         synonyms.add(synonym("d", "a"));
-
+        
         synonyms.add(synonym("e", "f"));
         synonyms.add(synonym("f", "g"));
         synonyms.add(synonym("g", "h"));
         synonyms.add(synonym("h", "a"));
-
-        TagRelator relator = new TagRelator(synonyms);
+        
+        TagRelator relator = new TagRelator();
+        relator.refresh(synonyms);
         {
             Note a = new Note();
             a.setTags(Tag.asTags("a"));

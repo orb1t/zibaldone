@@ -53,16 +53,12 @@ public class OrgModeImporter implements Importer {
         List<Note> notes = importer.getNotes();
 
         Reconciler reconciler = new Reconciler(emf);
-        reconciler.reconcile(importer, notes);
-        
+        UUID uuid = UUID.nameUUIDFromBytes("OrgModeParser.main".getBytes());
+        reconciler.reconcile(uuid, notes);
+
         NoteDao noteDao = new NoteDao(emf);
         noteDao.count();
         List<Note> dbNotes = noteDao.readAll();
-    }
-
-    @Override
-    public String getInstanceName() {
-        return getName() + ":" + special.hashCode();
     }
 
     @Override
@@ -125,16 +121,6 @@ public class OrgModeImporter implements Importer {
     @Override
     public Config getSettings() {
         return special;
-    }
-
-    @Override
-    public void setSettings(Settings settings) {
-        this.special = (Config) settings;
-    }
-
-    @Override
-    public List<String> getSpecialPropertyNames() {
-        return Lists.newArrayList("file");
     }
 
     public static class Config implements Settings {

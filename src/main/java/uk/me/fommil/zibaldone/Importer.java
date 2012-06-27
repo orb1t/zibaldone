@@ -6,6 +6,7 @@
  */
 package uk.me.fommil.zibaldone;
 
+import java.beans.XMLDecoder;
 import java.io.IOException;
 import java.util.*;
 
@@ -13,7 +14,10 @@ import java.util.*;
  * API for importing {@link Note} objects from a variety of file formats and
  * sources.
  * <p>
- * All implementations must have a default public constructor.
+ * Implementations must ensure backwards compatibility of their
+ * {@link XMLDecoder} form (i.e. an instance must be able to be created using
+ * an XML save state from an earlier version) and have a no-arguments
+ * public constructor.
  * 
  * @author Samuel Halliday
  */
@@ -26,28 +30,9 @@ public interface Importer {
     }
 
     /**
-     * The names of the JavaBean properties that uniquely identify the instance
-     * across sessions, e.g. filenames, usernames, URLs.
-     * 
-     * @return list of JavaBean property names
-     * @deprecated enforce serial forms of implementations, so that the DB
-     * identifier is no longer managed by the Importers.
+     * @return implementation-dependent user settings
      */
-    @Deprecated
-    public List<String> getSpecialPropertyNames();
-
-    /**
-     * @return a name which identifies the instance name. It should
-     * remain the same across sessions which have the same <i>special</i>
-     * properties.
-     * 
-     * The returned string must not be longer than 24 characters.
-     * @see #getSpecialProperties()
-     * @deprecated enforce serial forms of implementations, so that the DB
-     * identifier is no longer managed by the Importers.
-     */
-    @Deprecated
-    public String getInstanceName();
+    public Settings getSettings();
 
     /**
      * @return a user-friendly name for this implementation.
@@ -63,18 +48,4 @@ public interface Importer {
      * @throws IOException
      */
     public List<Note> getNotes() throws IOException;
-
-    /**
-     * A JavaBean with properties that may influence the identity of the instance.
-     * 
-     * @return a JavaBean
-     * @see #setSettings(Object)
-     */
-    public Settings getSettings();
-
-    /**
-     * @param settings
-     * @see #getSettings()
-     */
-    public void setSettings(Settings settings);
 }

@@ -8,6 +8,7 @@ package uk.me.fommil.zibaldone;
 
 import com.google.common.base.Objects;
 import java.io.Serializable;
+import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
@@ -23,7 +24,7 @@ public class NoteId implements Serializable {
     public static final long serialVersionUID = 1L;
 
     @Column
-    private String source;
+    private UUID source;
 
     @Column
     private Long id;
@@ -55,15 +56,21 @@ public class NoteId implements Serializable {
         return id;
     }
 
+    /**
+     * @param id
+     */
     public void setId(Long id) {
         this.id = id;
     }
 
-    public String getSource() {
+    public UUID getSource() {
         return source;
     }
 
-    public void setSource(String source) {
+    /**
+     * @param source
+     */
+    public void setSource(UUID source) {
         this.source = source;
     }
     // </editor-fold>

@@ -7,6 +7,7 @@ package uk.me.fommil.zibaldone.persistence;
 import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import uk.me.fommil.zibaldone.Note;
@@ -32,14 +33,14 @@ public class NoteDao extends CrudDao<Long, Note> {
     }
 
     /**
-     * @param importerName
+     * @param sourceId
      * @return
      */
-    public long countForImporter(String importerName) {
-        Preconditions.checkNotNull(importerName);
+    public long countForImporter(UUID sourceId) {
+        Preconditions.checkNotNull(sourceId);
         EntityManager em = createEntityManager();
         Query q = em.createQuery("SELECT COUNT(s) FROM " + getTableName() + " s WHERE id.source = :name");
-        q.setParameter("name", importerName);
+        q.setParameter("name", sourceId);
         Long result = querySingle(em, q);
         return result;
     }

@@ -8,13 +8,10 @@ package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import java.util.List;
 import javax.persistence.EntityManagerFactory;
-import uk.me.fommil.zibaldone.Relator;
 import uk.me.fommil.zibaldone.Synonym;
 import uk.me.fommil.zibaldone.Tag;
-import uk.me.fommil.zibaldone.persistence.SynonymDao;
 
 /**
  * Specialist MVC Controller for {@link Synonym} actions.
@@ -38,15 +35,6 @@ public class SynonymController {
     public ListMultimap<Synonym.Context, Tag> getSynonymTags() {
         // TODO: implement method
         throw new UnsupportedOperationException("not implemented yet");
-    }
-
-    /**
-     * @return all synonyms relevant to the {@link Relator}s: i.e. manual plus
-     * automatic, minus ignored.
-     */
-    public List<Synonym> getActiveSynonyms() {
-        SynonymDao dao = new SynonymDao(emf);
-        return Lists.newArrayList(dao.readActive().values());
     }
 
     /**

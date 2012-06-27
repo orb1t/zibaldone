@@ -6,13 +6,14 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
-import com.google.common.collect.ListMultimap;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.SparseMultigraph;
 import java.beans.PropertyEditorManager;
 import java.io.File;
-import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import org.jdesktop.swingx.combobox.MapComboBoxModel;
@@ -20,9 +21,7 @@ import uk.me.fommil.beans.editors.DatePropertyEditor;
 import uk.me.fommil.beans.editors.FilePropertyEditor;
 import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Importer;
-import uk.me.fommil.zibaldone.Importer.Settings;
 import uk.me.fommil.zibaldone.Note;
-import uk.me.fommil.zibaldone.Synonym;
 import uk.me.fommil.zibaldone.Tag;
 import uk.me.fommil.zibaldone.desktop.JungMainController.Relation;
 import uk.me.fommil.zibaldone.relator.TagRelator;
@@ -68,11 +67,11 @@ public class Mainscreen extends javax.swing.JFrame {
         Note c = new Note();
         c.setTags(Tag.asTags("ugly"));
         Relation ab = new Relation(a, b);
-        ab.setRelator(new TagRelator(Collections.<Synonym>emptyList()));
+        ab.setRelator(new TagRelator());
         Relation ac = new Relation(a, c);
-        ac.setRelator(new TagRelator(Collections.<Synonym>emptyList()));
+        ac.setRelator(new TagRelator());
         Relation bc = new Relation(b, c);
-        bc.setRelator(new TagRelator(Collections.<Synonym>emptyList()));;
+        bc.setRelator(new TagRelator());;
         graph.addVertex(a);
         graph.addVertex(b);
         graph.addVertex(c);
@@ -104,14 +103,12 @@ public class Mainscreen extends javax.swing.JFrame {
         jSettingsTabs.setVisible(false);
 
         // TODO: dynamic lookup of available importers by querying controller
-        MapComboBoxModel<String, Class<Importer>> importerChoices = new MapComboBoxModel<String, Class<Importer>>(controller.getImporterImplementations());
+        Map<String, Class<Importer>> importers = ImporterController.getImporterImplementations();
+        MapComboBoxModel<String, Class<Importer>> importerChoices = new MapComboBoxModel<String, Class<Importer>>(importers);
         jImporterSelectorComboBox.setModel(importerChoices);
 
-        ListMultimap<Class<Importer>, Importer.Settings> importers = controller.getSettings().getImporters();
-        for (Class<Importer> klass : importers.keySet()) {
-            for (Settings settings : importers.get(klass)) {
-                addImporter(klass, settings);
-            }
+        for (UUID uuid : controller.getSettings().getImporters().keySet()) {
+            addImporter(uuid, true);
         }
 
         // TODO: add the 'null' importer        
@@ -122,13 +119,11 @@ public class Mainscreen extends javax.swing.JFrame {
         // TODO: use simplericity for a better OS X experience
     }
 
-    private Importer.Settings addImporter(Class<Importer> klass, Importer.Settings settings) {
-        Importer importer = ImporterController.forClass(klass, settings);
-        ImporterController importerController = new ImporterController(controller, importer);
-        ImporterView importerView = new ImporterView(importerController, settings != null);
+    private void addImporter(UUID uuid, boolean used) {
+        ImporterController importerController = new ImporterController(controller, uuid);
+        ImporterView importerView = new ImporterView(importerController, used);
         jXImportersPanel.add(importerView);
         jXImportersPanel.revalidate();
-        return importerController.getImporter().getSettings();
     }
 
     /**
@@ -249,9 +244,9 @@ public class Mainscreen extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     private void jAddImporterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jAddImporterButtonActionPerformed
         String name = (String) jImporterSelectorComboBox.getSelectedItem();
-        Class<Importer> klass = controller.getImporterImplementations().get(name);
-        Importer.Settings settings = addImporter(klass, null);
-        controller.getSettings().getImporters().put(klass, settings);
+        Entry<UUID, Importer> pair = ImporterController.newImporter(name);
+        controller.getSettings().getImporters().put(pair.getKey(), pair.getValue());
+        addImporter(pair.getKey(), false);
     }//GEN-LAST:event_jAddImporterButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

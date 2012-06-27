@@ -46,38 +46,38 @@ public class Reconciler {
     /**
      * Convenience method for {@link #reconcile(java.util.Map)}.
      * 
-     * @param importer
+     * @param sourceId the proposed {@link NoteId#setSource(String)}
      * @param notes
      */
-    public void reconcile(Importer importer, List<Note> notes) {
-        Preconditions.checkNotNull(importer);
+    public void reconcile(UUID sourceId, List<Note> notes) {
+        Preconditions.checkNotNull(sourceId);
         Preconditions.checkNotNull(notes);
-        Map<Importer, List<Note>> singleton = Collections.singletonMap(importer, notes);
+        Map<UUID, List<Note>> singleton = Collections.singletonMap(sourceId, notes);
         reconcile(singleton);
     }
 
     /**
      * Attempts to reconcile all the given {@link Note}s with those currently
-     * persisted.
+     * persisted. {@link Note#getId()} will be ignored.
      * 
-     * @param all ids of the notes will be ignored
+     * @param incoming indexed by the proposed {@link NoteId#setSource(UUID)}.
      */
-    public synchronized void reconcile(Map<Importer, List<Note>> all) {
-        Preconditions.checkNotNull(all);
+    public synchronized void reconcile(Map<UUID, List<Note>> incoming) {
+        Preconditions.checkNotNull(incoming);
 
         NoteDao dao = new NoteDao(emf);
         long start = dao.count();
-        for (Entry<Importer, List<Note>> entry : all.entrySet()) {
-            String name = entry.getKey().getInstanceName();
-            log.info("Reconciling: " + name);
+        for (Entry<UUID, List<Note>> entry : incoming.entrySet()) {
+            UUID sourceId = entry.getKey();
+            log.info("Reconciling: " + sourceId);
 
             List<Note> notes = entry.getValue();
 
-            if (dao.countForImporter(name) == 0) {
+            if (dao.countForImporter(sourceId) == 0) {
                 for (int i = 0; i < notes.size(); i++) {
                     NoteId id = new NoteId();
                     id.setId((long) i);
-                    id.setSource(name);
+                    id.setSource(sourceId);
                     notes.get(i).setId(id);
                 }
 

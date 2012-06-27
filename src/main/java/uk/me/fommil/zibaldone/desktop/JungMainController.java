@@ -7,8 +7,6 @@
 package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import edu.uci.ics.jung.graph.ObservableGraph;
@@ -121,9 +119,8 @@ public class JungMainController {
         }
 
         // TODO: choose relevant relator
-        SynonymController synonymController = new SynonymController(emf);
-//        final Relator relator = new TagRelator(synonymController.getActiveSynonyms());
-        final Relator relator = new TagRelator(Collections.<Synonym>emptyList());
+        final Relator relator = new TagRelator();
+        relator.refresh(emf);
 
         Convenience.selfLoop(notes, new SelfLoop<Note>() {
 
@@ -160,20 +157,6 @@ public class JungMainController {
         return Maps.newHashMap();
     }
 
-    /**
-     * @return the {@link Importer} implementations, indexed by their name.
-     */
-    public Map<String, Class<Importer>> getImporterImplementations() {
-        ServiceLoader<Importer> importerService = ServiceLoader.load(Importer.class);
-        HashMap<String, Class<Importer>> importerImpls = Maps.newHashMap();
-        for (Importer importer : importerService) {
-            String name = importer.getName();
-            Class<Importer> klass = (Class<Importer>) importer.getClass();
-            importerImpls.put(name, klass);
-        }
-        return importerImpls;
-    }
-
     public Reconciler getReconciler() {
         return new Reconciler(emf);
     }
@@ -183,18 +166,12 @@ public class JungMainController {
     }
 
     /**
-     * Keeps all the settings in one place. Callers are encouraged to
-     * edit mutable entries in-place but should immediately call one of
-     * the controller's actions.
+     * Keeps all the persistent settings in one place.
      *
-     * @deprecated TODO: persist across sessions
+     * @deprecated TODO: API review to persist across sessions
      */
     @Deprecated
     public static class Settings implements Serializable {
-
-        private boolean serendipity, tags = true, content, user;
-
-        private double noise;
 
         private int seeds;
 
@@ -206,30 +183,11 @@ public class JungMainController {
 
         private final List<String> includeClusters = Lists.newArrayList();
 
-        private final ListMultimap<Class<Importer>, Importer.Settings> importers = ArrayListMultimap.create();
+        private final Map<UUID, Importer> importers = Maps.newHashMap();
+
+        private final List<Relator> relators = Lists.newArrayList();
 
         // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
-        public boolean isContent() {
-            return content;
-        }
-
-        public void setContent(boolean content) {
-            this.content = content;
-        }
-
-        public double getNoise() {
-            return noise;
-        }
-
-        public void setNoise(double noise) {
-            Preconditions.checkArgument(noise >= 0 && noise <= 1, noise);
-            this.noise = noise;
-        }
-
-        public boolean isSerendipity() {
-            return serendipity;
-        }
-
         public int getSeeds() {
             return seeds;
         }
@@ -237,26 +195,6 @@ public class JungMainController {
         public void setSeeds(int seeds) {
             Preconditions.checkArgument(seeds > 0);
             this.seeds = seeds;
-        }
-
-        public void setSerendipity(boolean serendipity) {
-            this.serendipity = serendipity;
-        }
-
-        public boolean isTags() {
-            return tags;
-        }
-
-        public void setTags(boolean tags) {
-            this.tags = tags;
-        }
-
-        public boolean isUser() {
-            return user;
-        }
-
-        public void setUser(boolean user) {
-            this.user = user;
         }
 
         public void setSearch(String search) {
@@ -280,8 +218,12 @@ public class JungMainController {
             return includeClusters;
         }
 
-        public ListMultimap<Class<Importer>, Importer.Settings> getImporters() {
+        public Map<UUID, Importer> getImporters() {
             return importers;
+        }
+
+        public List<Relator> getRelators() {
+            return relators;
         }
         // </editor-fold>
     }

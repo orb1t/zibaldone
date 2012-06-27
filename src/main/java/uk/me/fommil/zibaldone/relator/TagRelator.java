@@ -7,22 +7,18 @@
 package uk.me.fommil.zibaldone.relator;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import static com.google.common.base.Predicates.equalTo;
-import static com.google.common.base.Predicates.not;
 import com.google.common.collect.Iterables;
-import static com.google.common.collect.Iterables.filter;
-import static com.google.common.collect.Lists.newArrayList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import static com.google.common.collect.Sets.intersection;
-import static com.google.common.collect.Sets.newHashSet;
 import java.util.*;
 import java.util.logging.Logger;
+import javax.persistence.EntityManagerFactory;
+import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.zibaldone.Synonym;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Relator;
 import uk.me.fommil.zibaldone.Tag;
+import uk.me.fommil.zibaldone.persistence.SynonymDao;
 
 /**
  * Defines the relation between {@link Note} instances based purely on tags,
@@ -34,24 +30,53 @@ public class TagRelator implements Relator {
 
     private static final Logger log = Logger.getLogger(TagRelator.class.getName());
 
-    // tags that appear in an Synonym are resolved to an arbitrary tag
-    private final Map<Tag, Tag> resolve = Maps.newHashMap();
-    
-    /**
-     * Assumes that the provided {@link Synonym} instances do not change
-     * after construction and also ignores their type - so every
-     * {@link Synonym} is treated as valid (even if it is actually an
-     * ignore instruction).
-     * 
-     * @param synonyms
-     */
-    public TagRelator(List<Synonym> synonyms) {
+    private final Settings settings = new Settings() {
+    };
+
+    // tags that appear in a Synonym are resolved to an arbitrary tag
+    private final transient Map<Tag, Tag> resolve = Maps.newHashMap();
+
+    private Set<Tag> resolve(Set<Tag> tags) {
+        Set<Tag> resolved = Sets.newHashSet();
+        for (Tag tag : tags) {
+            resolved.add(resolve(tag));
+        }
+        return resolved;
+    }
+
+    private Tag resolve(Tag tag) {
+        if (resolve.containsKey(tag)) {
+            return resolve.get(tag);
+        }
+        return tag;
+    }
+
+    @Override
+    public String getName() {
+        return "Tags";
+    }
+
+    @Override
+    public Settings getSettings() {
+        return settings;
+    }
+
+    @Override
+    public void refresh(EntityManagerFactory emf) {
+        Preconditions.checkNotNull(emf);
+        SynonymDao dao = new SynonymDao(emf);
+        Collection<Synonym> synonyms = dao.readActive().values();
+        refresh(synonyms);
+    }
+
+    protected void refresh(Collection<Synonym> synonyms) {
+        resolve.clear();
         Set<Set<Tag>> bags = Sets.newHashSet();
         for (Synonym e : synonyms) {
             Set<Tag> tags = e.getTags();
             bags.add(tags);
         }
-        for (Set<Tag> bag : disjointify(bags)) {
+        for (Set<Tag> bag : Convenience.disjointify(bags)) {
             Tag resolved = Iterables.get(bag, 0);
             for (Tag tag : bag) {
                 resolve.put(tag, resolved);
@@ -77,49 +102,13 @@ public class TagRelator implements Relator {
             return 1.0;
         }
         int totalTags = Sets.union(aResolved, bResolved).size();
-        
-        // choices choices... how to scale?
+
         double overlap = ((double) overlapTags) / totalTags;
         return (1 - overlap);
     }
 
-    private Set<Tag> resolve(Set<Tag> tags) {
-        Set<Tag> resolved = Sets.newHashSet();
-        for (Tag tag : tags) {
-            resolved.add(resolve(tag));
-        }
-        return resolved;
+    @Override
+    public Set<Set<Note>> cluster(Collection<Note> notes) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
-
-    private Tag resolve(Tag tag) {
-        if (resolve.containsKey(tag)) {
-            return resolve.get(tag);
-        }
-        return tag;
-    }
-
-    private <T> Set<Set<T>> disjointify(Collection<Set<T>> sets) {
-        List<Set<T>> disjoint = newArrayList(sets);
-        for (Set<T> set1 : disjoint) {
-            for (Set<T> set2 : filter(disjoint, not(equalTo(set1)))) {
-                if (!intersection(set1, set2).isEmpty()) {
-                    // this wouldn't be safe for a Set<Set<T>>
-                    set1.addAll(set2);
-                    set2.clear();
-                }
-            }
-        }
-        return newHashSet(filter(disjoint, NO_EMPTIES));
-    }
-    private static final Predicate<Set<?>> NO_EMPTIES = new Predicate<Set<?>>() {
-
-        @Override
-        public boolean apply(Set<?> input) {
-            if (input == null || input.isEmpty()) {
-                return false;
-            }
-            return true;
-        }
-    };
-
 }
