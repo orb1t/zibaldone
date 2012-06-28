@@ -124,8 +124,9 @@ public class ImporterView extends JXTaskPane {
 
     private void jXReloadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jXReloadButtonActionPerformed
         try {
-            // some visual feedback would be nice
+            // TODO: visual "wait" feedback
             controller.doImport();
+            jXReloadButton.setText("Reload");
         } catch (IOException ex) {
             log.log(Level.WARNING, "failed import", ex);
             Swing.warning(this, "There was a problem with the data source.");

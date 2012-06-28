@@ -28,9 +28,9 @@ public final class Convenience {
 
     /**
      * @param <T>
-     * @see #selfLoop(List, SelfLoop) 
+     * @see #upperOuter(List, Loop) 
      */
-    public interface SelfLoop<T> {
+    public interface Loop<T> {
 
         /**
          * @param first
@@ -40,15 +40,16 @@ public final class Convenience {
     }
 
     /**
-     * Perform a two-level loop over a list, missing out the self and
-     * anti-symmetric index combinations of elements. Avoids having to
-     * introduce explicit indices.
+     * Loop over the upper entries of the outer (matrix) product of the list
+     * and itself. Does not include diagonal entries and uses an ordering that
+     * exhausts the second index before incrementing the first.
+     * 
      * 
      * @param <T>
      * @param list
      * @param operation
      */
-    public static <T> void selfLoop(List<T> list, SelfLoop<T> operation) {
+    public static <T> void upperOuter(List<T> list, Loop<T> operation) {
         Preconditions.checkNotNull(list);
         Preconditions.checkNotNull(operation);
         for (int i = 0; i < list.size(); i++) {

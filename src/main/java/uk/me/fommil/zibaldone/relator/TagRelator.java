@@ -6,8 +6,11 @@
  */
 package uk.me.fommil.zibaldone.relator;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.util.*;
@@ -21,21 +24,21 @@ import uk.me.fommil.zibaldone.Tag;
 import uk.me.fommil.zibaldone.persistence.SynonymDao;
 
 /**
- * Defines the relation between {@link Note} instances based purely on tags,
- * whilst respecting the {@link Synonym} rules.
+ * Defines the relation between {@link Note} instances based purely on tags.
  * 
  * @author Samuel Halliday
  */
 public class TagRelator implements Relator {
-
+    
     private static final Logger log = Logger.getLogger(TagRelator.class.getName());
-
+    
     private final Settings settings = new Settings() {
     };
 
+    // FIXME: tag resolving should be done in a separate object
     // tags that appear in a Synonym are resolved to an arbitrary tag
     private final transient Map<Tag, Tag> resolve = Maps.newHashMap();
-
+    
     private Set<Tag> resolve(Set<Tag> tags) {
         Set<Tag> resolved = Sets.newHashSet();
         for (Tag tag : tags) {
@@ -43,24 +46,24 @@ public class TagRelator implements Relator {
         }
         return resolved;
     }
-
+    
     private Tag resolve(Tag tag) {
         if (resolve.containsKey(tag)) {
             return resolve.get(tag);
         }
         return tag;
     }
-
+    
     @Override
     public String getName() {
         return "Tags";
     }
-
+    
     @Override
     public Settings getSettings() {
         return settings;
     }
-
+    
     @Override
     public void refresh(EntityManagerFactory emf) {
         Preconditions.checkNotNull(emf);
@@ -68,8 +71,9 @@ public class TagRelator implements Relator {
         Collection<Synonym> synonyms = dao.readActive().values();
         refresh(synonyms);
     }
-
-    protected void refresh(Collection<Synonym> synonyms) {
+    
+    @VisibleForTesting
+    void refresh(Collection<Synonym> synonyms) {
         resolve.clear();
         Set<Set<Tag>> bags = Sets.newHashSet();
         for (Synonym e : synonyms) {
@@ -83,7 +87,7 @@ public class TagRelator implements Relator {
             }
         }
     }
-
+    
     @Override
     public double relate(Note a, Note b) {
         Preconditions.checkNotNull(a);
@@ -96,19 +100,49 @@ public class TagRelator implements Relator {
         if (aResolved.equals(bResolved)) {
             return 0;
         }
-
+        
         int overlapTags = Sets.intersection(aResolved, bResolved).size();
         if (overlapTags == 0) {
             return 1.0;
         }
         int totalTags = Sets.union(aResolved, bResolved).size();
-
+        
         double overlap = ((double) overlapTags) / totalTags;
         return (1 - overlap);
     }
-
+    
     @Override
     public Set<Set<Note>> cluster(Collection<Note> notes) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        Preconditions.checkNotNull(notes);
+        final Set<Set<Note>> clusters = Sets.newHashSet();
+
+        // TODO: use a machine learning clustering algorithm based on the
+        // metric and make it an abstract implementation
+
+        Convenience.upperOuter(Lists.newArrayList(notes), new Convenience.Loop<Note>() {
+            
+            @Override
+            public void action(Note first, Note second) {
+                Set<Note> active = null;
+                for (Set<Note> cluster : clusters) {
+                    if (cluster.contains(first)) {
+                        active = cluster;
+                        break;
+                    }
+                }
+                if (active == null) {
+                    active = Sets.newHashSet();
+                    clusters.add(active);
+                }
+                double ds2 = relate(first, second);
+                // This only works because exact equality is transitive.
+                // For example, it would break for an Epsilon sphere.
+                // Indeed, the first loop will create all the valid sets.
+                if (ds2 == 0.0) {
+                    active.add(second);
+                }
+            }
+        });
+        return clusters;
     }
 }

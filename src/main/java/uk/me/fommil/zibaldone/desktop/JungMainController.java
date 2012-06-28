@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import uk.me.fommil.utils.Convenience;
-import uk.me.fommil.utils.Convenience.SelfLoop;
+import uk.me.fommil.utils.Convenience.Loop;
 import uk.me.fommil.zibaldone.*;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
 import uk.me.fommil.zibaldone.relator.TagRelator;
@@ -122,22 +122,25 @@ public class JungMainController {
         final Relator relator = new TagRelator();
         relator.refresh(emf);
 
-        Convenience.selfLoop(notes, new SelfLoop<Note>() {
+        // update the graph object
+        Convenience.upperOuter(notes, new Loop<Note>() {
 
             @Override
             public void action(Note first, Note second) {
                 Relation relation = new Relation(first, second);
                 relation.setRelator(relator);
-                // TODO: weight zero should be combined together in a sub-graph
-                // like in the SubLayoutDemo (AggregateLayout)
-
                 double weight = relation.getWeight();
-                if (0 < weight && weight < 1) {
-                    log.info(weight + " between " + first.getTags() + " | " + second.getTags());
+                if (weight < 1) {
+//                    log.info(weight + " between " + first.getTags() + " | " + second.getTags());
                     graph.addEdge(relation, first, second);
                 }
             }
         });
+        // now tell the view how to visually cluster the notes
+        // like in the SubLayoutDemo (AggregateLayout)
+        Set<Set<Note>> clusters = relator.cluster(vertices);
+
+        // TODO: tell the view
 
         log.info(graph.getVertexCount() + " vertices, " + graph.getEdgeCount() + " edges");
     }
