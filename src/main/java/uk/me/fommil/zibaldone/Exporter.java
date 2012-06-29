@@ -7,7 +7,7 @@
 package uk.me.fommil.zibaldone;
 
 /**
- * API for exporting {@link Cluster} objects (and their contents) to a variety
+ * API for exporting {@link Group} objects (and their contents) to a variety
  * of file formats and locations.
  * 
  * @author Samuel Halliday

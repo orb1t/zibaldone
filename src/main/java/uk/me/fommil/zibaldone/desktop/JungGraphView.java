@@ -20,18 +20,17 @@ import java.awt.event.ComponentEvent;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.apache.commons.collections15.Transformer;
-import uk.me.fommil.zibaldone.Cluster;
+import uk.me.fommil.zibaldone.Group;
 import uk.me.fommil.zibaldone.Note;
-import uk.me.fommil.zibaldone.desktop.JungMainController.Relation;
 
 /**
- * Draws the network graph of the {@link Note}s and {@link Cluster}s
+ * Draws the network graph of the {@link Note}s and {@link Group}s
  * using JUNG.
  * 
  * @see JungMainController
  * @author Samuel Halliday
  */
-public class JungGraphView extends JPanel implements GraphEventListener<Note, Relation> {
+public class JungGraphView extends JPanel implements GraphEventListener<Note, Double> {
 
     private static final Logger log = Logger.getLogger(JungGraphView.class.getName());
 
@@ -39,12 +38,12 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, Re
 
     private final JungMainController controller;
 
-    private static final Transformer<Relation, Integer> WEIGHTS = new Transformer<Relation, Integer>() {
+    private static final Transformer<Double, Integer> WEIGHTS = new Transformer<Double, Integer>() {
 
         @Override
-        public Integer transform(Relation input) {
+        public Integer transform(Double input) {
             Preconditions.checkNotNull(input);
-            return Math.round((float) (input.getWeight() * 1000.0));
+            return Math.round((float) (input * 1000.0));
         }
     };
 
@@ -65,14 +64,14 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, Re
 
         setLayout(new BorderLayout());
 
-        ObservableGraph<Note, Relation> graph = controller.getGraph();
-        final Layout<Note, Relation> graphLayout = new SpringLayout<Note, Relation>(graph, WEIGHTS);
-//        final Layout<Note, Relation> graphLayout = new FRLayout<Note, Relation>(graph);
+        ObservableGraph<Note, Double> graph = controller.getGraph();
+        final Layout<Note, Double> graphLayout = new SpringLayout<Note, Double>(graph, WEIGHTS);
+//        final Layout<Note, Double> graphLayout = new FRLayout<Note, Double>(graph);
 
-//        final Layout<Note, Relation> graphLayout = new CircleLayout<Note, Relation>(graph);
-        final VisualizationViewer<Note, Relation> graphVisualiser = new VisualizationViewer<Note, Relation>(graphLayout);
+//        final Layout<Note, Double> graphLayout = new CircleLayout<Note, Double>(graph);
+        final VisualizationViewer<Note, Double> graphVisualiser = new VisualizationViewer<Note, Double>(graphLayout);
 //        final GraphZoomScrollPane zoom = new GraphZoomScrollPane(graphVisualiser);
-        
+
         addComponentListener(new ComponentAdapter() {
 
             @Override
@@ -88,14 +87,16 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, Re
         add(graphVisualiser, BorderLayout.CENTER);
 
 //        graphVisualiser.getModel().getRelaxer().setSleepTime(100);
-        
+
 //        graph.addGraphEventListener(this);
     }
 
     @Override
-    public void handleGraphEvent(GraphEvent<Note, Relation> evt) {
+    public void handleGraphEvent(GraphEvent<Note, Double> evt) {
         //if (evt.getType().equals(GraphEvent.Type.))
 
+        // TODO: very quickly check if the clusters have changed
+        
         log.info("Not Implemented Yet");
 //        throw new UnsupportedOperationException("Not supported yet.");
     }

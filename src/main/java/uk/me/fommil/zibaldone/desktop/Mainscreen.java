@@ -7,7 +7,8 @@
 package uk.me.fommil.zibaldone.desktop;
 
 import edu.uci.ics.jung.graph.ObservableGraph;
-import edu.uci.ics.jung.graph.SparseMultigraph;
+import edu.uci.ics.jung.graph.SparseGraph;
+import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import java.beans.PropertyEditorManager;
 import java.io.File;
 import java.util.Date;
@@ -23,8 +24,6 @@ import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Tag;
-import uk.me.fommil.zibaldone.desktop.JungMainController.Relation;
-import uk.me.fommil.zibaldone.relator.TagRelator;
 
 /**
  * @author Samuel Halliday
@@ -46,8 +45,8 @@ public class Mainscreen extends javax.swing.JFrame {
 
             @Override
             public void run() {
-                ObservableGraph<Note, Relation> graph = new ObservableGraph<Note, Relation>(new SparseMultigraph<Note, Relation>());
-//                ObservableGraph<Note, Relation> graph = getGraphForTheBenefitOfNetbeans();
+                ObservableGraph<Note, Double> graph = new ObservableGraph<Note, Double>(new UndirectedSparseGraph<Note, Double>());
+//                ObservableGraph<Note, Double> graph = getGraphForTheBenefitOfNetbeans();
 
                 Mainscreen main = new Mainscreen(emf, graph);
                 main.setVisible(true);
@@ -58,26 +57,19 @@ public class Mainscreen extends javax.swing.JFrame {
     /**
      * @return a suitable model for use in GUI Editors such as in Netbeans.
      */
-    static ObservableGraph<Note, Relation> getGraphForTheBenefitOfNetbeans() {
-        ObservableGraph<Note, Relation> graph = new ObservableGraph<Note, Relation>(new SparseMultigraph<Note, Relation>());
+    static ObservableGraph<Note, Double> getGraphForTheBenefitOfNetbeans() {        
+        ObservableGraph<Note, Double> graph = new ObservableGraph<Note, Double>(new UndirectedSparseGraph<Note, Double>());
         Note a = new Note();
         a.setTags(Tag.asTags("smug", "silly", "ugly"));
         Note b = new Note();
         b.setTags(Tag.asTags("smug", "silly"));
         Note c = new Note();
         c.setTags(Tag.asTags("ugly"));
-        Relation ab = new Relation(a, b);
-        ab.setRelator(new TagRelator());
-        Relation ac = new Relation(a, c);
-        ac.setRelator(new TagRelator());
-        Relation bc = new Relation(b, c);
-        bc.setRelator(new TagRelator());;
         graph.addVertex(a);
         graph.addVertex(b);
         graph.addVertex(c);
-        graph.addEdge(ab, a, b);
-        graph.addEdge(ac, a, c);
-        graph.addEdge(bc, b, c);
+        graph.addEdge(0.33, a, b);
+        graph.addEdge(0.67, a, c);
         return graph;
     }
 
@@ -95,7 +87,7 @@ public class Mainscreen extends javax.swing.JFrame {
      * @param emf
      * @param graph
      */
-    public Mainscreen(EntityManagerFactory emf, ObservableGraph<Note, Relation> graph) {
+    public Mainscreen(EntityManagerFactory emf, ObservableGraph<Note, Double> graph) {
         rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         controller = new JungMainController(emf, graph);
 

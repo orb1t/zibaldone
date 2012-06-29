@@ -46,7 +46,7 @@ public class BeanHelper {
     private final Object bean;
 
     private final BeanInfo beaninfo;
-
+            
     private final PropertyChangeSupport propListeners;
 
     private final VetoableChangeSupport vetoListeners;

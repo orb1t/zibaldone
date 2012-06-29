@@ -9,7 +9,10 @@ package uk.me.fommil.zibaldone.desktop;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.ObservableGraph;
+import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import java.io.Serializable;
 import java.util.*;
 import java.util.logging.Logger;
@@ -38,55 +41,13 @@ import uk.me.fommil.zibaldone.relator.TagRelator;
  */
 public class JungMainController {
 
-    /**
-     * FIXME: this is not true, but is it useful to keep this object?
-     * 
-     * JUNG enforces unique objects on edges, so it is not possible to
-     * use just the weights as edges: so we use this.
-     */
-    public static class Relation {
-
-        private final Note noteA, noteB;
-
-        /**
-         * @param a
-         * @param b
-         */
-        public Relation(Note a, Note b) {
-            this.noteA = a;
-            this.noteB = b;
-        }
-
-        private Relator relator;
-
-        public double getWeight() {
-            return relator.relate(noteA, noteB);
-        }
-
-        // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
-        public Relator getRelator() {
-            return relator;
-        }
-
-        public void setRelator(Relator relator) {
-            this.relator = relator;
-        }
-
-        public Note getNoteA() {
-            return noteA;
-        }
-
-        public Note getNoteB() {
-            return noteB;
-        }
-        // </editor-fold>        
-    }
-
     private static final Logger log = Logger.getLogger(JungMainController.class.getName());
 
     private final EntityManagerFactory emf;
 
-    private final ObservableGraph<Note, Relation> graph;
+    private final ObservableGraph<Note, Double> graph;
+
+    private final Set<Set<Note>> clusters = Sets.newHashSet();
 
     private final Settings settings = new Settings();
 
@@ -94,7 +55,7 @@ public class JungMainController {
      * @param emf
      * @param graph the model
      */
-    public JungMainController(EntityManagerFactory emf, ObservableGraph<Note, Relation> graph) {
+    public JungMainController(EntityManagerFactory emf, ObservableGraph<Note, Double> graph) {
         Preconditions.checkNotNull(emf);
         Preconditions.checkNotNull(graph);
         this.emf = emf;
@@ -105,51 +66,53 @@ public class JungMainController {
      * Updates the model based on current settings.
      */
     public void doRefresh() {
-        // TODO: update/delete/add instead of bruteforce clear/create
-
-        Collection<Note> vertices = graph.getVertices();
-        for (Note note : vertices) {
-            graph.removeVertex(note);
-        }
-
+        final Graph<Note, Double> update = new UndirectedSparseGraph<Note, Double>();
         NoteDao noteDao = new NoteDao(emf);
         List<Note> notes = noteDao.readAll();
         for (Note note : notes) {
-            graph.addVertex(note);
+            update.addVertex(note);
         }
 
         // TODO: choose relevant relator
         final Relator relator = new TagRelator();
         relator.refresh(emf);
 
-        // update the graph object
         Convenience.upperOuter(notes, new Loop<Note>() {
 
             @Override
             public void action(Note first, Note second) {
-                Relation relation = new Relation(first, second);
-                relation.setRelator(relator);
-                double weight = relation.getWeight();
+                double weight = relator.relate(first, second);
                 if (weight < 1) {
 //                    log.info(weight + " between " + first.getTags() + " | " + second.getTags());
-                    graph.addEdge(relation, first, second);
+                    update.addEdge(weight, first, second);
                 }
             }
         });
-        // now tell the view how to visually cluster the notes
-        // like in the SubLayoutDemo (AggregateLayout)
-        Set<Set<Note>> clusters = relator.cluster(vertices);
 
-        // TODO: tell the view
+        clusters.clear();
+        for (Set<Note> cluster : relator.cluster(notes)) {
+            clusters.add(Collections.unmodifiableSet(cluster));
+        }
 
-        log.info(graph.getVertexCount() + " vertices, " + graph.getEdgeCount() + " edges");
+        // TODO: visually cluster the selected Groups
+
+        log.info(update.getVertexCount() + " vertices, " + update.getEdgeCount() + " edges");
     }
 
-    /**
-     * Automatically create a cluster, as a starting point.
-     */
-    public void doAutoCluster() {
-        log.info("Not Implemented Yet");
+    // updates the 'graph' object, with minimal changes, to match the parameter
+    private void update(UndirectedSparseGraph<Note, Double> update) {
+        Collection<Note> vertices = graph.getVertices();
+        for (Note note : vertices) {
+            graph.removeVertex(note);
+        }
+        for (Note note : update.getVertices()) {
+            graph.addVertex(note);
+        }
+        for (Note note : update.getVertices()) {
+            // find...
+            // graph.get
+        }
+        
     }
 
     /**
@@ -164,7 +127,11 @@ public class JungMainController {
         return new Reconciler(emf);
     }
 
-    public ObservableGraph<Note, Relation> getGraph() {
+    public Set<Set<Note>> getClusters() {
+        return Collections.unmodifiableSet(clusters);
+    }
+
+    public ObservableGraph<Note, Double> getGraph() {
         return graph;
     }
 
@@ -180,11 +147,11 @@ public class JungMainController {
 
         private String search = "";
 
-        private final List<String> includeTags = Lists.newArrayList();
+        private final List<String> showWithTags = Lists.newArrayList();
 
-        private final List<String> excludeTags = Lists.newArrayList();
+        private final List<String> hideWithTags = Lists.newArrayList();
 
-        private final List<String> includeClusters = Lists.newArrayList();
+        private final List<String> showGroups = Lists.newArrayList();
 
         private final Map<UUID, Importer> importers = Maps.newHashMap();
 
@@ -210,15 +177,15 @@ public class JungMainController {
         }
 
         public List<String> getExcludeTags() {
-            return excludeTags;
+            return hideWithTags;
         }
 
         public List<String> getIncludeTags() {
-            return includeTags;
+            return showWithTags;
         }
 
         public List<String> getIncludeClusters() {
-            return includeClusters;
+            return showGroups;
         }
 
         public Map<UUID, Importer> getImporters() {

@@ -8,37 +8,39 @@ package uk.me.fommil.zibaldone.desktop;
 
 import edu.uci.ics.jung.graph.ObservableGraph;
 import java.util.List;
-import uk.me.fommil.zibaldone.Cluster;
+import uk.me.fommil.zibaldone.Group;
 import uk.me.fommil.zibaldone.Note;
 
 /**
- * A specialist MVC Controller for dealing with {@link Cluster}s.
+ * A specialist MVC Controller for dealing with {@link Group}s.
  * 
  * @author Samuel Halliday
  */
-public class JungClusterController {
+public class JungGroupController {
 
     private final ObservableGraph<Note, Double> graph;
 
     /**
      * @param graph
      */
-    public JungClusterController(ObservableGraph<Note, Double> graph) {
+    public JungGroupController(ObservableGraph<Note, Double> graph) {
         this.graph = graph;
     }
 
     /**
      * @return
      */
-    public List<String> getClusterNames() {
+    public List<String> getGroupNames() {
         // TODO: implement method
         throw new UnsupportedOperationException("not implemented yet");
     }
     
+    // TODO: perhaps expose the Group object
+    
     /**
      * @param name
      */
-    public void addCluster(String name) {
+    public void addGroup(String name) {
         // TODO: implement method
         throw new UnsupportedOperationException("not implemented yet");
     }
@@ -46,7 +48,16 @@ public class JungClusterController {
     /**
      * @param name
      */
-    public void removeCluster(String name) {
+    public void removeGroup(String name) {
+        // TODO: implement method
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    /**
+     * @param name of group
+     * @param note
+     */
+    public void addToGroup(String name, Note note) {
         // TODO: implement method
         throw new UnsupportedOperationException("not implemented yet");
     }
@@ -55,16 +66,7 @@ public class JungClusterController {
      * @param name of cluster
      * @param note
      */
-    public void addToCluster(String name, Note note) {
-        // TODO: implement method
-        throw new UnsupportedOperationException("not implemented yet");
-    }
-
-    /**
-     * @param name of cluster
-     * @param note
-     */
-    public void removeFromCluster(String name, Note note) {
+    public void removeFromGroup(String name, Note note) {
         // TODO: implement method
         throw new UnsupportedOperationException("not implemented yet");
     }

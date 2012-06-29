@@ -62,8 +62,7 @@ public interface Relator {
     public double relate(Note a, Note b);
 
     /**
-     * Clusters (in the machine learning sense, not the same as {@link Cluster})
-     * notes into distinct sets.
+     * Clusters (in the machine learning sense) {@link Note}s into distinct sets.
      *
      * @param notes
      * @return
