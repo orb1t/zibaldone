@@ -13,6 +13,8 @@ import javax.persistence.EntityManager;
 import uk.me.fommil.zibaldone.Note;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
+import lombok.Cleanup;
+import lombok.extern.java.Log;
 import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Tag;
 
@@ -21,9 +23,8 @@ import uk.me.fommil.zibaldone.Tag;
  *
  * @author Samuel Halliday
  */
+@Log
 public class NoteDao extends CrudDao<Long, Note> {
-    
-    private static final Logger log = Logger.getLogger(NoteDao.class.getName());
 
     /**
      * @param emf
@@ -38,7 +39,7 @@ public class NoteDao extends CrudDao<Long, Note> {
      */
     public long countForImporter(UUID sourceId) {
         Preconditions.checkNotNull(sourceId);
-        EntityManager em = createEntityManager();
+        @Cleanup EntityManager em = createEntityManager();
         Query q = em.createQuery("SELECT COUNT(s) FROM " + getTableName() + " s WHERE id.source = :name");
         q.setParameter("name", sourceId);
         Long result = querySingle(em, q);
@@ -49,7 +50,7 @@ public class NoteDao extends CrudDao<Long, Note> {
      * @return a list of all tags.
      */
     public Set<Tag> getAllTags() {
-        EntityManager em = createEntityManager();
+        @Cleanup EntityManager em = createEntityManager();
         Query q = em.createQuery("SELECT DISTINCT t.text FROM " + getTableName() + " s JOIN s.tags t");
         List<String> result = query(em, q);
         return Tag.asTags(result);

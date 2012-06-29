@@ -7,19 +7,18 @@ package uk.me.fommil.utils;
 import com.google.common.base.Preconditions;
 import java.io.File;
 import java.util.logging.Level;
-import java.util.logging.Logger;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.java.Log;
 
 /**
  * Workarounds for bugs in Java or third party libraries.
  *
  * @author Samuel Halliday
  */
+@Log
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Workarounds {
-
-    private static final Logger log = Logger.getLogger(Workarounds.class.getName());
-
-    private Workarounds() {
-    }
 
     /**
      * Sadly, a wrapper for the File method of this name. Swallows security exceptions, which

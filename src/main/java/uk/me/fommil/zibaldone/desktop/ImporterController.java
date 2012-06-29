@@ -10,7 +10,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import java.io.IOException;
 import java.util.*;
-import java.util.logging.Logger;
+import lombok.extern.java.Log;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.NoteId;
@@ -21,9 +21,8 @@ import uk.me.fommil.zibaldone.Reconciler;
  * 
  * @author Samuel Halliday
  */
+@Log
 public class ImporterController {
-
-    private static final Logger log = Logger.getLogger(ImporterController.class.getName());
     
     /**
      * @param klass

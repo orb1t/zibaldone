@@ -16,8 +16,10 @@ import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.Nullable;
+import lombok.Delegate;
+import lombok.Getter;
+import lombok.extern.java.Log;
 
 /**
  * Abstracts the JavaBeans API providing sensible actions and accessors.
@@ -39,16 +41,33 @@ import javax.annotation.Nullable;
  * 
  * @author Samuel Halliday
  */
+@Log
 public class BeanHelper {
 
-    private static final Logger log = Logger.getLogger(BeanHelper.class.getName());
-
+    @Getter
     private final Object bean;
 
+    @Getter
     private final BeanInfo beaninfo;
-            
+
+    private interface PropertyChangeDelegated {
+
+        public void addPropertyChangeListener(PropertyChangeListener listener);
+
+        public void removePropertyChangeListener(PropertyChangeListener listener);
+    }
+
+    @Delegate(types = PropertyChangeDelegated.class)
     private final PropertyChangeSupport propListeners;
 
+    private interface VetoableChangeDelegated {
+
+        public void addVetoableChangeListener(VetoableChangeListener listener);
+
+        public void removeVetoableChangeListener(VetoableChangeListener listener);
+    }
+
+    @Delegate(types = VetoableChangeDelegated.class)
     private final VetoableChangeSupport vetoListeners;
 
     /**
@@ -117,11 +136,26 @@ public class BeanHelper {
         return beaninfo.getIcon(iconKind);
     }
 
+    // methods @Delegated by Property to PropertyDescriptor
+    private interface PropertyDelegation {
+
+        public String getShortDescription();
+
+        public String getDisplayName();
+
+        public String getName();
+
+        public boolean isHidden();
+
+        public boolean isExpert();
+    }
+
     /**
      * A property held by a JavaBean
      */
     public class Property {
 
+        @Delegate(types = PropertyDelegation.class)
         private final PropertyDescriptor descriptor;
 
         private Property(PropertyDescriptor descriptor) {
@@ -185,28 +219,6 @@ public class BeanHelper {
                         + method.getName() + " as a JavaBean setter", e);
             }
         }
-
-        // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
-        public String getShortDescription() {
-            return descriptor.getShortDescription();
-        }
-
-        public String getDisplayName() {
-            return descriptor.getDisplayName();
-        }
-
-        public String getName() {
-            return descriptor.getName();
-        }
-
-        public boolean isHidden() {
-            return descriptor.isHidden();
-        }
-
-        public boolean isExpert() {
-            return descriptor.isExpert();
-        }
-        // </editor-fold>
     }
 
     /**
@@ -264,29 +276,5 @@ public class BeanHelper {
         } catch (IntrospectionException ex) {
             throw new RuntimeException("Failed to access " + bean.getClass() + " as a JavaBean", ex);
         }
-    }
-
-    public Object getBean() {
-        return bean;
-    }
-
-    public BeanInfo getBeanInfo() {
-        return beaninfo;
-    }
-
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
-        propListeners.addPropertyChangeListener(listener);
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        propListeners.removePropertyChangeListener(listener);
-    }
-
-    public void addVetoableChangeListener(VetoableChangeListener listener) {
-        vetoListeners.addVetoableChangeListener(listener);
-    }
-
-    public void removeVetoableChangeListener(VetoableChangeListener listener) {
-        vetoListeners.removeVetoableChangeListener(listener);
     }
 }

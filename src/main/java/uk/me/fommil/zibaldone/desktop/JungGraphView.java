@@ -17,8 +17,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.util.logging.Logger;
 import javax.swing.JPanel;
+import lombok.extern.java.Log;
 import org.apache.commons.collections15.Transformer;
 import uk.me.fommil.zibaldone.Group;
 import uk.me.fommil.zibaldone.Note;
@@ -30,11 +30,8 @@ import uk.me.fommil.zibaldone.Note;
  * @see JungMainController
  * @author Samuel Halliday
  */
+@Log
 public class JungGraphView extends JPanel implements GraphEventListener<Note, Double> {
-
-    private static final Logger log = Logger.getLogger(JungGraphView.class.getName());
-
-    private static final long serialVersionUID = 1L;
 
     private final JungMainController controller;
 
@@ -96,7 +93,7 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, Do
         //if (evt.getType().equals(GraphEvent.Type.))
 
         // TODO: very quickly check if the clusters have changed
-        
+
         log.info("Not Implemented Yet");
 //        throw new UnsupportedOperationException("Not supported yet.");
     }

@@ -22,6 +22,12 @@
         <!-- mvn versions:display-dependency-updates -->
     <dependencies>
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>0.11.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-snowball</artifactId>
             <version>3.0.3</version>
@@ -118,11 +124,11 @@
             <artifactId>macify</artifactId>
             <version>1.6</version>
         </dependency>-->
-        <dependency>
+<!--        <dependency>
             <groupId>org.jdesktop</groupId>
             <artifactId>beansbinding</artifactId>
             <version>1.2.1</version>
-        </dependency>
+        </dependency>-->
     </dependencies>
 	
 	
@@ -175,12 +181,4 @@
             </plugin>-->
         </plugins>
     </build>
-    <repositories>
-        <repository>
-            <url>http://download.java.net/maven/2/</url>
-            <id>beans-binding</id>
-            <layout>default</layout>
-            <name>Repository for library Library[beans-binding]</name>
-        </repository>
-    </repositories>
 </project>

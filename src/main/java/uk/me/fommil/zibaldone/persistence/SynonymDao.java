@@ -10,8 +10,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import java.util.List;
-import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
+import lombok.extern.java.Log;
 import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Synonym;
 import uk.me.fommil.zibaldone.Synonym.Context;
@@ -25,8 +25,8 @@ import uk.me.fommil.zibaldone.Tag;
  * 
  * @author Samuel Halliday
  */
+@Log
 public class SynonymDao extends CrudDao<Long, Synonym> {
-    private static final Logger log = Logger.getLogger(SynonymDao.class.getName());
 
     /**
      * @param emf
@@ -46,10 +46,9 @@ public class SynonymDao extends CrudDao<Long, Synonym> {
         }
         create(synonyms);
 
-//        EntityManager em = createEntityManager();
+//        @Cleanup EntityManager em = createEntityManager();
 //        Query clear = em.createQuery("DELETE " + getTableName() + " e WHERE e.context = :automatic");
 //        clear.setParameter("automatic", Context.class.getName() + "." + Context.AUTOMATIC.name());
-//        try {
 //            em.getTransaction().begin();
 //            clear.executeUpdate();
 //            for (Synonym equivalence : equivalences) {
@@ -58,9 +57,6 @@ public class SynonymDao extends CrudDao<Long, Synonym> {
 //                em.persist(equivalence);
 //            }
 //            em.getTransaction().commit();
-//        } finally {
-//            em.close();
-//        }
     }
 
     /**

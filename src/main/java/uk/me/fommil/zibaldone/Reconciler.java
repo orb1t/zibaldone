@@ -13,8 +13,8 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
+import lombok.extern.java.Log;
 import org.tartarus.snowball.SnowballProgram;
 import org.tartarus.snowball.ext.EnglishStemmer;
 import uk.me.fommil.zibaldone.persistence.SynonymDao;
@@ -27,9 +27,8 @@ import uk.me.fommil.zibaldone.persistence.NoteDao;
  * 
  * @author Samuel Halliday
  */
+@Log
 public class Reconciler {
-
-    private static final Logger log = Logger.getLogger(Reconciler.class.getName());
 
     private final SnowballProgram stemmer = new EnglishStemmer();
 

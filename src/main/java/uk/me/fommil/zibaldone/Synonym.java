@@ -6,11 +6,13 @@
  */
 package uk.me.fommil.zibaldone;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 import java.io.Serializable;
 import java.util.Set;
 import javax.persistence.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * Synonyms between {@link Tag}s, i.e. tags that are not byte-for-byte the
@@ -23,10 +25,10 @@ import javax.persistence.*;
  * @author Samuel Halliday
  */
 @Entity
+@Data
+@ToString(includeFieldNames = true)
+@EqualsAndHashCode(of = "id")
 public class Synonym implements Serializable {
-
-    /** serial version 1 */
-    public static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue
@@ -57,57 +59,4 @@ public class Synonym implements Serializable {
         AUTOMATIC_IGNORED
 
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof Synonym) || id == null) {
-            return false;
-        }
-        final Synonym other = (Synonym) obj;
-        return Objects.equal(id, other.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(id);
-    }
-
-    @Override
-    public String toString() {
-        return context + (stem == null ? "" : ":" + stem.getText()) + ":" + tags;
-    }
-
-    // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
-    public Context getContext() {
-        return context;
-    }
-
-    public void setContext(Context context) {
-        this.context = context;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Set<Tag> getTags() {
-        return tags;
-    }
-
-    public void setTags(Set<Tag> tags) {
-        this.tags = tags;
-    }
-
-    public Tag getStem() {
-        return stem;
-    }
-
-    public void setStem(Tag stem) {
-        this.stem = stem;
-    }
-    // </editor-fold>
 }

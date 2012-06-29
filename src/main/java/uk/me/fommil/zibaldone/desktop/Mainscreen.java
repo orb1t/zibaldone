@@ -7,7 +7,6 @@
 package uk.me.fommil.zibaldone.desktop;
 
 import edu.uci.ics.jung.graph.ObservableGraph;
-import edu.uci.ics.jung.graph.SparseGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import java.beans.PropertyEditorManager;
 import java.io.File;
@@ -15,8 +14,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
+import lombok.extern.java.Log;
 import org.jdesktop.swingx.combobox.MapComboBoxModel;
 import uk.me.fommil.beans.editors.DatePropertyEditor;
 import uk.me.fommil.beans.editors.FilePropertyEditor;
@@ -28,11 +27,8 @@ import uk.me.fommil.zibaldone.Tag;
 /**
  * @author Samuel Halliday
  */
+@Log
 public class Mainscreen extends javax.swing.JFrame {
-
-    private static final Logger log = Logger.getLogger(Mainscreen.class.getName());
-
-    private static final long serialVersionUID = 1L;
 
     /** @param args */
     public static void main(String args[]) {

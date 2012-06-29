@@ -14,9 +14,10 @@ import java.awt.*;
 import java.beans.*;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.table.*;
+import lombok.Getter;
+import lombok.extern.java.Log;
 import org.jdesktop.swingx.JXImagePanel;
 import org.jdesktop.swingx.JXTable;
 import uk.me.fommil.beans.BeanHelper.Property;
@@ -56,6 +57,7 @@ import uk.me.fommil.beans.BeanHelper.Property;
  * @see <a href="http://stackoverflow.com/questions/10840078">Origin on Stack Overflow</a>
  * @author Samuel Halliday
  */
+@Log
 public final class JBeanEditor extends JPanel {
 
     /*
@@ -65,18 +67,14 @@ public final class JBeanEditor extends JPanel {
      * JXTable backend causes problems, it should be possible to rewrite this
      * as a pure JPanel with an appropriate Layout, e.g. GridBagLayout.
      */
-    private static final long serialVersionUID = 1L;
-
-    private static final Logger log = Logger.getLogger(JBeanEditor.class.getName());
 
     private final JPanel top = new JPanel();
 
+    @Getter
     private volatile BeanHelper beanHelper;
 
     // links the table to the BeanHelper
     private static class MyTableModel extends AbstractTableModel {
-
-        private static final long serialVersionUID = 1L;
 
         private final List<Property> properties;
 
@@ -159,8 +157,6 @@ public final class JBeanEditor extends JPanel {
 
     // allow per-cell rendering and editing via JavaBeans
     private final JXTable table = new JXTable() {
-
-        private static final long serialVersionUID = 1L;
 
         @Override
         public TableCellRenderer getCellRenderer(int row, int column) {
@@ -320,9 +316,5 @@ public final class JBeanEditor extends JPanel {
         this.beanHelper = beanHelper;
         this.beanHelper.addPropertyChangeListener(beanChangeListener);
         refresh();
-    }
-
-    public BeanHelper getBeanHelper() {
-        return beanHelper;
     }
 }

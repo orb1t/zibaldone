@@ -5,7 +5,6 @@
 package uk.me.fommil.persistence;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.Reader;
@@ -15,8 +14,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
-import java.util.logging.Logger;
 import javax.persistence.*;
+import lombok.Cleanup;
+import lombok.extern.java.Log;
 
 /**
  * Generic CRUD (CREATE, READ, UPDATE, DELETE) DAO (Data Access Object) for {@link Entity} types.
@@ -33,9 +33,8 @@ import javax.persistence.*;
  * @param <T> the class of the type
  * @author Samuel Halliday
  */
+@Log
 public abstract class CrudDao<K, T> {
-
-    private static final Logger log = Logger.getLogger(CrudDao.class.getName());
 
     private static final String JPA_PROPERTIES = "jpa.properties";
 
@@ -64,12 +63,8 @@ public abstract class CrudDao<K, T> {
             File hibernateProps = new File(JPA_PROPERTIES);
             if (hibernateProps.exists()) {
                 Properties properties = new Properties();
-                Reader reader = Files.newReader(hibernateProps, Charset.defaultCharset());
-                try {
-                    properties.load(reader);
-                } finally {
-                    Closeables.closeQuietly(reader);
-                }
+                @Cleanup Reader reader = Files.newReader(hibernateProps, Charset.defaultCharset());
+                properties.load(reader);
                 properties.put("javax.persistence.jtaDataSource", "");
                 properties.put("javax.persistence.nonJtaDataSource", "");
                 log.info(properties.toString());
@@ -80,6 +75,7 @@ public abstract class CrudDao<K, T> {
             throw new ExceptionInInitializerError(e);
         }
     }
+
     private final Class<T> klass;
 
     private final EntityManagerFactory emf;
@@ -119,7 +115,7 @@ public abstract class CrudDao<K, T> {
      */
     public void create(T entity) {
         Preconditions.checkNotNull(entity);
-        EntityManager em = createEntityManager();
+        @Cleanup EntityManager em = createEntityManager();
         try {
             em.getTransaction().begin();
             em.persist(entity);
@@ -129,8 +125,6 @@ public abstract class CrudDao<K, T> {
                 em.getTransaction().rollback();
             }
             throw e;
-        } finally {
-            em.close();
         }
     }
 
@@ -147,7 +141,7 @@ public abstract class CrudDao<K, T> {
         if (collection.isEmpty()) {
             return;
         }
-        EntityManager em = createEntityManager();
+        @Cleanup EntityManager em = createEntityManager();
         try {
             em.getTransaction().begin();
             for (T entity : collection) {
@@ -159,8 +153,6 @@ public abstract class CrudDao<K, T> {
                 em.getTransaction().rollback();
             }
             throw e;
-        } finally {
-            em.close();
         }
     }
 
@@ -171,12 +163,8 @@ public abstract class CrudDao<K, T> {
      */
     public T read(K key) {
         Preconditions.checkNotNull(key);
-        EntityManager em = createEntityManager();
-        try {
-            return em.find(klass, key);
-        } finally {
-            em.close();
-        }
+        @Cleanup EntityManager em = createEntityManager();
+        return em.find(klass, key);
     }
 
     /**
@@ -189,7 +177,7 @@ public abstract class CrudDao<K, T> {
     @SuppressWarnings("AssignmentToMethodParameter")
     public T update(T entity) {
         Preconditions.checkNotNull(entity);
-        EntityManager em = createEntityManager();
+        @Cleanup EntityManager em = createEntityManager();
         try {
             em.getTransaction().begin();
             entity = em.merge(entity);
@@ -200,8 +188,6 @@ public abstract class CrudDao<K, T> {
                 em.getTransaction().rollback();
             }
             throw e;
-        } finally {
-            em.close();
         }
     }
 
@@ -212,7 +198,7 @@ public abstract class CrudDao<K, T> {
     @SuppressWarnings("AssignmentToMethodParameter")
     public void delete(T entity) {
         Preconditions.checkNotNull(entity);
-        EntityManager em = createEntityManager();
+        @Cleanup EntityManager em = createEntityManager();
         try {
             em.getTransaction().begin();
             entity = em.merge(entity);
@@ -223,8 +209,6 @@ public abstract class CrudDao<K, T> {
                 em.getTransaction().rollback();
             }
             throw e;
-        } finally {
-            em.close();
         }
     }
 
@@ -234,7 +218,7 @@ public abstract class CrudDao<K, T> {
      */
     public void deleteById(K id) {
         Preconditions.checkNotNull(id);
-        EntityManager em = createEntityManager();
+        @Cleanup EntityManager em = createEntityManager();
         try {
             em.getTransaction().begin();
             T entity = em.find(klass, id);
@@ -247,8 +231,6 @@ public abstract class CrudDao<K, T> {
                 em.getTransaction().rollback();
             }
             throw e;
-        } finally {
-            em.close();
         }
     }
 
@@ -284,7 +266,7 @@ public abstract class CrudDao<K, T> {
 
     /**
      * Boilerplate saver - runs the given {@link Query}, expecting a list of {@link Entity}s of given
-     * type, closing the {@link EntityManager}. Never returns {@code null}.
+     * type. Never returns {@code null}.
      *
      * @param <C>
      * @param em
@@ -292,23 +274,19 @@ public abstract class CrudDao<K, T> {
      * @return
      */
     protected <C> List<C> query(EntityManager em, Query query) {
-        try {
-            Preconditions.checkNotNull(em);
-            Preconditions.checkNotNull(query);
-            @SuppressWarnings("unchecked")
-            List<C> result = (List<C>) query.getResultList();
-            if (result == null) {
-                return Collections.emptyList();
-            }
-            return result;
-        } finally {
-            em.close();
+        Preconditions.checkNotNull(em);
+        Preconditions.checkNotNull(query);
+        @SuppressWarnings("unchecked")
+        List<C> result = (List<C>) query.getResultList();
+        if (result == null) {
+            return Collections.emptyList();
         }
+        return result;
     }
 
     /**
      * Boilerplate saver - runs the given {@link Query}, expecting a single {@link Entity} of type
-     * {@code T}, closing the {@link EntityManager}. Never returns {@code null}.
+     * {@code T}. Never returns {@code null}.
      *
      * @param <C>
      * @param em
@@ -317,12 +295,8 @@ public abstract class CrudDao<K, T> {
      */
     @SuppressWarnings("unchecked")
     protected <C> C querySingle(EntityManager em, Query query) {
-        try {
-            Preconditions.checkNotNull(em);
-            Preconditions.checkNotNull(query);
-            return (C) query.getSingleResult();
-        } finally {
-            em.close();
-        }
+        Preconditions.checkNotNull(em);
+        Preconditions.checkNotNull(query);
+        return (C) query.getSingleResult();
     }
 }

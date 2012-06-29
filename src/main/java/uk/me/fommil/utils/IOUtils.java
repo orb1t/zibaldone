@@ -20,9 +20,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
+import lombok.AccessLevel;
+import lombok.Cleanup;
+import lombok.NoArgsConstructor;
+import lombok.extern.java.Log;
 
 /**
  * Class with static helper methods to reduce code boilerplate when dealing
@@ -37,12 +40,9 @@ import javax.annotation.Nullable;
  * 
  * @author Samuel Halliday
  */
+@Log
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class IOUtils {
-
-    private static final Logger log = Logger.getLogger(IOUtils.class.getName());
-
-    private IOUtils() {
-    }
 
     /**
      * @param dir
@@ -96,8 +96,8 @@ public final class IOUtils {
     public static String streamToString(InputStream stream, String charsetName) throws IOException {
         Preconditions.checkNotNull(stream);
         try {
-            InputStreamReader reader = new InputStreamReader(stream, charsetName);
-            BufferedReader buffered = new BufferedReader(reader);
+            @Cleanup InputStreamReader reader = new InputStreamReader(stream, charsetName);
+            @Cleanup BufferedReader buffered = new BufferedReader(reader);
             StringBuilder builder = new StringBuilder();
             String line;
             while ((line = buffered.readLine()) != null) {
@@ -106,6 +106,7 @@ public final class IOUtils {
             }
             return builder.toString();
         } finally {
+            // @Cleanup doesn't work on parameters
             Closeables.closeQuietly(stream);
         }
     }
@@ -125,6 +126,7 @@ public final class IOUtils {
         }
     }
     // finds the charset in an (X)HTML page
+
     private static final Pattern xhtmlCharsetPattern = Pattern.compile(
             "<meta\\s+http-equiv=['\"]content-type['\"]\\s+content=['\"].*charset=(.*)['\"]\\s*/?>",
             Pattern.CASE_INSENSITIVE);

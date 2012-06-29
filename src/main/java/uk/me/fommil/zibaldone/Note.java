@@ -4,13 +4,12 @@
  */
 package uk.me.fommil.zibaldone;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 import java.io.Serializable;
-import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 import javax.persistence.*;
+import lombok.*;
+import lombok.extern.java.Log;
 
 /**
  * The atomic element for users: holds a title, rich text and tags.
@@ -18,13 +17,17 @@ import javax.persistence.*;
  * @author Samuel Halliday
  */
 @Entity
+@Data
+@ToString(includeFieldNames = true)
+@EqualsAndHashCode(of = "id")
+@Log
 public class Note implements Serializable {
 
-    private static final Logger log = Logger.getLogger(Note.class.getName());
-
-    private static final long serialVersionUID = 1L;
-
     private static final int CONTENTS_MAX = 8192;
+
+    // TODO: is there a better way to identify notes? (source/title maybe)
+    @EmbeddedId
+    private NoteId id;
 
     @Column
     private String title;
@@ -37,63 +40,12 @@ public class Note implements Serializable {
     @Basic(fetch = FetchType.LAZY)
     private String contents;
 
-    @EmbeddedId
-    private NoteId id;
-
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof Note) || id == null) {
-            return false;
-        }
-        final Note other = (Note) obj;
-        return Objects.equal(id, other.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(id);
-    }
-
-    @Override
-    public String toString() {
-        return Objects.toStringHelper(getClass()).addValue(title).add("tags", tags).toString();
-    }
-
     public void setContents(String contents) {
         if (contents.length() > CONTENTS_MAX) {
             log.warning("Cutting contents of " + toString());
-            contents = contents.substring(0, CONTENTS_MAX);
+            this.contents = contents.substring(0, CONTENTS_MAX);
+        } else {
+            this.contents = contents;
         }
-        this.contents = contents;
     }
-
-    // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
-    public NoteId getId() {
-        return id;
-    }
-
-    public void setId(NoteId id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public Set<Tag> getTags() {
-        return tags;
-    }
-
-    public void setTags(Set<Tag> tags) {
-        this.tags = tags;
-    }
-
-    public String getContents() {
-        return contents;
-    }
-    // </editor-fold>
 }

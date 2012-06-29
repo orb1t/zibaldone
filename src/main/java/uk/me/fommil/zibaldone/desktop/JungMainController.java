@@ -15,8 +15,9 @@ import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import java.io.Serializable;
 import java.util.*;
-import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
+import lombok.Data;
+import lombok.extern.java.Log;
 import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.utils.Convenience.Loop;
 import uk.me.fommil.zibaldone.*;
@@ -39,9 +40,8 @@ import uk.me.fommil.zibaldone.relator.TagRelator;
  * @see JungGraphView
  * @author Samuel Halliday
  */
+@Log
 public class JungMainController {
-
-    private static final Logger log = Logger.getLogger(JungMainController.class.getName());
 
     private final EntityManagerFactory emf;
 
@@ -141,6 +141,7 @@ public class JungMainController {
      * @deprecated TODO: API review to persist across sessions
      */
     @Deprecated
+    @Data
     public static class Settings implements Serializable {
 
         private int seeds;
@@ -156,46 +157,6 @@ public class JungMainController {
         private final Map<UUID, Importer> importers = Maps.newHashMap();
 
         private final List<Relator> relators = Lists.newArrayList();
-
-        // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
-        public int getSeeds() {
-            return seeds;
-        }
-
-        public void setSeeds(int seeds) {
-            Preconditions.checkArgument(seeds > 0);
-            this.seeds = seeds;
-        }
-
-        public void setSearch(String search) {
-            Preconditions.checkNotNull(search);
-            this.search = search;
-        }
-
-        public String getSearch() {
-            return search;
-        }
-
-        public List<String> getExcludeTags() {
-            return hideWithTags;
-        }
-
-        public List<String> getIncludeTags() {
-            return showWithTags;
-        }
-
-        public List<String> getIncludeClusters() {
-            return showGroups;
-        }
-
-        public Map<UUID, Importer> getImporters() {
-            return importers;
-        }
-
-        public List<Relator> getRelators() {
-            return relators;
-        }
-        // </editor-fold>
     }
 
     public Settings getSettings() {

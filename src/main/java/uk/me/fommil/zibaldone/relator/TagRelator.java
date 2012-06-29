@@ -7,15 +7,14 @@
 package uk.me.fommil.zibaldone.relator;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.util.*;
-import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
+import lombok.extern.java.Log;
 import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.zibaldone.Synonym;
 import uk.me.fommil.zibaldone.Note;
@@ -28,9 +27,8 @@ import uk.me.fommil.zibaldone.persistence.SynonymDao;
  * 
  * @author Samuel Halliday
  */
+@Log
 public class TagRelator implements Relator {
-    
-    private static final Logger log = Logger.getLogger(TagRelator.class.getName());
     
     private final Settings settings = new Settings() {
     };

@@ -13,8 +13,10 @@ import java.beans.PropertyEditorManager;
 import java.beans.SimpleBeanInfo;
 import java.io.File;
 import java.util.Date;
-import java.util.logging.Logger;
 import javax.swing.JFrame;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.java.Log;
 import uk.me.fommil.beans.editors.DatePropertyEditor;
 import uk.me.fommil.beans.editors.FilePropertyEditor;
 
@@ -23,9 +25,8 @@ import uk.me.fommil.beans.editors.FilePropertyEditor;
  * 
  * @author Samuel Halliday
  */
+@Log
 public class JBeanEditorTest {
-
-    private static final Logger log = Logger.getLogger(JBeanEditorTest.class.getName());
 
     public static void main(String[] args) {
         PropertyEditorManager.registerEditor(File.class, FilePropertyEditor.class);
@@ -36,48 +37,15 @@ public class JBeanEditorTest {
         JBeanEditor editor = new JBeanEditor();
         BeanHelper ender = new BeanHelper(new Object() {
 
-            private File file;
+            @Getter @Setter private File file;
 
-            private Boolean button = false;
+            @Getter @Setter private Boolean button = false;
 
-            private String name = "text";
+            @Getter @Setter private String name = "text";
 
 //            private Color colour;
-            private Date date;
+            @Getter @Setter private Date date;
 
-            // <editor-fold defaultstate="collapsed" desc="BOILERPLATE GETTERS/SETTERS">
-            public String getName() {
-                return name;
-            }
-
-            public Date getDate() {
-                return date;
-            }
-
-            public void setDate(Date date) {
-                this.date = date;
-            }
-
-            public File getFile() {
-                return file;
-            }
-
-            public void setFile(File file) {
-                this.file = file;
-            }
-
-            public Boolean getButton() {
-                return button;
-            }
-
-            public void setButton(Boolean button) {
-                this.button = button;
-            }
-
-            public void setName(String name) {
-                this.name = name;
-            }
-            // </editor-fold>
         }, new SimpleBeanInfo() {
 //            @Override
 //            public Image getIcon(int iconKind) {

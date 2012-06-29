@@ -9,8 +9,8 @@ package uk.me.fommil.zibaldone.desktop;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JPanel;
+import lombok.extern.java.Log;
 import org.jdesktop.swingx.JXTaskPane;
 import uk.me.fommil.utils.Swing;
 import uk.me.fommil.zibaldone.Importer;
@@ -20,11 +20,8 @@ import uk.me.fommil.zibaldone.Importer;
  *
  * @author Samuel Halliday
  */
+@Log
 public class ImporterView extends JXTaskPane {
-
-    private static final Logger log = Logger.getLogger(ImporterView.class.getName());
-
-    private static final long serialVersionUID = 1L;
 
     private final ImporterController controller;
 
