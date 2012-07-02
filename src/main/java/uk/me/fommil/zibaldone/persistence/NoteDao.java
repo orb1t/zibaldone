@@ -8,7 +8,6 @@ import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import uk.me.fommil.zibaldone.Note;
 import javax.persistence.EntityManagerFactory;

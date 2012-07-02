@@ -14,6 +14,7 @@ import com.google.common.collect.Sets;
 import java.util.*;
 import java.util.Map.Entry;
 import javax.persistence.EntityManagerFactory;
+import lombok.Synchronized;
 import lombok.extern.java.Log;
 import org.tartarus.snowball.SnowballProgram;
 import org.tartarus.snowball.ext.EnglishStemmer;
@@ -61,7 +62,8 @@ public class Reconciler {
      * 
      * @param incoming indexed by the proposed {@link NoteId#setSource(UUID)}.
      */
-    public synchronized void reconcile(Map<UUID, List<Note>> incoming) {
+    @Synchronized
+    public void reconcile(Map<UUID, List<Note>> incoming) {
         Preconditions.checkNotNull(incoming);
 
         NoteDao dao = new NoteDao(emf);

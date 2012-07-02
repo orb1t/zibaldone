@@ -38,6 +38,8 @@ import lombok.extern.java.Log;
  * - are informed prior to any change made here to the JavaBean's properties.</li>
  * </ul>
  * Any other listeners are the business of the bean itself.
+ * <p>
+ * TODO: support beans that support PropertyChangeSupport
  * 
  * @author Samuel Halliday
  */
