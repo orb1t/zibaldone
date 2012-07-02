@@ -9,6 +9,7 @@ package uk.me.fommil.zibaldone.desktop;
 import com.google.common.base.Preconditions;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout;
+import edu.uci.ics.jung.algorithms.layout.util.Relaxer;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.event.GraphEvent;
 import edu.uci.ics.jung.graph.event.GraphEventListener;
@@ -19,7 +20,6 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import javax.swing.JPanel;
 import lombok.extern.java.Log;
-import org.apache.commons.collections15.Transformer;
 import uk.me.fommil.zibaldone.Group;
 import uk.me.fommil.zibaldone.Note;
 
@@ -31,25 +31,19 @@ import uk.me.fommil.zibaldone.Note;
  * @author Samuel Halliday
  */
 @Log
-public class JungGraphView extends JPanel implements GraphEventListener<Note, Double> {
+public class JungGraphView extends JPanel implements GraphEventListener<Note, Weight> {
 
     private final JungMainController controller;
 
-    private static final Transformer<Double, Integer> WEIGHTS = new Transformer<Double, Integer>() {
-
-        @Override
-        public Integer transform(Double input) {
-            Preconditions.checkNotNull(input);
-            return Math.round((float) (input * 1000.0));
-        }
-    };
-
+    private final VisualizationViewer<Note, Weight> graphVisualiser;
+    
     /**
      * @deprecated only to be used by GUI Editors.
      */
     @Deprecated
     public JungGraphView() {
         this.controller = null;
+        this.graphVisualiser = null;
     }
 
     /**
@@ -61,24 +55,21 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, Do
 
         setLayout(new BorderLayout());
 
-        ObservableGraph<Note, Double> graph = controller.getGraph();
-        final Layout<Note, Double> graphLayout = new SpringLayout<Note, Double>(graph, WEIGHTS);
-//        final Layout<Note, Double> graphLayout = new FRLayout<Note, Double>(graph);
+        ObservableGraph<Note, Weight> graph = controller.getGraph();
+        final Layout<Note, Weight> graphLayout = new SpringLayout<Note, Weight>(graph, Weight.TRANSFORMER);
+//        final Layout<Note, Weight> graphLayout = new FRLayout<Note, Weight>(graph);
+//        final Layout<Note, Weight> graphLayout = new CircleLayout<Note, Weight>(graph);
 
-//        final Layout<Note, Double> graphLayout = new CircleLayout<Note, Double>(graph);
-        final VisualizationViewer<Note, Double> graphVisualiser = new VisualizationViewer<Note, Double>(graphLayout);
-//        final GraphZoomScrollPane zoom = new GraphZoomScrollPane(graphVisualiser);
+        graphVisualiser = new VisualizationViewer<Note, Weight>(graphLayout);
 
         addComponentListener(new ComponentAdapter() {
-
             @Override
             public void componentResized(ComponentEvent ce) {
-//                zoom.setSize(getSize());
                 graphVisualiser.setSize(getSize());
                 graphLayout.setSize(getSize());
             }
         });
-
+        
         graphVisualiser.setBackground(Color.WHITE);
 //        add(zoom, BorderLayout.CENTER);
         add(graphVisualiser, BorderLayout.CENTER);
@@ -88,8 +79,12 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, Do
 //        graph.addGraphEventListener(this);
     }
 
+    public Relaxer getRelaxer() {
+        return graphVisualiser.getModel().getRelaxer();
+    }
+    
     @Override
-    public void handleGraphEvent(GraphEvent<Note, Double> evt) {
+    public void handleGraphEvent(GraphEvent<Note, Weight> evt) {
         //if (evt.getType().equals(GraphEvent.Type.))
 
         // TODO: very quickly check if the clusters have changed

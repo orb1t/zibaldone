@@ -10,10 +10,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import java.io.IOException;
 import java.util.*;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Note;
-import uk.me.fommil.zibaldone.NoteId;
 import uk.me.fommil.zibaldone.Reconciler;
 
 /**
@@ -22,8 +23,9 @@ import uk.me.fommil.zibaldone.Reconciler;
  * @author Samuel Halliday
  */
 @Log
+@RequiredArgsConstructor
 public class ImporterController {
-    
+
     /**
      * @param klass
      * @return indexed by the proposed {@link NoteId#setSource(String)}
@@ -66,37 +68,25 @@ public class ImporterController {
         return newImporter(getImporterImplementations().get(name));
     }
 
+    @NonNull
     private final JungMainController main;
 
-    private final Importer importer;
-
+    @NonNull
     private final UUID sourceId;
 
-    /**
-     * @param main
-     * @param sourceId 
-     */
-    public ImporterController(JungMainController main, UUID sourceId) {
-        Preconditions.checkNotNull(main);
-        Preconditions.checkNotNull(sourceId);
-        this.main = main;
-        this.sourceId = sourceId;
-        this.importer = main.getSettings().getImporters().get(sourceId);
-    }
-
     public Importer getImporter() {
-        return importer;
+        return main.getSettings().getImporters().get(sourceId);
     }
 
     public void doImport() throws IOException {
-        List<Note> notes = importer.getNotes();
+        List<Note> notes = getImporter().getNotes();
         Reconciler reconciler = main.getReconciler();
         reconciler.reconcile(sourceId, notes);
         main.doRefresh();
     }
 
     public void doRemove() {
-        main.getSettings().getImporters().remove(importer);
+        main.getSettings().getImporters().remove(sourceId);
         // TODO: implement method
         log.warning("doRemove() not implemented yet");
     }

@@ -11,15 +11,22 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.UUID;
 import javax.persistence.EntityManagerFactory;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.Synchronized;
 import lombok.extern.java.Log;
 import org.tartarus.snowball.SnowballProgram;
 import org.tartarus.snowball.ext.EnglishStemmer;
-import uk.me.fommil.zibaldone.persistence.SynonymDao;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
+import uk.me.fommil.zibaldone.persistence.SynonymDao;
 
 /**
  * Identifies when a newly imported {@link Note} is actually an update to an
@@ -29,24 +36,18 @@ import uk.me.fommil.zibaldone.persistence.NoteDao;
  * @author Samuel Halliday
  */
 @Log
+@RequiredArgsConstructor
 public class Reconciler {
 
     private final SnowballProgram stemmer = new EnglishStemmer();
 
+    @NonNull
     private final EntityManagerFactory emf;
-
-    /**
-     * @param emf
-     */
-    public Reconciler(EntityManagerFactory emf) {
-        Preconditions.checkNotNull(emf);
-        this.emf = emf;
-    }
 
     /**
      * Convenience method for {@link #reconcile(java.util.Map)}.
      * 
-     * @param sourceId the proposed {@link NoteId#setSource(String)}
+     * @param sourceId the proposed {@link Note#setSource(String)}
      * @param notes
      */
     public void reconcile(UUID sourceId, List<Note> notes) {
@@ -58,9 +59,9 @@ public class Reconciler {
 
     /**
      * Attempts to reconcile all the given {@link Note}s with those currently
-     * persisted. {@link Note#getId()} will be ignored.
+     * persisted. {@link Note#getSource()} will be ignored.
      * 
-     * @param incoming indexed by the proposed {@link NoteId#setSource(UUID)}.
+     * @param incoming indexed by the proposed {@link Note#setSource(UUID)}.
      */
     @Synchronized
     public void reconcile(Map<UUID, List<Note>> incoming) {
@@ -75,13 +76,9 @@ public class Reconciler {
             List<Note> notes = entry.getValue();
 
             if (dao.countForImporter(sourceId) == 0) {
-                for (int i = 0; i < notes.size(); i++) {
-                    NoteId id = new NoteId();
-                    id.setId((long) i);
-                    id.setSource(sourceId);
-                    notes.get(i).setId(id);
+                for (Note note : notes) {
+                    note.setSource(sourceId);
                 }
-
                 dao.create(notes);
             } else {
                 // TODO: implement reconciliation

@@ -6,17 +6,20 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import edu.uci.ics.jung.graph.Graph;
+import edu.uci.ics.jung.algorithms.layout.util.Relaxer;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import java.io.Serializable;
 import java.util.*;
 import javax.persistence.EntityManagerFactory;
 import lombok.Data;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.java.Log;
 import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.utils.Convenience.Loop;
@@ -41,32 +44,29 @@ import uk.me.fommil.zibaldone.relator.TagRelator;
  * @author Samuel Halliday
  */
 @Log
+@RequiredArgsConstructor
 public class JungMainController {
 
+    @NonNull
     private final EntityManagerFactory emf;
 
-    private final ObservableGraph<Note, Double> graph;
+    @Getter @NonNull
+    private final ObservableGraph<Note, Weight> graph;
 
+    @Getter
     private final Set<Set<Note>> clusters = Sets.newHashSet();
 
+    @Getter
     private final Settings settings = new Settings();
 
-    /**
-     * @param emf
-     * @param graph the model
-     */
-    public JungMainController(EntityManagerFactory emf, ObservableGraph<Note, Double> graph) {
-        Preconditions.checkNotNull(emf);
-        Preconditions.checkNotNull(graph);
-        this.emf = emf;
-        this.graph = graph;
-    }
+    @Setter
+    private JungGraphView view;
 
     /**
      * Updates the model based on current settings.
      */
     public void doRefresh() {
-        final Graph<Note, Double> update = new UndirectedSparseGraph<Note, Double>();
+        final UndirectedSparseGraph<Note, Weight> update = new UndirectedSparseGraph<Note, Weight>();
         NoteDao noteDao = new NoteDao(emf);
         List<Note> notes = noteDao.readAll();
         for (Note note : notes) {
@@ -78,41 +78,70 @@ public class JungMainController {
         relator.refresh(emf);
 
         Convenience.upperOuter(notes, new Loop<Note>() {
-
             @Override
             public void action(Note first, Note second) {
                 double weight = relator.relate(first, second);
                 if (weight < 1) {
 //                    log.info(weight + " between " + first.getTags() + " | " + second.getTags());
-                    update.addEdge(weight, first, second);
+                    update.addEdge(new Weight(weight), first, second);
                 }
             }
         });
 
         clusters.clear();
         for (Set<Note> cluster : relator.cluster(notes)) {
-            clusters.add(Collections.unmodifiableSet(cluster));
+            clusters.add(cluster);
         }
+
+
+        log.info(update.getVertexCount() + " vertices, " + update.getEdgeCount() + " edges");
+        
+        Relaxer relaxer = view.getRelaxer();
+        relaxer.pause();
+        update(update);
 
         // TODO: visually cluster the selected Groups
 
-        log.info(update.getVertexCount() + " vertices, " + update.getEdgeCount() + " edges");
+        relaxer.resume();
     }
 
     // updates the 'graph' object, with minimal changes, to match the parameter
-    private void update(UndirectedSparseGraph<Note, Double> update) {
-        Collection<Note> vertices = graph.getVertices();
-        for (Note note : vertices) {
-            graph.removeVertex(note);
+    private void update(final UndirectedSparseGraph<Note, Weight> update) {
+        List<Note> newVertices = Lists.newArrayList(update.getVertices());
+        {
+            Collection<Note> oldVertices = graph.getVertices();
+            // updates to fields of Note will result in them being removed and replaced entirely
+            for (Note note : oldVertices) {
+                if (!newVertices.contains(note)) {
+                    graph.removeVertex(note);
+                }
+            }
+            for (Note note : newVertices) {
+                if (!oldVertices.contains(note)) {
+                    graph.addVertex(note);
+                }
+            }
         }
-        for (Note note : update.getVertices()) {
-            graph.addVertex(note);
-        }
-        for (Note note : update.getVertices()) {
-            // find...
-            // graph.get
-        }
-        
+
+        Convenience.upperOuter(newVertices, new Loop<Note>() {
+            @Override
+            public void action(Note first, Note second) {
+                Weight oldWeight = graph.findEdge(first, second);
+                Weight newWeight = update.findEdge(first, second);
+                if (oldWeight == null && newWeight != null) {
+                    graph.addEdge(newWeight, first, second);
+                }
+                if (oldWeight != null && newWeight == null) {
+                    graph.removeEdge(oldWeight);
+                }
+                if (oldWeight != null && newWeight != null) {
+                    if (oldWeight.getWeight() != newWeight.getWeight()) {
+                        graph.removeEdge(oldWeight);
+                        graph.addEdge(newWeight, first, second);
+                    }
+                }
+            }
+        });
     }
 
     /**
@@ -125,14 +154,6 @@ public class JungMainController {
 
     public Reconciler getReconciler() {
         return new Reconciler(emf);
-    }
-
-    public Set<Set<Note>> getClusters() {
-        return Collections.unmodifiableSet(clusters);
-    }
-
-    public ObservableGraph<Note, Double> getGraph() {
-        return graph;
     }
 
     /**
@@ -157,9 +178,6 @@ public class JungMainController {
         private final Map<UUID, Importer> importers = Maps.newHashMap();
 
         private final List<Relator> relators = Lists.newArrayList();
-    }
 
-    public Settings getSettings() {
-        return settings;
     }
 }

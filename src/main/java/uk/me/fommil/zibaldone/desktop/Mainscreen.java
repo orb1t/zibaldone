@@ -41,8 +41,8 @@ public class Mainscreen extends javax.swing.JFrame {
 
             @Override
             public void run() {
-                ObservableGraph<Note, Double> graph = new ObservableGraph<Note, Double>(new UndirectedSparseGraph<Note, Double>());
-//                ObservableGraph<Note, Double> graph = getGraphForTheBenefitOfNetbeans();
+                ObservableGraph<Note, Weight> graph = new ObservableGraph<Note, Weight>(new UndirectedSparseGraph<Note, Weight>());
+//                ObservableGraph<Note, Weight> graph = getGraphForTheBenefitOfNetbeans();
 
                 Mainscreen main = new Mainscreen(emf, graph);
                 main.setVisible(true);
@@ -53,8 +53,8 @@ public class Mainscreen extends javax.swing.JFrame {
     /**
      * @return a suitable model for use in GUI Editors such as in Netbeans.
      */
-    static ObservableGraph<Note, Double> getGraphForTheBenefitOfNetbeans() {        
-        ObservableGraph<Note, Double> graph = new ObservableGraph<Note, Double>(new UndirectedSparseGraph<Note, Double>());
+    static ObservableGraph<Note, Weight> getGraphForTheBenefitOfNetbeans() {        
+        ObservableGraph<Note, Weight> graph = new ObservableGraph<Note, Weight>(new UndirectedSparseGraph<Note, Weight>());
         Note a = new Note();
         a.setTags(Tag.asTags("smug", "silly", "ugly"));
         Note b = new Note();
@@ -64,8 +64,8 @@ public class Mainscreen extends javax.swing.JFrame {
         graph.addVertex(a);
         graph.addVertex(b);
         graph.addVertex(c);
-        graph.addEdge(0.33, a, b);
-        graph.addEdge(0.67, a, c);
+        graph.addEdge(new Weight(0.33), a, b);
+        graph.addEdge(new Weight(0.67), a, c);
         return graph;
     }
 
@@ -83,11 +83,13 @@ public class Mainscreen extends javax.swing.JFrame {
      * @param emf
      * @param graph
      */
-    public Mainscreen(EntityManagerFactory emf, ObservableGraph<Note, Double> graph) {
+    public Mainscreen(EntityManagerFactory emf, ObservableGraph<Note, Weight> graph) {
         rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         controller = new JungMainController(emf, graph);
 
         initComponents();
+        controller.setView(jJungPanel);
+        
         jSettingsTabs.setVisible(false);
 
         // TODO: dynamic lookup of available importers by querying controller

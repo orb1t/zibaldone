@@ -7,6 +7,7 @@ package uk.me.fommil.zibaldone;
 import com.google.common.collect.Sets;
 import java.io.Serializable;
 import java.util.Set;
+import java.util.UUID;
 import javax.persistence.*;
 import lombok.*;
 import lombok.extern.java.Log;
@@ -18,16 +19,18 @@ import lombok.extern.java.Log;
  */
 @Entity
 @Data
-@ToString(includeFieldNames = true)
-@EqualsAndHashCode(of = "id")
 @Log
 public class Note implements Serializable {
 
     private static final int CONTENTS_MAX = 8192;
 
-    // TODO: is there a better way to identify notes? (source/title maybe)
-    @EmbeddedId
-    private NoteId id;
+    @Column
+    private UUID source;
+
+    @Id
+    @Column
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
     @Column
     private String title;
