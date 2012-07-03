@@ -67,7 +67,7 @@ public class OrgModeImporter implements Importer {
 
     @Override
     public List<Note> getNotes() throws IOException {
-        @Cleanup BufferedReader reader = Files.newReader(config.getFile(), Charsets.UTF_8);
+        @Cleanup("close") BufferedReader reader = Files.newReader(config.getFile(), Charsets.UTF_8);
         List<Note> notes = Lists.newArrayList();
         StringBuilder rawNote = new StringBuilder();
         Map<Integer, Note> hierarchy = Maps.newTreeMap();

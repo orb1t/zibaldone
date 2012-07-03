@@ -11,6 +11,7 @@ import com.google.common.base.Predicate;
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.filter;
+import com.google.common.collect.Lists;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.intersection;
 import static com.google.common.collect.Sets.newHashSet;
@@ -40,18 +41,25 @@ public final class Convenience {
     }
 
     /**
-     * Loop over the upper entries of the outer (matrix) product of the list
+     * Loop over the upper entries of the outer (matrix) product of the iterable
      * and itself. Does not include diagonal entries and uses an ordering that
      * exhausts the second index before incrementing the first.
-     * 
+     * <p>
+     * TODO: parallel execution option
      * 
      * @param <T>
-     * @param list
+     * @param iterable
      * @param operation
      */
-    public static <T> void upperOuter(List<T> list, Loop<T> operation) {
-        Preconditions.checkNotNull(list);
+    public static <T> void upperOuter(Iterable<T> iterable, Loop<T> operation) {
+        Preconditions.checkNotNull(iterable);
         Preconditions.checkNotNull(operation);
+        List<T> list;
+        if (iterable instanceof List) {
+            list = (List<T>) iterable;
+        } else {
+            list = Lists.newArrayList(iterable);
+        }
         for (int i = 0; i < list.size(); i++) {
             T first = list.get(i);
             for (int j = i + 1; j < list.size(); j++) {
@@ -65,7 +73,6 @@ public final class Convenience {
      * Useful for ensuring that there are no empty collections.
      */
     public static final Predicate<Collection<?>> NO_EMPTIES = new Predicate<Collection<?>>() {
-
         @Override
         public boolean apply(Collection<?> input) {
             if (input == null || input.isEmpty()) {

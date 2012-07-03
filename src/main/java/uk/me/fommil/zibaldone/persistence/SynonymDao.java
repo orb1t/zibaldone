@@ -46,7 +46,7 @@ public class SynonymDao extends CrudDao<Long, Synonym> {
         }
         create(synonyms);
 
-//        @Cleanup EntityManager em = createEntityManager();
+//        @Cleanup("close") EntityManager em = createEntityManager();
 //        Query clear = em.createQuery("DELETE " + getTableName() + " e WHERE e.context = :automatic");
 //        clear.setParameter("automatic", Context.class.getName() + "." + Context.AUTOMATIC.name());
 //            em.getTransaction().begin();

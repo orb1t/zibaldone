@@ -38,7 +38,7 @@ public class NoteDao extends CrudDao<Long, Note> {
      */
     public long countForImporter(UUID sourceId) {
         Preconditions.checkNotNull(sourceId);
-        @Cleanup EntityManager em = createEntityManager();
+        @Cleanup("close") EntityManager em = createEntityManager();
         Query q = em.createQuery("SELECT COUNT(s) FROM " + getTableName() + " s WHERE id.source = :name");
         q.setParameter("name", sourceId);
         Long result = querySingle(em, q);
@@ -49,7 +49,7 @@ public class NoteDao extends CrudDao<Long, Note> {
      * @return a list of all tags.
      */
     public Set<Tag> getAllTags() {
-        @Cleanup EntityManager em = createEntityManager();
+        @Cleanup("close") EntityManager em = createEntityManager();
         Query q = em.createQuery("SELECT DISTINCT t.text FROM " + getTableName() + " s JOIN s.tags t");
         List<String> result = query(em, q);
         return Tag.asTags(result);

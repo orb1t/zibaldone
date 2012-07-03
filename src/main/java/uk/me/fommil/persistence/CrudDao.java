@@ -63,7 +63,7 @@ public abstract class CrudDao<K, T> {
             File hibernateProps = new File(JPA_PROPERTIES);
             if (hibernateProps.exists()) {
                 Properties properties = new Properties();
-                @Cleanup Reader reader = Files.newReader(hibernateProps, Charset.defaultCharset());
+                @Cleanup("close") Reader reader = Files.newReader(hibernateProps, Charset.defaultCharset());
                 properties.load(reader);
                 properties.put("javax.persistence.jtaDataSource", "");
                 properties.put("javax.persistence.nonJtaDataSource", "");
@@ -115,7 +115,7 @@ public abstract class CrudDao<K, T> {
      */
     public void create(T entity) {
         Preconditions.checkNotNull(entity);
-        @Cleanup EntityManager em = createEntityManager();
+        @Cleanup("close") EntityManager em = createEntityManager();
         try {
             em.getTransaction().begin();
             em.persist(entity);
@@ -141,7 +141,7 @@ public abstract class CrudDao<K, T> {
         if (collection.isEmpty()) {
             return;
         }
-        @Cleanup EntityManager em = createEntityManager();
+        @Cleanup("close") EntityManager em = createEntityManager();
         try {
             em.getTransaction().begin();
             for (T entity : collection) {
@@ -163,7 +163,7 @@ public abstract class CrudDao<K, T> {
      */
     public T read(K key) {
         Preconditions.checkNotNull(key);
-        @Cleanup EntityManager em = createEntityManager();
+        @Cleanup("close") EntityManager em = createEntityManager();
         return em.find(klass, key);
     }
 
@@ -177,7 +177,7 @@ public abstract class CrudDao<K, T> {
     @SuppressWarnings("AssignmentToMethodParameter")
     public T update(T entity) {
         Preconditions.checkNotNull(entity);
-        @Cleanup EntityManager em = createEntityManager();
+        @Cleanup("close") EntityManager em = createEntityManager();
         try {
             em.getTransaction().begin();
             entity = em.merge(entity);
@@ -198,7 +198,7 @@ public abstract class CrudDao<K, T> {
     @SuppressWarnings("AssignmentToMethodParameter")
     public void delete(T entity) {
         Preconditions.checkNotNull(entity);
-        @Cleanup EntityManager em = createEntityManager();
+        @Cleanup("close") EntityManager em = createEntityManager();
         try {
             em.getTransaction().begin();
             entity = em.merge(entity);
@@ -218,7 +218,7 @@ public abstract class CrudDao<K, T> {
      */
     public void deleteById(K id) {
         Preconditions.checkNotNull(id);
-        @Cleanup EntityManager em = createEntityManager();
+        @Cleanup("close") EntityManager em = createEntityManager();
         try {
             em.getTransaction().begin();
             T entity = em.find(klass, id);

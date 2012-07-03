@@ -20,6 +20,7 @@ import lombok.extern.java.Log;
 @Entity
 @Data
 @Log
+@ToString(exclude="contents")
 public class Note implements Serializable {
 
     private static final int CONTENTS_MAX = 8192;
@@ -40,7 +41,7 @@ public class Note implements Serializable {
 
     @Lob
     @Column(length = CONTENTS_MAX)
-    @Basic(fetch = FetchType.LAZY)
+    @Basic(fetch = FetchType.EAGER)
     private String contents;
 
     public void setContents(String contents) {

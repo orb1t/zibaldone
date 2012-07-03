@@ -14,8 +14,10 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.util.*;
 import javax.persistence.EntityManagerFactory;
+import lombok.Getter;
 import lombok.extern.java.Log;
 import uk.me.fommil.utils.Convenience;
+import uk.me.fommil.utils.Convenience.Loop;
 import uk.me.fommil.zibaldone.Synonym;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Relator;
@@ -29,14 +31,18 @@ import uk.me.fommil.zibaldone.persistence.SynonymDao;
  */
 @Log
 public class TagRelator implements Relator {
-    
+
+    @Getter
     private final Settings settings = new Settings() {
     };
+
+    @Getter
+    private final String name = "Tags";
 
     // FIXME: tag resolving should be done in a separate object
     // tags that appear in a Synonym are resolved to an arbitrary tag
     private final transient Map<Tag, Tag> resolve = Maps.newHashMap();
-    
+
     private Set<Tag> resolve(Set<Tag> tags) {
         Set<Tag> resolved = Sets.newHashSet();
         for (Tag tag : tags) {
@@ -44,24 +50,14 @@ public class TagRelator implements Relator {
         }
         return resolved;
     }
-    
+
     private Tag resolve(Tag tag) {
         if (resolve.containsKey(tag)) {
             return resolve.get(tag);
         }
         return tag;
     }
-    
-    @Override
-    public String getName() {
-        return "Tags";
-    }
-    
-    @Override
-    public Settings getSettings() {
-        return settings;
-    }
-    
+
     @Override
     public void refresh(EntityManagerFactory emf) {
         Preconditions.checkNotNull(emf);
@@ -69,7 +65,7 @@ public class TagRelator implements Relator {
         Collection<Synonym> synonyms = dao.readActive().values();
         refresh(synonyms);
     }
-    
+
     @VisibleForTesting
     void refresh(Collection<Synonym> synonyms) {
         resolve.clear();
@@ -85,7 +81,7 @@ public class TagRelator implements Relator {
             }
         }
     }
-    
+
     @Override
     public double relate(Note a, Note b) {
         Preconditions.checkNotNull(a);
@@ -98,49 +94,30 @@ public class TagRelator implements Relator {
         if (aResolved.equals(bResolved)) {
             return 0;
         }
-        
+
         int overlapTags = Sets.intersection(aResolved, bResolved).size();
         if (overlapTags == 0) {
-            return 1.0;
+            return 1;
         }
         int totalTags = Sets.union(aResolved, bResolved).size();
-        
+
         double overlap = ((double) overlapTags) / totalTags;
         return (1 - overlap);
     }
-    
+
     @Override
     public Set<Set<Note>> cluster(Collection<Note> notes) {
         Preconditions.checkNotNull(notes);
-        final Set<Set<Note>> clusters = Sets.newHashSet();
+        final List<Set<Note>> matches = Lists.newArrayList();
 
-        // TODO: use a machine learning clustering algorithm based on the
-        // metric and make it an abstract implementation
-
-        Convenience.upperOuter(Lists.newArrayList(notes), new Convenience.Loop<Note>() {
-            
+        Convenience.upperOuter(notes, new Loop<Note>() {
             @Override
             public void action(Note first, Note second) {
-                Set<Note> active = null;
-                for (Set<Note> cluster : clusters) {
-                    if (cluster.contains(first)) {
-                        active = cluster;
-                        break;
-                    }
-                }
-                if (active == null) {
-                    active = Sets.newHashSet();
-                    clusters.add(active);
-                }
-                double ds2 = relate(first, second);
-                // This only works because exact equality is transitive.
-                // For example, it would break for an Epsilon sphere.
-                // Indeed, the first loop will create all the valid sets.
-                if (ds2 == 0.0) {
-                    active.add(second);
+                if (relate(first, second) == 0) {
+                    matches.add(Sets.newHashSet(first, second));
                 }
             }
         });
-        return clusters;
+        return Convenience.disjointify(matches);
     }
 }

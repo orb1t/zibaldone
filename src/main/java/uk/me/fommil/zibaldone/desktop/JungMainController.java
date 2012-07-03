@@ -90,26 +90,31 @@ public class JungMainController {
 
         clusters.clear();
         for (Set<Note> cluster : relator.cluster(notes)) {
-            clusters.add(cluster);
+            log.info("Cluster size: " + cluster.size());
+            if (cluster.size() > 0) {
+                clusters.add(cluster);
+            }
         }
 
+        log.info(update.getVertexCount() + " vertices, " + update.getEdgeCount() + " edges, " + clusters.size() + " clusters");
 
-        log.info(update.getVertexCount() + " vertices, " + update.getEdgeCount() + " edges");
-        
         Relaxer relaxer = view.getRelaxer();
         relaxer.pause();
         update(update);
 
+        view.setClusters(clusters);
+
         // TODO: visually cluster the selected Groups
+
 
         relaxer.resume();
     }
 
     // updates the 'graph' object, with minimal changes, to match the parameter
     private void update(final UndirectedSparseGraph<Note, Weight> update) {
-        List<Note> newVertices = Lists.newArrayList(update.getVertices());
+        Set<Note> newVertices = Sets.newHashSet(update.getVertices());
         {
-            Collection<Note> oldVertices = graph.getVertices();
+            Set<Note> oldVertices = Sets.newHashSet(graph.getVertices());
             // updates to fields of Note will result in them being removed and replaced entirely
             for (Note note : oldVertices) {
                 if (!newVertices.contains(note)) {
