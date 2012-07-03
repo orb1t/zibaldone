@@ -14,8 +14,4 @@ import static org.junit.Assert.*;
  */
 public class BeanHelperTest {
 
-    @Test
-    public void testLoadBeanInfo() {
-        fail("The test case is a prototype.");
-    }
 }
