@@ -43,7 +43,7 @@ public class TagRelator implements Relator {
     // tags that appear in a Synonym are resolved to an arbitrary tag
     private final transient Map<Tag, Tag> resolve = Maps.newHashMap();
 
-    private Set<Tag> resolve(Set<Tag> tags) {
+    private Set<Tag> resolve(Collection<Tag> tags) {
         Set<Tag> resolved = Sets.newHashSet();
         for (Tag tag : tags) {
             resolved.add(resolve(tag));
@@ -71,8 +71,8 @@ public class TagRelator implements Relator {
         resolve.clear();
         Set<Set<Tag>> bags = Sets.newHashSet();
         for (Synonym e : synonyms) {
-            Set<Tag> tags = e.getTags();
-            bags.add(tags);
+            List<Tag> tags = e.getTags();
+            bags.add(Sets.newHashSet(tags));
         }
         for (Set<Tag> bag : Convenience.disjointify(bags)) {
             Tag resolved = Iterables.get(bag, 0);

@@ -6,9 +6,9 @@
  */
 package uk.me.fommil.zibaldone;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import java.io.Serializable;
-import java.util.Set;
+import java.util.List;
 import javax.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -26,8 +26,6 @@ import lombok.ToString;
  */
 @Entity
 @Data
-@ToString(includeFieldNames = true)
-@EqualsAndHashCode(of = "id")
 public class Synonym implements Serializable {
 
     @Id
@@ -44,7 +42,7 @@ public class Synonym implements Serializable {
 
     /** Not needed for ignored instances */
     @ElementCollection
-    private Set<Tag> tags = Sets.newHashSet();
+    private List<Tag> tags = Lists.newArrayList();
 
     /**
      * Defines the context of {@link Synonym} instances.

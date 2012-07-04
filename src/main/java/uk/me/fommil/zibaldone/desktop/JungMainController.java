@@ -37,7 +37,7 @@ import uk.me.fommil.zibaldone.relator.TagRelator;
  * Standard Java objects are preferred in the Controller APIs to simplify
  * the Views and to minimise the risk of incorrect persistence handling.
  * <p>
- * The JUNG graph has {@link Note}s on vertices and {@link Double} values
+ * The JUNG graph has {@link Note}s on vertices and {@link Weight} values
  * {@code [0, 1]}, as defined in the {@link Relator}, on the edges.
  * 
  * @see JungGraphView
@@ -46,7 +46,7 @@ import uk.me.fommil.zibaldone.relator.TagRelator;
 @Log
 @RequiredArgsConstructor
 public class JungMainController {
-
+    
     @NonNull
     private final EntityManagerFactory emf;
 
@@ -59,9 +59,16 @@ public class JungMainController {
     @Getter
     private final Settings settings = new Settings();
 
-    @Setter
-    private JungGraphView view;
+    // TODO: there should probably be a series of listeners for changes in the
+    // various components, e.g. Note, clusters, Tag, Group, allowing Views to be
+    // asynchronous and therefore no need to have explicit references here.
 
+    @Setter
+    private JungGraphView graphView;
+
+    @Setter
+    private TagSelectView tagView;
+    
     /**
      * Updates the model based on current settings.
      */
@@ -103,7 +110,10 @@ public class JungMainController {
 //        Relaxer relaxer = view.getRelaxer();
 //        relaxer.pause();
         update(update);
-        view.setClusters(clusters);
+        graphView.setClusters(clusters);
+        
+        List<Tag> tags = noteDao.getAllTags();
+        tagView.setTags(tags);
 
         // TODO: visually cluster the selected Groups
 

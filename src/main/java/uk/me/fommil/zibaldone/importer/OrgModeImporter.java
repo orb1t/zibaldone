@@ -98,7 +98,7 @@ public class OrgModeImporter implements Importer {
         List<String> headerParts = Arrays.asList(header.split(":"));
         String title = headerParts.get(0).replace("*", "").trim();
         Iterable<String> strings = Iterables.skip(headerParts, 1);
-        Set<Tag> tags = Tag.asTags(strings);
+        List<Tag> tags = Tag.asTags(strings);
         if (hierarchy.containsKey(depth - 1)) {
             tags.addAll(hierarchy.get(depth - 1).getTags());
         }

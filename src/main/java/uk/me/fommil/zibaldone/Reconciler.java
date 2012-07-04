@@ -7,10 +7,8 @@
 package uk.me.fommil.zibaldone;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -87,9 +85,9 @@ public class Reconciler {
         long end = dao.count();
         log.info("Persisted " + (end - start) + " Notes");
 
-        Set<Tag> tags = dao.getAllTags();
+        List<Tag> tags = dao.getAllTags();
         log.info(tags.size() + " unique Tags: " + tags);
-        Multimap<Tag, Tag> stems = ArrayListMultimap.create();
+        HashMultimap<Tag, Tag> stems = HashMultimap.create();
 
         for (Tag tag : tags) {
             Tag stem = tokeniseAndStem(tag);
@@ -106,11 +104,11 @@ public class Reconciler {
         // gather all the stemmed words
         List<Synonym> synonyms = Lists.newArrayList();
         for (Tag stem : stems.keySet()) {
-            Set<Tag> originals = Sets.newHashSet(stems.get(stem));
+            Set<Tag> originals = stems.get(stem);
             Synonym synonym = new Synonym();
             synonym.setContext(Synonym.Context.AUTOMATIC);
             synonym.setStem(stem);
-            synonym.setTags(originals);
+            synonym.setTags(Lists.newArrayList(originals));
             synonyms.add(synonym);
         }
         SynonymDao equivDao = new SynonymDao(emf);

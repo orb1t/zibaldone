@@ -4,9 +4,9 @@
  */
 package uk.me.fommil.zibaldone;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import java.io.Serializable;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 import javax.persistence.*;
 import lombok.*;
@@ -20,7 +20,7 @@ import lombok.extern.java.Log;
 @Entity
 @Data
 @Log
-@ToString(exclude="contents")
+@ToString(exclude = "contents")
 public class Note implements Serializable {
 
     private static final int CONTENTS_MAX = 8192;
@@ -37,7 +37,7 @@ public class Note implements Serializable {
     private String title;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    private Set<Tag> tags = Sets.newHashSet();
+    private List<Tag> tags = Lists.newArrayList();
 
     @Lob
     @Column(length = CONTENTS_MAX)

@@ -23,7 +23,7 @@ public class TagRelatorTest {
     
     private Synonym synonym(String... words) {
         Synonym e = new Synonym();
-        Set<Tag> tags = Tag.asTags(words);
+        List<Tag> tags = Tag.asTags(words);
         e.setTags(tags);
         e.setContext(Synonym.Context.USER_DEFINED);
         return e;

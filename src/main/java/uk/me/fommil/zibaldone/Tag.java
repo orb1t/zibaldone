@@ -9,6 +9,7 @@ package uk.me.fommil.zibaldone;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 import javax.persistence.Embeddable;
 import lombok.Data;
@@ -25,31 +26,25 @@ public class Tag implements Serializable {
     private String text;
 
     /**
-     *
      * @param strings
      * @return
+     * @see #asTags(Iterable)
      */
-    public static Set<Tag> asTags(String... strings) {
+    public static List<Tag> asTags(String... strings) {
         return asTags(Lists.newArrayList(strings));
     }
 
     /**
-     *
      * @param strings
-     * @return
+     * @return a trimmed list with duplicates removed
      */
-    public static Set<Tag> asTags(Iterable<String> strings) {
-        Set<Tag> tags = Sets.newHashSet();
+    public static List<Tag> asTags(Iterable<String> strings) {
+        Set<Tag> tags = Sets.newLinkedHashSet();
         for (String string : strings) {
             Tag tag = new Tag();
             tag.setText(string.trim());
             tags.add(tag);
         }
-        return tags;
-    }
-
-    @Override
-    public String toString() {
-        return text;
+        return Lists.newArrayList(tags);
     }
 }

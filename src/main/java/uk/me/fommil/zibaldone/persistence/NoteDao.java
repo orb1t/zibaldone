@@ -6,14 +6,12 @@ package uk.me.fommil.zibaldone.persistence;
 
 import com.google.common.base.Preconditions;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import javax.persistence.EntityManager;
 import uk.me.fommil.zibaldone.Note;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import lombok.Cleanup;
-import lombok.extern.java.Log;
 import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Tag;
 
@@ -22,7 +20,6 @@ import uk.me.fommil.zibaldone.Tag;
  *
  * @author Samuel Halliday
  */
-@Log
 public class NoteDao extends CrudDao<Long, Note> {
 
     /**
@@ -46,11 +43,11 @@ public class NoteDao extends CrudDao<Long, Note> {
     }
 
     /**
-     * @return a list of all tags.
+     * @return a list of all tags, alphabetically ordered.
      */
-    public Set<Tag> getAllTags() {
+    public List<Tag> getAllTags() {
         @Cleanup("close") EntityManager em = createEntityManager();
-        Query q = em.createQuery("SELECT DISTINCT t.text FROM " + getTableName() + " s JOIN s.tags t");
+        Query q = em.createQuery("SELECT DISTINCT t.text FROM " + getTableName() + " s JOIN s.tags t ORDER BY t.text");
         List<String> result = query(em, q);
         return Tag.asTags(result);
     }
