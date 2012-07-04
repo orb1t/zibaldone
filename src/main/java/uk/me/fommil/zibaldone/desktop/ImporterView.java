@@ -38,6 +38,7 @@ public class ImporterView extends JXTaskPane {
      * @param used {@code true} if this importer has been previously used 
      */
     public ImporterView(ImporterController controller, boolean used) {
+        super();
         initComponents();
         setCollapsed(used);
         setTitle(controller.getImporter().getName());
@@ -61,31 +62,31 @@ public class ImporterView extends JXTaskPane {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel1 = new javax.swing.JPanel();
-        jToolBar = new javax.swing.JToolBar();
-        jXReloadButton = new org.jdesktop.swingx.JXButton();
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 25), new java.awt.Dimension(0, 1000));
-        jXRemoveButton = new org.jdesktop.swingx.JXButton();
-        jPanel2 = new javax.swing.JPanel();
+        javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
+        javax.swing.JToolBar jToolBar = new javax.swing.JToolBar();
+        reloadButton = new org.jdesktop.swingx.JXButton();
+        javax.swing.Box.Filler filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 25), new java.awt.Dimension(0, 1000));
+        org.jdesktop.swingx.JXButton jXRemoveButton = new org.jdesktop.swingx.JXButton();
+        javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
         jBeanEditor = new uk.me.fommil.beans.JBeanEditor();
-        jSeparator1 = new javax.swing.JSeparator();
+        javax.swing.JSeparator jSeparator1 = new javax.swing.JSeparator();
 
         jPanel1.setLayout(new java.awt.BorderLayout());
 
         jToolBar.setFloatable(false);
         jToolBar.setOrientation(1);
 
-        jXReloadButton.setText("Load");
-        jXReloadButton.setFocusable(false);
-        jXReloadButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jXReloadButton.setMaximumSize(new java.awt.Dimension(54, 18));
-        jXReloadButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jXReloadButton.addActionListener(new java.awt.event.ActionListener() {
+        reloadButton.setText("Load");
+        reloadButton.setFocusable(false);
+        reloadButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        reloadButton.setMaximumSize(new java.awt.Dimension(54, 18));
+        reloadButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        reloadButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jXReloadButtonActionPerformed(evt);
+                reloadButtonActionPerformed(evt);
             }
         });
-        jToolBar.add(jXReloadButton);
+        jToolBar.add(reloadButton);
         jToolBar.add(filler1);
 
         jXRemoveButton.setText("Remove");
@@ -119,25 +120,19 @@ public class ImporterView extends JXTaskPane {
         parent.revalidate();
     }//GEN-LAST:event_jXRemoveButtonActionPerformed
 
-    private void jXReloadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jXReloadButtonActionPerformed
+    private void reloadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reloadButtonActionPerformed
         try {
             // TODO: visual "wait" feedback
             controller.doImport();
-            jXReloadButton.setText("Reload");
+            reloadButton.setText("Reload");
         } catch (IOException ex) {
             log.log(Level.WARNING, "failed import", ex);
             Swing.warning(this, "There was a problem with the data source.");
         }
-    }//GEN-LAST:event_jXReloadButtonActionPerformed
+    }//GEN-LAST:event_reloadButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.Box.Filler filler1;
     private uk.me.fommil.beans.JBeanEditor jBeanEditor;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JToolBar jToolBar;
-    private org.jdesktop.swingx.JXButton jXReloadButton;
-    private org.jdesktop.swingx.JXButton jXRemoveButton;
+    private org.jdesktop.swingx.JXButton reloadButton;
     // End of variables declaration//GEN-END:variables
 }

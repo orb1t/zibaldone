@@ -11,13 +11,13 @@ import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout;
-import edu.uci.ics.jung.algorithms.layout.util.Relaxer;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.event.GraphEvent;
 import edu.uci.ics.jung.graph.event.GraphEventListener;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
+import edu.uci.ics.jung.visualization.layout.ObservableCachingLayout;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -44,53 +44,34 @@ import uk.me.fommil.zibaldone.Note;
 @Log
 public class JungGraphView extends JPanel implements GraphEventListener<Note, Weight> {
 
-    private final JungMainController controller;
-
     private final VisualizationViewer<Note, Weight> graphVisualiser;
 
-    private final AggregateLayout<Note, Weight> graphLayout;
-
-    /**
-     * @deprecated only to be used by GUI Editors.
-     */
-    @Deprecated
     public JungGraphView() {
-        this.controller = null;
-        this.graphVisualiser = null;
-        this.graphLayout = null;
-    }
-
-    /**
-     * @param controller 
-     */
-    public JungGraphView(JungMainController controller) {
-        Preconditions.checkNotNull(controller);
-        this.controller = controller;
-
-        setLayout(new BorderLayout());
-
-        ObservableGraph<Note, Weight> graph = controller.getGraph();
-//        Layout<Note, Weight> delegateLayout = new CircleLayout<Note, Weight>(graph);
-        Layout<Note, Weight> delegateLayout = new SpringLayout<Note, Weight>(graph, Weight.TRANSFORMER);
-        graphLayout = new AggregateLayout<Note, Weight>(delegateLayout);
+        super(new BorderLayout());
+        UndirectedSparseGraph<Note, Weight> dummy = new UndirectedSparseGraph<Note, Weight>();
+        Layout<Note, Weight> delegateLayout = new SpringLayout<Note, Weight>(dummy, Weight.TRANSFORMER);
+        Layout<Note, Weight> graphLayout = new AggregateLayout<Note, Weight>(delegateLayout);
         graphVisualiser = new VisualizationViewer<Note, Weight>(graphLayout);
+        graphVisualiser.setBackground(Color.WHITE);
+        add(graphVisualiser, BorderLayout.CENTER);
 
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent ce) {
                 graphVisualiser.setSize(getSize());
-                graphLayout.setSize(getSize());
+                getGraphLayout().setSize(getSize());
             }
         });
-
-        graphVisualiser.setBackground(Color.WHITE);
-        add(graphVisualiser, BorderLayout.CENTER);
-
-//        graph.addGraphEventListener(this);
     }
 
-    public Relaxer getRelaxer() {
-        return graphVisualiser.getModel().getRelaxer();
+    /**
+     * @param graph 
+     */
+    public void setGraph(ObservableGraph<Note, Weight> graph) {
+        Preconditions.checkNotNull(graph);
+        //        this.graph.removeGraphEventListener(this);
+        getGraphLayout().setGraph(graph);
+        //        graph.addGraphEventListener(this);
     }
 
     /**
@@ -99,15 +80,16 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, We
      * @param clusters
      */
     public void setClusters(Set<Set<Note>> clusters) {
-        // TODO: diff of what we have, to avoid needless redrawing
-        graphLayout.removeAll();
+        Preconditions.checkNotNull(clusters);
+        // TODO: diff to what we have, to avoid needless redrawing
 
-        // TODO: create the subgraphs
+        AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
+        graphLayout.removeAll();
         for (Set<Note> cluster : clusters) {
             Graph<Note, Weight> subGraph = buildSubgraph(cluster);
             Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(subGraph);
             subLayout.setInitializer(graphLayout);
-            subLayout.setSize(new Dimension(50,50));
+            subLayout.setSize(new Dimension(50, 50));
             // TODO: calculate a good position/size for the cluster
             Random random = new Random();
             Point2D subCentered = new Point(random.nextInt(getSize().width), random.nextInt(getSize().height));
@@ -115,8 +97,13 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, We
         }
     }
 
+    private AggregateLayout<Note, Weight> getGraphLayout() {
+        ObservableCachingLayout<Note, Weight> layout = (ObservableCachingLayout<Note, Weight>) graphVisualiser.getGraphLayout();
+        return (AggregateLayout<Note, Weight>) layout.getDelegate();
+    }
+
     private Graph<Note, Weight> buildSubgraph(Set<Note> cluster) {
-        final Graph<Note, Weight> graph = controller.getGraph();
+        final Graph<Note, Weight> graph = graphVisualiser.getGraphLayout().getGraph();
         final UndirectedSparseGraph<Note, Weight> subGraph = new UndirectedSparseGraph<Note, Weight>();
         for (Note note : cluster) {
             Preconditions.checkState(graph.containsVertex(note), note);

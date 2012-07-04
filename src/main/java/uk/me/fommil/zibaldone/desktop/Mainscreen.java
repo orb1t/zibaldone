@@ -6,6 +6,7 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
+import com.google.common.base.Preconditions;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import java.beans.PropertyEditorManager;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import javax.persistence.EntityManagerFactory;
+import javax.swing.ComboBoxModel;
 import lombok.extern.java.Log;
 import org.jdesktop.swingx.combobox.MapComboBoxModel;
 import uk.me.fommil.beans.editors.DatePropertyEditor;
@@ -22,7 +24,6 @@ import uk.me.fommil.beans.editors.FilePropertyEditor;
 import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Note;
-import uk.me.fommil.zibaldone.Tag;
 
 /**
  * @author Samuel Halliday
@@ -38,65 +39,41 @@ public class Mainscreen extends javax.swing.JFrame {
         final EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
 
         java.awt.EventQueue.invokeLater(new Runnable() {
-
             @Override
             public void run() {
                 ObservableGraph<Note, Weight> graph = new ObservableGraph<Note, Weight>(new UndirectedSparseGraph<Note, Weight>());
 //                ObservableGraph<Note, Weight> graph = getGraphForTheBenefitOfNetbeans();
 
-                Mainscreen main = new Mainscreen(emf, graph);
+                JungMainController controller = new JungMainController(emf, graph);
+                Mainscreen main = new Mainscreen();
+                main.setController(controller);
                 main.setVisible(true);
             }
         });
     }
 
-    /**
-     * @return a suitable model for use in GUI Editors such as in Netbeans.
-     */
-    static ObservableGraph<Note, Weight> getGraphForTheBenefitOfNetbeans() {        
-        ObservableGraph<Note, Weight> graph = new ObservableGraph<Note, Weight>(new UndirectedSparseGraph<Note, Weight>());
-        Note a = new Note();
-        a.setTags(Tag.asTags("smug", "silly", "ugly"));
-        Note b = new Note();
-        b.setTags(Tag.asTags("smug", "silly"));
-        Note c = new Note();
-        c.setTags(Tag.asTags("ugly"));
-        graph.addVertex(a);
-        graph.addVertex(b);
-        graph.addVertex(c);
-        graph.addEdge(new Weight(0.33), a, b);
-        graph.addEdge(new Weight(0.67), a, c);
-        return graph;
-    }
+    private JungMainController controller;
 
-    private final JungMainController controller;
-
-    /**
-     * @deprecated only to be used by GUI Editors.
-     */
-    @Deprecated
     public Mainscreen() {
-        this(null, getGraphForTheBenefitOfNetbeans());
-    }
-
-    /**
-     * @param emf
-     * @param graph
-     */
-    public Mainscreen(EntityManagerFactory emf, ObservableGraph<Note, Weight> graph) {
         rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
-        controller = new JungMainController(emf, graph);
-
         initComponents();
-        controller.setView(jJungPanel);
-        
-        jSettingsTabs.setVisible(false);
+        settingsPanel.setVisible(false);
+    }
+    
+    /**
+     * @param controller
+     */
+    public void setController(JungMainController controller) {
+        Preconditions.checkNotNull(controller);
+        this.controller = controller;
+
+        jungGraphView.setGraph(controller.getGraph());
+        controller.setView(jungGraphView);
 
         // TODO: dynamic lookup of available importers by querying controller
         Map<String, Class<Importer>> importers = ImporterController.getImporterImplementations();
-        MapComboBoxModel<String, Class<Importer>> importerChoices = new MapComboBoxModel<String, Class<Importer>>(importers);
-        jImporterSelectorComboBox.setModel(importerChoices);
-
+        ComboBoxModel importerChoices = new MapComboBoxModel<String, Class<Importer>>(importers);
+        importerSelector.setModel(importerChoices);
         for (UUID uuid : controller.getSettings().getImporters().keySet()) {
             addImporter(uuid, true);
         }
@@ -112,8 +89,8 @@ public class Mainscreen extends javax.swing.JFrame {
     private void addImporter(UUID uuid, boolean used) {
         ImporterController importerController = new ImporterController(controller, uuid);
         ImporterView importerView = new ImporterView(importerController, used);
-        jXImportersPanel.add(importerView);
-        jXImportersPanel.revalidate();
+        importersPanel.add(importerView);
+        importersPanel.revalidate();
     }
 
     /**
@@ -123,25 +100,26 @@ public class Mainscreen extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jToolBar = new javax.swing.JToolBar();
-        jSearch = new org.jdesktop.swingx.JXSearchField();
-        jCloudButton = new javax.swing.JToggleButton();
-        jButtonClusters = new javax.swing.JToggleButton();
-        jButtonLayout = new javax.swing.JToggleButton();
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(50, 0), new java.awt.Dimension(1000, 0));
-        jButtonSources = new javax.swing.JToggleButton();
-        jJungPanel = new uk.me.fommil.zibaldone.desktop.JungGraphView(controller);
-        jSettingsTabs = new javax.swing.JTabbedPane();
-        jImportersPanel = new javax.swing.JPanel();
-        jToolBar1 = new javax.swing.JToolBar();
-        jAddImporterButton = new org.jdesktop.swingx.JXButton();
-        jImporterSelectorComboBox = new javax.swing.JComboBox();
-        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(500, 32767));
-        jReloadImportersButton = new org.jdesktop.swingx.JXButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jXImportersPanel = new org.jdesktop.swingx.JXTaskPaneContainer();
-        jAdvancedPanel = new javax.swing.JPanel();
-        jSynonymsPanel = new javax.swing.JPanel();
+        javax.swing.JToolBar jToolBar = new javax.swing.JToolBar();
+        org.jdesktop.swingx.JXSearchField jSearch = new org.jdesktop.swingx.JXSearchField();
+        javax.swing.JToggleButton jCloudButton = new javax.swing.JToggleButton();
+        javax.swing.JToggleButton jButtonClusters = new javax.swing.JToggleButton();
+        javax.swing.JToggleButton jButtonLayout = new javax.swing.JToggleButton();
+        javax.swing.Box.Filler filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(50, 0), new java.awt.Dimension(1000, 0));
+        settingsButton = new javax.swing.JToggleButton();
+        jungGraphView = new uk.me.fommil.zibaldone.desktop.JungGraphView();
+        tagSelectView1 = new uk.me.fommil.zibaldone.desktop.TagSelectView();
+        settingsPanel = new javax.swing.JTabbedPane();
+        javax.swing.JPanel jImportersPanel = new javax.swing.JPanel();
+        javax.swing.JToolBar jToolBar1 = new javax.swing.JToolBar();
+        org.jdesktop.swingx.JXButton jAddImporterButton = new org.jdesktop.swingx.JXButton();
+        importerSelector = new javax.swing.JComboBox();
+        javax.swing.Box.Filler filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(500, 32767));
+        org.jdesktop.swingx.JXButton jReloadImportersButton = new org.jdesktop.swingx.JXButton();
+        javax.swing.JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
+        importersPanel = new org.jdesktop.swingx.JXTaskPaneContainer();
+        javax.swing.JPanel jAdvancedPanel = new javax.swing.JPanel();
+        javax.swing.JPanel jSynonymsPanel = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Zibaldone");
@@ -156,6 +134,11 @@ public class Mainscreen extends javax.swing.JFrame {
         jToolBar.add(jSearch);
 
         jCloudButton.setText("Tags");
+        jCloudButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCloudButtonActionPerformed(evt);
+            }
+        });
         jToolBar.add(jCloudButton);
 
         jButtonClusters.setText("Clusters");
@@ -168,20 +151,22 @@ public class Mainscreen extends javax.swing.JFrame {
         jToolBar.add(jButtonLayout);
         jToolBar.add(filler1);
 
-        jButtonSources.setText("Settings");
-        jButtonSources.addChangeListener(new javax.swing.event.ChangeListener() {
+        settingsButton.setText("Settings");
+        settingsButton.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                jButtonSourcesStateChanged(evt);
+                settingsButtonStateChanged(evt);
             }
         });
-        jToolBar.add(jButtonSources);
+        jToolBar.add(settingsButton);
 
         getContentPane().add(jToolBar, java.awt.BorderLayout.PAGE_START);
 
-        jJungPanel.setLayout(new java.awt.BorderLayout());
-        getContentPane().add(jJungPanel, java.awt.BorderLayout.CENTER);
+        jungGraphView.setLayout(new java.awt.BorderLayout());
+        jungGraphView.add(tagSelectView1, java.awt.BorderLayout.EAST);
 
-        jSettingsTabs.setPreferredSize(new java.awt.Dimension(320, 480));
+        getContentPane().add(jungGraphView, java.awt.BorderLayout.CENTER);
+
+        settingsPanel.setPreferredSize(new java.awt.Dimension(320, 480));
 
         jImportersPanel.setLayout(new java.awt.BorderLayout());
 
@@ -197,7 +182,7 @@ public class Mainscreen extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(jAddImporterButton);
-        jToolBar1.add(jImporterSelectorComboBox);
+        jToolBar1.add(importerSelector);
         jToolBar1.add(filler2);
 
         jReloadImportersButton.setText("Reload All");
@@ -210,54 +195,45 @@ public class Mainscreen extends javax.swing.JFrame {
 
         jScrollPane1.setBorder(null);
         jScrollPane1.setViewportView(null);
-        jScrollPane1.setViewportView(jXImportersPanel);
+        jScrollPane1.setViewportView(importersPanel);
 
         jImportersPanel.add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
-        jSettingsTabs.addTab("Importers", jImportersPanel);
+        settingsPanel.addTab("Importers", jImportersPanel);
 
         jAdvancedPanel.setLayout(new java.awt.BorderLayout());
-        jSettingsTabs.addTab("Relators", jAdvancedPanel);
+        settingsPanel.addTab("Relators", jAdvancedPanel);
 
         jSynonymsPanel.setLayout(new java.awt.BorderLayout());
-        jSettingsTabs.addTab("Synonyms", jSynonymsPanel);
+        settingsPanel.addTab("Synonyms", jSynonymsPanel);
 
-        getContentPane().add(jSettingsTabs, java.awt.BorderLayout.EAST);
+        getContentPane().add(settingsPanel, java.awt.BorderLayout.EAST);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButtonSourcesStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jButtonSourcesStateChanged
-        jSettingsTabs.setVisible(jButtonSources.isSelected());
-    }//GEN-LAST:event_jButtonSourcesStateChanged
+    private void settingsButtonStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_settingsButtonStateChanged
+        settingsPanel.setVisible(settingsButton.isSelected());
+    }//GEN-LAST:event_settingsButtonStateChanged
 
     @SuppressWarnings("unchecked")
     private void jAddImporterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jAddImporterButtonActionPerformed
-        String name = (String) jImporterSelectorComboBox.getSelectedItem();
+        String name = (String) importerSelector.getSelectedItem();
         Entry<UUID, Importer> pair = ImporterController.newImporter(name);
         controller.getSettings().getImporters().put(pair.getKey(), pair.getValue());
         addImporter(pair.getKey(), false);
     }//GEN-LAST:event_jAddImporterButtonActionPerformed
 
+    private void jCloudButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCloudButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jCloudButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.Box.Filler filler1;
-    private javax.swing.Box.Filler filler2;
-    private org.jdesktop.swingx.JXButton jAddImporterButton;
-    private javax.swing.JPanel jAdvancedPanel;
-    private javax.swing.JToggleButton jButtonClusters;
-    private javax.swing.JToggleButton jButtonLayout;
-    private javax.swing.JToggleButton jButtonSources;
-    private javax.swing.JToggleButton jCloudButton;
-    private javax.swing.JComboBox jImporterSelectorComboBox;
-    private javax.swing.JPanel jImportersPanel;
-    private uk.me.fommil.zibaldone.desktop.JungGraphView jJungPanel;
-    private org.jdesktop.swingx.JXButton jReloadImportersButton;
-    private javax.swing.JScrollPane jScrollPane1;
-    private org.jdesktop.swingx.JXSearchField jSearch;
-    private javax.swing.JTabbedPane jSettingsTabs;
-    private javax.swing.JPanel jSynonymsPanel;
-    private javax.swing.JToolBar jToolBar;
-    private javax.swing.JToolBar jToolBar1;
-    private org.jdesktop.swingx.JXTaskPaneContainer jXImportersPanel;
+    private javax.swing.JComboBox importerSelector;
+    private org.jdesktop.swingx.JXTaskPaneContainer importersPanel;
+    private uk.me.fommil.zibaldone.desktop.JungGraphView jungGraphView;
+    private javax.swing.JToggleButton settingsButton;
+    private javax.swing.JTabbedPane settingsPanel;
+    private uk.me.fommil.zibaldone.desktop.TagSelectView tagSelectView1;
     // End of variables declaration//GEN-END:variables
 }
