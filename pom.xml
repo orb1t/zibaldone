@@ -14,7 +14,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!--<netbeans.hint.license>gpl30</netbeans.hint.license>-->
-        <lombok.sourceDirectory>${project.basedir}/src/main/java</lombok.sourceDirectory>
+        <!--        <lombok.sourceDirectory>${project.basedir}/src/main/java</lombok.sourceDirectory>-->
     </properties>
     <prerequisites>
         <maven>3.0.3</maven>
@@ -142,9 +142,9 @@
 	
     <build>
         <!-- mvn versions:display-plugin-updates -->
-        <sourceDirectory>${project.build.directory}/generated-sources/delombok</sourceDirectory>
+        <!--<sourceDirectory>${project.build.directory}/generated-sources/delombok</sourceDirectory>-->
         <plugins>
-            <plugin>
+            <!--            <plugin>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok-maven-plugin</artifactId>
                 <version>0.11.0.0</version>
@@ -156,8 +156,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-
+            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

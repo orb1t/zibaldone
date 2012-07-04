@@ -14,7 +14,6 @@ import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
@@ -69,7 +68,7 @@ public class Reconciler {
 
         NoteDao dao = new NoteDao(emf);
         long start = dao.count();
-        for (Entry<UUID, List<Note>> entry : incoming.entrySet()) {
+        for (Map.Entry<UUID, List<Note>> entry : incoming.entrySet()) {
             UUID sourceId = entry.getKey();
             log.info("Reconciling: " + sourceId);
 
