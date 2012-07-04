@@ -10,6 +10,7 @@ import com.google.common.base.Preconditions;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
+import edu.uci.ics.jung.algorithms.layout.SpringLayout;
 import edu.uci.ics.jung.algorithms.layout.util.Relaxer;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.ObservableGraph;
@@ -19,6 +20,7 @@ import edu.uci.ics.jung.graph.event.GraphEventListener;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -68,7 +70,8 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, We
         setLayout(new BorderLayout());
 
         ObservableGraph<Note, Weight> graph = controller.getGraph();
-        Layout<Note, Weight> delegateLayout = new CircleLayout<Note, Weight>(graph);
+//        Layout<Note, Weight> delegateLayout = new CircleLayout<Note, Weight>(graph);
+        Layout<Note, Weight> delegateLayout = new SpringLayout<Note, Weight>(graph, Weight.TRANSFORMER);
         graphLayout = new AggregateLayout<Note, Weight>(delegateLayout);
         graphVisualiser = new VisualizationViewer<Note, Weight>(graphLayout);
 
@@ -103,7 +106,9 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, We
         for (Set<Note> cluster : clusters) {
             Graph<Note, Weight> subGraph = buildSubgraph(cluster);
             Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(subGraph);
-            // TODO: calculate a good position for the cluster
+            subLayout.setInitializer(graphLayout);
+            subLayout.setSize(new Dimension(50,50));
+            // TODO: calculate a good position/size for the cluster
             Random random = new Random();
             Point2D subCentered = new Point(random.nextInt(getSize().width), random.nextInt(getSize().height));
             graphLayout.put(subLayout, subCentered);

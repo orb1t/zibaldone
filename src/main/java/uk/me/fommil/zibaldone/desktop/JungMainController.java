@@ -81,7 +81,8 @@ public class JungMainController {
             @Override
             public void action(Note first, Note second) {
                 double weight = relator.relate(first, second);
-                if (weight < 1) {
+                // TODO: parameterise this number
+                if (weight < 0.8) {
 //                    log.info(weight + " between " + first.getTags() + " | " + second.getTags());
                     update.addEdge(new Weight(weight), first, second);
                 }
@@ -98,16 +99,15 @@ public class JungMainController {
 
         log.info(update.getVertexCount() + " vertices, " + update.getEdgeCount() + " edges, " + clusters.size() + " clusters");
 
-        Relaxer relaxer = view.getRelaxer();
-        relaxer.pause();
+        // TODO: investigate how the Relaxer works
+//        Relaxer relaxer = view.getRelaxer();
+//        relaxer.pause();
         update(update);
-
         view.setClusters(clusters);
 
         // TODO: visually cluster the selected Groups
 
-
-        relaxer.resume();
+//        relaxer.resume();
     }
 
     // updates the 'graph' object, with minimal changes, to match the parameter
