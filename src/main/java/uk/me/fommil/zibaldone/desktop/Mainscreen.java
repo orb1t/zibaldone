@@ -68,6 +68,9 @@ public class Mainscreen extends javax.swing.JFrame {
         this.controller = controller;
 
         jungGraphView.setGraph(controller.getGraph());
+        tagSelectView.setController(controller);
+        
+        // TODO: these should be registering as abstract listeners
         controller.setGraphView(jungGraphView);
         controller.setTagView(tagSelectView);
 

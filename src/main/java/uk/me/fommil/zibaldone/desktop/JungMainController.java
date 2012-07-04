@@ -6,10 +6,13 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-import edu.uci.ics.jung.algorithms.layout.util.Relaxer;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import java.io.Serializable;
@@ -46,7 +49,7 @@ import uk.me.fommil.zibaldone.relator.TagRelator;
 @Log
 @RequiredArgsConstructor
 public class JungMainController {
-    
+
     @NonNull
     private final EntityManagerFactory emf;
 
@@ -62,28 +65,43 @@ public class JungMainController {
     // TODO: there should probably be a series of listeners for changes in the
     // various components, e.g. Note, clusters, Tag, Group, allowing Views to be
     // asynchronous and therefore no need to have explicit references here.
-
     @Setter
     private JungGraphView graphView;
 
     @Setter
     private TagSelectView tagView;
-    
+
     /**
      * Updates the model based on current settings.
      */
     public void doRefresh() {
         final UndirectedSparseGraph<Note, Weight> update = new UndirectedSparseGraph<Note, Weight>();
         NoteDao noteDao = new NoteDao(emf);
-        List<Note> notes = noteDao.readAll();
-        for (Note note : notes) {
-            update.addVertex(note);
+        {
+            List<Note> notes = noteDao.readAll();
+
+            // TODO: use the tag resolver
+            
+            SetMultimap<TagChoice, Tag> selectedTags = settings.getSelectedTags();
+            Set<Tag> showTags = selectedTags.get(TagChoice.SHOW);
+            Set<Tag> hideTags = selectedTags.get(TagChoice.HIDE);
+            for (Note note : notes) {
+                Set<Tag> tags = Sets.newHashSet(note.getTags());
+                if (!showTags.isEmpty() && Sets.intersection(showTags, tags).isEmpty()) {
+                    continue;
+                }
+                if (!showTags.isEmpty() && !Sets.intersection(hideTags, tags).isEmpty()) {
+                    continue;
+                }
+                update.addVertex(note);
+            }
         }
 
         // TODO: choose relevant relator
         final Relator relator = new TagRelator();
         relator.refresh(emf);
 
+        Collection<Note> notes = update.getVertices();
         Convenience.upperOuter(notes, new Loop<Note>() {
             @Override
             public void action(Note first, Note second) {
@@ -111,7 +129,7 @@ public class JungMainController {
 //        relaxer.pause();
         update(update);
         graphView.setClusters(clusters);
-        
+
         List<Tag> tags = noteDao.getAllTags();
         tagView.setTags(tags);
 
@@ -159,16 +177,32 @@ public class JungMainController {
         });
     }
 
-    /**
-     * @return all tags with their usage counts
-     */
-    public Map<String, Integer> getTags() {
-        log.info("Not Implemented Yet");
-        return Maps.newHashMap();
-    }
-
     public Reconciler getReconciler() {
         return new Reconciler(emf);
+    }
+
+    public enum TagChoice {
+
+        IGNORE, SHOW, HIDE
+
+    }
+
+    /**
+     * @param choice
+     * @param tag
+     */
+    public void selectTag(TagChoice choice, Tag tag) {
+        Preconditions.checkNotNull(tag);
+        Preconditions.checkNotNull(choice);
+
+        for (TagChoice key : TagChoice.values()) {
+            settings.getSelectedTags().remove(key, tag);
+        }
+        if (choice != TagChoice.IGNORE) {
+            settings.getSelectedTags().put(choice, tag);
+        }
+        
+        doRefresh();
     }
 
     /**
@@ -184,11 +218,9 @@ public class JungMainController {
 
         private String search = "";
 
-        private final List<String> showWithTags = Lists.newArrayList();
+        private final SetMultimap<TagChoice, Tag> selectedTags = HashMultimap.create();
 
-        private final List<String> hideWithTags = Lists.newArrayList();
-
-        private final List<String> showGroups = Lists.newArrayList();
+        private final List<String> selectedGroups = Lists.newArrayList();
 
         private final Map<UUID, Importer> importers = Maps.newHashMap();
 
