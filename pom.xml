@@ -14,7 +14,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!--<netbeans.hint.license>gpl30</netbeans.hint.license>-->
-        <!--        <lombok.sourceDirectory>${project.basedir}/src/main/java</lombok.sourceDirectory>-->
     </properties>
     <prerequisites>
         <maven>3.0.3</maven>
@@ -22,7 +21,7 @@
     
     <!-- mvn versions:display-dependency-updates -->
     <dependencies>
-<!--        <dependency>
+        <!--        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>0.11.2</version>
@@ -142,21 +141,7 @@
 	
     <build>
         <!-- mvn versions:display-plugin-updates -->
-        <!--<sourceDirectory>${project.build.directory}/generated-sources/delombok</sourceDirectory>-->
         <plugins>
-            <!--            <plugin>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok-maven-plugin</artifactId>
-                <version>0.11.0.0</version>
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>delombok</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -204,32 +189,33 @@
         </plugins>
     </build>
     
-<!--    <profiles>
+    <profiles>
         <profile>
-            <id>lombok-needs-tools-jar</id>
-            <activation>
-                <file>
-                    <exists>${java.home}/../lib/tools.jar</exists>
-                </file>
-            </activation>
+            <!-- mvn generate-sources -P delombok -->
+            <!-- NOTE: This will generate the source output, but will fail to compile. -->
+            <!-- http://stackoverflow.com/questions/11329965 -->
+            <id>delombok</id>
+            <properties>
+                <lombok.sourceDirectory>${project.basedir}/src/main/java</lombok.sourceDirectory>
+            </properties>
             <build>
+                <!--                <sourceDirectory>${project.build.directory}/generated-sources/delombok</sourceDirectory>-->
                 <plugins>
                     <plugin>
                         <groupId>org.projectlombok</groupId>
                         <artifactId>lombok-maven-plugin</artifactId>
                         <version>0.11.0.0</version>
-                        <dependencies>
-                            <dependency>
-                                <groupId>sun.jdk</groupId>
-                                <artifactId>tools</artifactId>
-                                <version>1.6</version>
-                                <scope>system</scope>
-                                <systemPath>${java.home}/../lib/tools.jar</systemPath>
-                            </dependency>
-                        </dependencies>        
+                        <executions>
+                            <execution>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>delombok</goal>
+                                </goals>
+                            </execution>
+                        </executions>
                     </plugin>
                 </plugins>
             </build>
         </profile>
-    </profiles>-->
+    </profiles>
 </project>
