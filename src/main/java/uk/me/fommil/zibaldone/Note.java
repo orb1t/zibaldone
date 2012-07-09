@@ -4,9 +4,9 @@
  */
 package uk.me.fommil.zibaldone;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.io.Serializable;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import javax.persistence.*;
 import lombok.*;
@@ -37,7 +37,7 @@ public class Note implements Serializable {
     private String title;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    private List<Tag> tags = Lists.newArrayList();
+    private Set<Tag> tags = Sets.newTreeSet();
 
     @Lob
     @Column(length = CONTENTS_MAX)

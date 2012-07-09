@@ -8,9 +8,9 @@ package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import edu.uci.ics.jung.graph.ObservableGraph;
@@ -20,13 +20,15 @@ import java.util.*;
 import javax.persistence.EntityManagerFactory;
 import lombok.Data;
 import lombok.Getter;
+import lombok.ListenerSupport;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.java.Log;
 import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.utils.Convenience.Loop;
 import uk.me.fommil.zibaldone.*;
+import uk.me.fommil.zibaldone.desktop.JungMainController.ClustersChangedListener;
+import uk.me.fommil.zibaldone.desktop.JungMainController.TagsChangedListener;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
 import uk.me.fommil.zibaldone.relator.TagRelator;
 
@@ -48,7 +50,23 @@ import uk.me.fommil.zibaldone.relator.TagRelator;
  */
 @Log
 @RequiredArgsConstructor
+@ListenerSupport({ClustersChangedListener.class, TagsChangedListener.class})
 public class JungMainController {
+
+    public interface ClustersChangedListener extends EventListener {
+
+        // ??: could fire the change, not the new object
+        public void clustersChanged(Set<Set<Note>> clusters);
+    }
+
+    public interface TagsChangedListener extends EventListener {
+
+        // ??: could fire the change, not the new object
+        public void tagSelectionChanged(Multimap<TagChoice, Tag> selection);
+
+        // ??: could fire the change, not the new object
+        public void tagsChanged(Set<Tag> tags);
+    }
 
     @NonNull
     private final EntityManagerFactory emf;
@@ -62,15 +80,6 @@ public class JungMainController {
     @Getter
     private final Settings settings = new Settings();
 
-    // TODO: there should probably be a series of listeners for changes in the
-    // various components, e.g. Note, clusters, Tag, Group, allowing Views to be
-    // asynchronous and therefore no need to have explicit references here.
-    @Setter
-    private JungGraphView graphView;
-
-    @Setter
-    private TagSelectView tagView;
-
     /**
      * Updates the model based on current settings.
      */
@@ -81,12 +90,12 @@ public class JungMainController {
             List<Note> notes = noteDao.readAll();
 
             // TODO: use the tag resolver
-            
+
             SetMultimap<TagChoice, Tag> selectedTags = settings.getSelectedTags();
             Set<Tag> showTags = selectedTags.get(TagChoice.SHOW);
             Set<Tag> hideTags = selectedTags.get(TagChoice.HIDE);
             for (Note note : notes) {
-                Set<Tag> tags = Sets.newHashSet(note.getTags());
+                Set<Tag> tags = note.getTags();
                 if (!showTags.isEmpty() && Sets.intersection(showTags, tags).isEmpty()) {
                     continue;
                 }
@@ -128,10 +137,11 @@ public class JungMainController {
 //        Relaxer relaxer = view.getRelaxer();
 //        relaxer.pause();
         update(update);
-        graphView.setClusters(clusters);
 
-        List<Tag> tags = noteDao.getAllTags();
-        tagView.setTags(tags);
+        fireClustersChanged(clusters);
+
+        Set<Tag> tags = noteDao.getAllTags();
+        fireTagsChanged(tags);
 
         // TODO: visually cluster the selected Groups
 
@@ -140,9 +150,9 @@ public class JungMainController {
 
     // updates the 'graph' object, with minimal changes, to match the parameter
     private void update(final UndirectedSparseGraph<Note, Weight> update) {
-        Set<Note> newVertices = Sets.newHashSet(update.getVertices());
+        Collection<Note> newVertices = update.getVertices();
         {
-            Set<Note> oldVertices = Sets.newHashSet(graph.getVertices());
+            Collection<Note> oldVertices = Sets.newHashSet(graph.getVertices());
             // updates to fields of Note will result in them being removed and replaced entirely
             for (Note note : oldVertices) {
                 if (!newVertices.contains(note)) {
@@ -191,17 +201,20 @@ public class JungMainController {
      * @param choice
      * @param tag
      */
-    public void selectTag(TagChoice choice, Tag tag) {
+    public void selectTag(Tag tag, TagChoice choice) {
         Preconditions.checkNotNull(tag);
         Preconditions.checkNotNull(choice);
+        SetMultimap<TagChoice, Tag> selected = settings.getSelectedTags();
 
         for (TagChoice key : TagChoice.values()) {
-            settings.getSelectedTags().remove(key, tag);
+            selected.remove(key, tag);
         }
         if (choice != TagChoice.IGNORE) {
-            settings.getSelectedTags().put(choice, tag);
+            selected.put(choice, tag);
         }
-        
+
+        fireTagSelectionChanged(selected);
+
         doRefresh();
     }
 

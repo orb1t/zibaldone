@@ -6,13 +6,12 @@
  */
 package uk.me.fommil.zibaldone;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.io.Serializable;
-import java.util.List;
+import java.util.Set;
 import javax.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.NonNull;
 
 /**
  * Synonyms between {@link Tag}s, i.e. tags that are not byte-for-byte the
@@ -42,7 +41,7 @@ public class Synonym implements Serializable {
 
     /** Not needed for ignored instances */
     @ElementCollection
-    private List<Tag> tags = Lists.newArrayList();
+    private Set<Tag> tags = Sets.newTreeSet();
 
     /**
      * Defines the context of {@link Synonym} instances.

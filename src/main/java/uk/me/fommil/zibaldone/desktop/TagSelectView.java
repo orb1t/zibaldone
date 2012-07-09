@@ -8,23 +8,21 @@ package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Multimap;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.java.Log;
 import uk.me.fommil.zibaldone.Tag;
 import uk.me.fommil.zibaldone.desktop.JungMainController.TagChoice;
+import uk.me.fommil.zibaldone.desktop.JungMainController.TagsChangedListener;
 
 /**
  * Shows tags for the user to select.
@@ -32,19 +30,21 @@ import uk.me.fommil.zibaldone.desktop.JungMainController.TagChoice;
  * @author Samuel Halliday
  */
 @Log
-public class TagSelectView extends JPanel {
+public class TagSelectView extends JPanel implements TagsChangedListener {
 
-    private class TagView extends JLabel {
+    private final class TagView extends JLabel {
 
-        private TagChoice selected = TagChoice.IGNORE;
-
-        @Getter
         private final Tag tag;
 
-        public TagView(Tag tag) {
+        private TagChoice choice;
+
+        public TagView(Tag tag, TagChoice choice) {
             super(tag.getText());
+            Preconditions.checkNotNull(tag);
+            Preconditions.checkNotNull(choice);
             this.tag = tag;
             setOpaque(true);
+            setChoice(choice);
             addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
@@ -54,8 +54,16 @@ public class TagSelectView extends JPanel {
         }
 
         public void click() {
-            selected = TagChoice.values()[(1 + selected.ordinal()) % TagChoice.values().length];
-            switch (selected) {
+            TagChoice newChoice = TagChoice.values()[(1 + choice.ordinal()) % TagChoice.values().length];
+            controller.selectTag(tag, newChoice);
+        }
+
+        public void setChoice(TagChoice choice) {
+            if (choice == this.choice) {
+                return;
+            }
+            this.choice = choice;
+            switch (choice) {
                 case SHOW:
                     setBackground(Color.GREEN);
                     break;
@@ -65,9 +73,7 @@ public class TagSelectView extends JPanel {
                 default:
                     setBackground(null);
             }
-            log.info(getBackground().toString());
             repaint();
-            controller.selectTag(selected, tag);
         }
     }
 
@@ -78,32 +84,38 @@ public class TagSelectView extends JPanel {
         super(new FlowLayout());
     }
 
-    // TODO: this should be receiving abstract atomic updates to Tags
-    // TODO: should we show all tags or only "resolved" tags?
-    public void setTags(List<Tag> tags) {
+    private final SortedMap<Tag, TagView> views = Maps.newTreeMap();
+
+    @Override
+    public void tagsChanged(Set<Tag> tags) {
         Preconditions.checkNotNull(tags);
 
-        for (Component view : getComponents()) {
-            Preconditions.checkState(view instanceof TagView);
-            Tag tag = ((TagView) view).getTag();
-            if (!tags.contains(tag)) {
-                remove(view);
+        for (Tag tag : tags) {
+            if (!views.containsKey(tag)) {
+                TagView view = new TagView(tag, TagChoice.IGNORE);
+                views.put(tag, view);
             }
+        }
+        for (Tag tag : views.keySet()) {
+            if (!tags.contains(tag)) {
+                views.remove(tag);
+            }
+        }
+        removeAll();
+        for (TagView view : views.values()) {
+            add(view);
         }
 
-        for (int i = 0; i < tags.size(); i++) {
-            Tag tag = tags.get(i);
-            if (getComponentCount() > i) {
-                Component view = getComponent(i);
-                Preconditions.checkState(view instanceof TagView);
-                Tag shown = ((TagView) view).getTag();
-                if (tag.equals(shown)) {
-                    continue;
-                }
-            }
-            TagView view = new TagView(tag);
-            add(view, i);
-        }
         validate();
+    }
+
+    @Override
+    public void tagSelectionChanged(Multimap<TagChoice, Tag> selection) {
+        Preconditions.checkNotNull(selection);
+
+        for (Entry<TagChoice, Tag> entry : selection.entries()) {
+            Preconditions.checkState(views.containsKey(entry.getValue()));
+            views.get(entry.getValue()).setChoice(entry.getKey());
+        }
     }
 }

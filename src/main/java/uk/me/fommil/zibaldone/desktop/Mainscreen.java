@@ -70,9 +70,8 @@ public class Mainscreen extends javax.swing.JFrame {
         jungGraphView.setGraph(controller.getGraph());
         tagSelectView.setController(controller);
         
-        // TODO: these should be registering as abstract listeners
-        controller.setGraphView(jungGraphView);
-        controller.setTagView(tagSelectView);
+        controller.addClustersChangedListener(jungGraphView);
+        controller.addTagsChangedListener(tagSelectView);
 
         // TODO: dynamic lookup of available importers by querying controller
         Map<String, Class<Importer>> importers = ImporterController.getImporterImplementations();

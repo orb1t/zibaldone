@@ -71,8 +71,8 @@ public class TagRelator implements Relator {
         resolve.clear();
         Set<Set<Tag>> bags = Sets.newHashSet();
         for (Synonym e : synonyms) {
-            List<Tag> tags = e.getTags();
-            bags.add(Sets.newHashSet(tags));
+            Set<Tag> tags = e.getTags();
+            bags.add(tags);
         }
         for (Set<Tag> bag : Convenience.disjointify(bags)) {
             Tag resolved = Iterables.get(bag, 0);

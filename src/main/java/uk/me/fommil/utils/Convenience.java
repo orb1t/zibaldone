@@ -18,6 +18,8 @@ import static com.google.common.collect.Sets.newHashSet;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * Arbitrary convenience methods for working with a variety of standard Java
@@ -25,6 +27,7 @@ import java.util.Set;
  *
  * @author Samuel Halliday
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Convenience {
 
     /**

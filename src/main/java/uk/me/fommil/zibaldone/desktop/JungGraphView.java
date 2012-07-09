@@ -33,6 +33,7 @@ import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.utils.Convenience.Loop;
 import uk.me.fommil.zibaldone.Group;
 import uk.me.fommil.zibaldone.Note;
+import uk.me.fommil.zibaldone.desktop.JungMainController.ClustersChangedListener;
 
 /**
  * Draws the network graph of the {@link Note}s and {@link Group}s
@@ -42,7 +43,7 @@ import uk.me.fommil.zibaldone.Note;
  * @author Samuel Halliday
  */
 @Log
-public class JungGraphView extends JPanel implements GraphEventListener<Note, Weight> {
+public class JungGraphView extends JPanel implements GraphEventListener<Note, Weight>, ClustersChangedListener {
 
     private final VisualizationViewer<Note, Weight> graphVisualiser;
 
@@ -74,29 +75,6 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, We
         //        graph.addGraphEventListener(this);
     }
 
-    /**
-     * The view responds to explicit changes in the clustering of notes.
-     * 
-     * @param clusters
-     */
-    public void setClusters(Set<Set<Note>> clusters) {
-        Preconditions.checkNotNull(clusters);
-        // TODO: diff to what we have, to avoid needless redrawing
-
-        AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
-        graphLayout.removeAll();
-        for (Set<Note> cluster : clusters) {
-            Graph<Note, Weight> subGraph = buildSubgraph(cluster);
-            Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(subGraph);
-            subLayout.setInitializer(graphLayout);
-            subLayout.setSize(new Dimension(50, 50));
-            // TODO: calculate a good position/size for the cluster
-            Random random = new Random();
-            Point2D subCentered = new Point(random.nextInt(getSize().width), random.nextInt(getSize().height));
-            graphLayout.put(subLayout, subCentered);
-        }
-    }
-
     private AggregateLayout<Note, Weight> getGraphLayout() {
         ObservableCachingLayout<Note, Weight> layout = (ObservableCachingLayout<Note, Weight>) graphVisualiser.getGraphLayout();
         return (AggregateLayout<Note, Weight>) layout.getDelegate();
@@ -124,5 +102,24 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, We
     @Override
     public void handleGraphEvent(GraphEvent<Note, Weight> evt) {
         log.info("Not Implemented Yet");
+    }
+
+    @Override
+    public void clustersChanged(Set<Set<Note>> clusters) {
+        Preconditions.checkNotNull(clusters);
+        // TODO: diff to what we have, to avoid needless redrawing
+
+        AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
+        graphLayout.removeAll();
+        for (Set<Note> cluster : clusters) {
+            Graph<Note, Weight> subGraph = buildSubgraph(cluster);
+            Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(subGraph);
+            subLayout.setInitializer(graphLayout);
+            subLayout.setSize(new Dimension(50, 50));
+            // TODO: calculate a good position/size for the cluster
+            Random random = new Random();
+            Point2D subCentered = new Point(random.nextInt(getSize().width), random.nextInt(getSize().height));
+            graphLayout.put(subLayout, subCentered);
+        }
     }
 }

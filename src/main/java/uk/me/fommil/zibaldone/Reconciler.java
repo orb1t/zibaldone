@@ -84,7 +84,7 @@ public class Reconciler {
         long end = dao.count();
         log.info("Persisted " + (end - start) + " Notes");
 
-        List<Tag> tags = dao.getAllTags();
+        Set<Tag> tags = dao.getAllTags();
         log.info(tags.size() + " unique Tags: " + tags);
         HashMultimap<Tag, Tag> stems = HashMultimap.create();
 
@@ -107,7 +107,7 @@ public class Reconciler {
             Synonym synonym = new Synonym();
             synonym.setContext(Synonym.Context.AUTOMATIC);
             synonym.setStem(stem);
-            synonym.setTags(Lists.newArrayList(originals));
+            synonym.setTags(originals);
             synonyms.add(synonym);
         }
         SynonymDao equivDao = new SynonymDao(emf);
