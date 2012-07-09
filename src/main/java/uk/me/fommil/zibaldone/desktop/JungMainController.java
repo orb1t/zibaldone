@@ -8,6 +8,7 @@ package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -17,7 +18,9 @@ import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import java.io.Serializable;
 import java.util.*;
+import javax.annotation.Nullable;
 import javax.persistence.EntityManagerFactory;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
 import lombok.ListenerSupport;
@@ -68,7 +71,7 @@ public class JungMainController {
         public void tagsChanged(Set<Tag> tags);
     }
 
-    @NonNull
+    @NonNull @Getter(AccessLevel.PROTECTED)
     private final EntityManagerFactory emf;
 
     @Getter @NonNull
@@ -111,17 +114,28 @@ public class JungMainController {
         relator.refresh(emf);
 
         Collection<Note> notes = update.getVertices();
+        final List<Weight> edges = Lists.newArrayList();
         Convenience.upperOuter(notes, new Loop<Note>() {
             @Override
             public void action(Note first, Note second) {
                 double weight = relator.relate(first, second);
-                // TODO: parameterise this number
-                if (weight < 0.8) {
-//                    log.info(weight + " between " + first.getTags() + " | " + second.getTags());
-                    update.addEdge(new Weight(weight), first, second);
+                if (weight > 0 && weight < 1) {
+                    // let the clusterer deal with exact weights
+                    Weight edge = new Weight(weight);
+                    edges.add(edge);
+                    update.addEdge(edge, first, second);
                 }
             }
         });
+        Collections.sort(edges);
+        int connections = settings.getConnections();
+        // not Set to avoid degeneracy
+        List<Weight> keepers = Lists.newArrayList(Iterables.limit(edges, connections));
+        for (Weight edge : edges) {
+            if (!keepers.contains(edge)) {
+                update.removeEdge(edge);
+            }
+        }
 
         clusters.clear();
         for (Set<Note> cluster : relator.cluster(notes)) {
@@ -133,19 +147,11 @@ public class JungMainController {
 
         log.info(update.getVertexCount() + " vertices, " + update.getEdgeCount() + " edges, " + clusters.size() + " clusters");
 
-        // TODO: investigate how the Relaxer works
-//        Relaxer relaxer = view.getRelaxer();
-//        relaxer.pause();
         update(update);
 
         fireClustersChanged(clusters);
 
-        Set<Tag> tags = noteDao.getAllTags();
-        fireTagsChanged(tags);
-
         // TODO: visually cluster the selected Groups
-
-//        relaxer.resume();
     }
 
     // updates the 'graph' object, with minimal changes, to match the parameter
@@ -187,13 +193,9 @@ public class JungMainController {
         });
     }
 
-    public Reconciler getReconciler() {
-        return new Reconciler(emf);
-    }
-
     public enum TagChoice {
 
-        IGNORE, SHOW, HIDE
+        SHOW, HIDE
 
     }
 
@@ -201,15 +203,14 @@ public class JungMainController {
      * @param choice
      * @param tag
      */
-    public void selectTag(Tag tag, TagChoice choice) {
+    public void selectTag(Tag tag, @Nullable TagChoice choice) {
         Preconditions.checkNotNull(tag);
-        Preconditions.checkNotNull(choice);
         SetMultimap<TagChoice, Tag> selected = settings.getSelectedTags();
 
         for (TagChoice key : TagChoice.values()) {
             selected.remove(key, tag);
         }
-        if (choice != TagChoice.IGNORE) {
+        if (choice != null) {
             selected.put(choice, tag);
         }
 
@@ -227,7 +228,7 @@ public class JungMainController {
     @Data
     public static class Settings implements Serializable {
 
-        private int seeds;
+        private int connections = 500;
 
         private String search = "";
 

@@ -20,7 +20,7 @@ import org.apache.commons.collections15.Transformer;
  */
 @RequiredArgsConstructor
 @ToString
-public class Weight {
+public class Weight implements Comparable<Weight> {
 
     /** Required for some JUNG visualisers to understand the meaning of the edge */
     public static final Transformer<Weight, Integer> TRANSFORMER = new Transformer<Weight, Integer>() {
@@ -34,4 +34,8 @@ public class Weight {
     @Getter
     private final double weight;
 
+    @Override
+    public int compareTo(Weight o) {
+        return Double.compare(weight, o.weight);
+    }
 }

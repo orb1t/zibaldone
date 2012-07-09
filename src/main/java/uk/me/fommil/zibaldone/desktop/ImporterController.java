@@ -10,12 +10,16 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import java.io.IOException;
 import java.util.*;
+import lombok.ListenerSupport;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Reconciler;
+import uk.me.fommil.zibaldone.Tag;
+import uk.me.fommil.zibaldone.desktop.JungMainController.TagsChangedListener;
+import uk.me.fommil.zibaldone.persistence.NoteDao;
 
 /**
  * Specialist MVC Controller for working with {@link Importer}s.
@@ -24,6 +28,7 @@ import uk.me.fommil.zibaldone.Reconciler;
  */
 @Log
 @RequiredArgsConstructor
+@ListenerSupport({TagsChangedListener.class})
 public class ImporterController {
 
     /**
@@ -80,8 +85,12 @@ public class ImporterController {
 
     public void doImport() throws IOException {
         List<Note> notes = getImporter().getNotes();
-        Reconciler reconciler = main.getReconciler();
+        Reconciler reconciler = new Reconciler(main.getEmf());
         reconciler.reconcile(sourceId, notes);
+        NoteDao noteDao = new NoteDao(main.getEmf());
+        Set<Tag> tags = noteDao.getAllTags();
+        fireTagsChanged(tags);
+
         main.doRefresh();
     }
 

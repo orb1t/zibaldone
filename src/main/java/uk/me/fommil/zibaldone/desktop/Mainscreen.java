@@ -91,6 +91,7 @@ public class Mainscreen extends javax.swing.JFrame {
 
     private void addImporter(UUID uuid, boolean used) {
         ImporterController importerController = new ImporterController(controller, uuid);
+        importerController.addTagsChangedListener(tagSelectView);
         ImporterView importerView = new ImporterView(importerController, used);
         importersPanel.add(importerView);
         importersPanel.revalidate();

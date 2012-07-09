@@ -17,6 +17,10 @@ import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.event.GraphEvent;
 import edu.uci.ics.jung.graph.event.GraphEventListener;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
+import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
+import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
+import edu.uci.ics.jung.visualization.decorators.PickableVertexPaintTransformer;
+import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.layout.ObservableCachingLayout;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -54,8 +58,20 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, We
         Layout<Note, Weight> graphLayout = new AggregateLayout<Note, Weight>(delegateLayout);
         graphVisualiser = new VisualizationViewer<Note, Weight>(graphLayout);
         graphVisualiser.setBackground(Color.WHITE);
-        add(graphVisualiser, BorderLayout.CENTER);
 
+        // TODO: custom vertex icon, not painted circle
+        graphVisualiser.getRenderContext().setVertexFillPaintTransformer(
+                new PickableVertexPaintTransformer<Note>(
+                graphVisualiser.getPickedVertexState(),
+                Color.red, Color.yellow));        
+        DefaultModalGraphMouse<Note, Weight> graphMouse = new DefaultModalGraphMouse<Note, Weight>();
+        graphMouse.setMode(ModalGraphMouse.Mode.PICKING);
+        graphVisualiser.setGraphMouse(graphMouse);
+        
+        // TODO: popup Component, not tooltip
+        graphVisualiser.setVertexToolTipTransformer(new ToStringLabeller<Note>());
+
+        add(graphVisualiser, BorderLayout.CENTER);
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent ce) {
@@ -107,7 +123,6 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, We
     @Override
     public void clustersChanged(Set<Set<Note>> clusters) {
         Preconditions.checkNotNull(clusters);
-        // TODO: diff to what we have, to avoid needless redrawing
 
         AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
         graphLayout.removeAll();

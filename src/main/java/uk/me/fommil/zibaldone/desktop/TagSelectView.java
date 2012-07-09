@@ -13,6 +13,7 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
@@ -41,7 +42,6 @@ public class TagSelectView extends JPanel implements TagsChangedListener {
         public TagView(Tag tag, TagChoice choice) {
             super(tag.getText());
             Preconditions.checkNotNull(tag);
-            Preconditions.checkNotNull(choice);
             this.tag = tag;
             setOpaque(true);
             setChoice(choice);
@@ -54,7 +54,16 @@ public class TagSelectView extends JPanel implements TagsChangedListener {
         }
 
         public void click() {
-            TagChoice newChoice = TagChoice.values()[(1 + choice.ordinal()) % TagChoice.values().length];
+            TagChoice newChoice = TagChoice.SHOW;
+            if (choice != null) {
+                switch (choice) {
+                    case SHOW:
+                        newChoice = TagChoice.HIDE;
+                        break;
+                    case HIDE:
+                        newChoice = null;
+                }
+            }
             controller.selectTag(tag, newChoice);
         }
 
@@ -63,15 +72,16 @@ public class TagSelectView extends JPanel implements TagsChangedListener {
                 return;
             }
             this.choice = choice;
-            switch (choice) {
-                case SHOW:
-                    setBackground(Color.GREEN);
-                    break;
-                case HIDE:
-                    setBackground(Color.RED);
-                    break;
-                default:
-                    setBackground(null);
+            if (choice == null) {
+                setBackground(null);
+            } else {
+                switch (choice) {
+                    case SHOW:
+                        setBackground(Color.GREEN);
+                        break;
+                    case HIDE:
+                        setBackground(Color.RED);
+                }
             }
             repaint();
         }
@@ -92,7 +102,7 @@ public class TagSelectView extends JPanel implements TagsChangedListener {
 
         for (Tag tag : tags) {
             if (!views.containsKey(tag)) {
-                TagView view = new TagView(tag, TagChoice.IGNORE);
+                TagView view = new TagView(tag, null);
                 views.put(tag, view);
             }
         }
@@ -112,7 +122,13 @@ public class TagSelectView extends JPanel implements TagsChangedListener {
     @Override
     public void tagSelectionChanged(Multimap<TagChoice, Tag> selection) {
         Preconditions.checkNotNull(selection);
+        Collection<Tag> selected = selection.values();
 
+        for (Tag tag : views.keySet()) {
+            if (!selected.contains(tag)) {
+                views.get(tag).setChoice(null);
+            }
+        }
         for (Entry<TagChoice, Tag> entry : selection.entries()) {
             Preconditions.checkState(views.containsKey(entry.getValue()));
             views.get(entry.getValue()).setChoice(entry.getKey());
