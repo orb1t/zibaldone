@@ -219,6 +219,14 @@ public class JungMainController {
         doRefresh();
     }
 
+    public void selectGroup(Group group) {
+        
+    }
+    
+    public void doGroup(String name, Set<Note> notes) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
     /**
      * Keeps all the persistent settings in one place.
      *

@@ -89,7 +89,7 @@
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
           </AuxValues>
         </Component>
-        <Component class="javax.swing.JToggleButton" name="tagsButton">
+        <Component class="javax.swing.JButton" name="tagsButton">
           <Properties>
             <Property name="text" type="java.lang.String" value="Tags"/>
           </Properties>
@@ -101,10 +101,13 @@
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
           </AuxValues>
         </Component>
-        <Component class="javax.swing.JToggleButton" name="jButtonClusters">
+        <Component class="javax.swing.JButton" name="jButtonClusters">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Clusters"/>
+            <Property name="text" type="java.lang.String" value="Group"/>
           </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonClustersActionPerformed"/>
+          </Events>
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>

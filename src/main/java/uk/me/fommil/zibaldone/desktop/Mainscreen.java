@@ -69,6 +69,7 @@ public class Mainscreen extends javax.swing.JFrame {
 
         jungGraphView.setGraph(controller.getGraph());
         tagSelectView.setController(controller);
+        jungGraphView.setController(controller);
         
         controller.addClustersChangedListener(jungGraphView);
         controller.addTagsChangedListener(tagSelectView);
@@ -105,8 +106,8 @@ public class Mainscreen extends javax.swing.JFrame {
         tagSelectView = new uk.me.fommil.zibaldone.desktop.TagSelectView();
         javax.swing.JToolBar jToolBar = new javax.swing.JToolBar();
         org.jdesktop.swingx.JXSearchField jSearch = new org.jdesktop.swingx.JXSearchField();
-        javax.swing.JToggleButton tagsButton = new javax.swing.JToggleButton();
-        javax.swing.JToggleButton jButtonClusters = new javax.swing.JToggleButton();
+        javax.swing.JButton tagsButton = new javax.swing.JButton();
+        javax.swing.JButton jButtonClusters = new javax.swing.JButton();
         javax.swing.JToggleButton jButtonLayout = new javax.swing.JToggleButton();
         javax.swing.Box.Filler filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(50, 0), new java.awt.Dimension(1000, 0));
         settingsButton = new javax.swing.JToggleButton();
@@ -147,7 +148,12 @@ public class Mainscreen extends javax.swing.JFrame {
         });
         jToolBar.add(tagsButton);
 
-        jButtonClusters.setText("Clusters");
+        jButtonClusters.setText("Group");
+        jButtonClusters.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonClustersActionPerformed(evt);
+            }
+        });
         jToolBar.add(jButtonClusters);
 
         jButtonLayout.setText("Relators");
@@ -229,6 +235,10 @@ public class Mainscreen extends javax.swing.JFrame {
     private void tagsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tagsButtonActionPerformed
         tagDialog.setVisible(true);
     }//GEN-LAST:event_tagsButtonActionPerformed
+
+    private void jButtonClustersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonClustersActionPerformed
+        jungGraphView.groupPicked();
+    }//GEN-LAST:event_jButtonClustersActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     javax.swing.JComboBox importerSelector;

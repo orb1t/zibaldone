@@ -22,6 +22,7 @@ import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
 import edu.uci.ics.jung.visualization.decorators.PickableVertexPaintTransformer;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.layout.ObservableCachingLayout;
+import edu.uci.ics.jung.visualization.subLayout.GraphCollapser;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -32,9 +33,8 @@ import java.awt.geom.Point2D;
 import java.util.Random;
 import java.util.Set;
 import javax.swing.JPanel;
+import lombok.Setter;
 import lombok.extern.java.Log;
-import uk.me.fommil.utils.Convenience;
-import uk.me.fommil.utils.Convenience.Loop;
 import uk.me.fommil.zibaldone.Group;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.desktop.JungMainController.ClustersChangedListener;
@@ -50,9 +50,13 @@ import uk.me.fommil.zibaldone.desktop.JungMainController.ClustersChangedListener
 public class JungGraphView extends JPanel implements GraphEventListener<Note, Weight>, ClustersChangedListener {
 
     private final VisualizationViewer<Note, Weight> graphVisualiser;
+    
+    @Setter
+    private JungMainController controller;
 
     public JungGraphView() {
         super(new BorderLayout());
+        // the JUNG API needs a Graph instance to instantiate many visual objects
         UndirectedSparseGraph<Note, Weight> dummy = new UndirectedSparseGraph<Note, Weight>();
         Layout<Note, Weight> delegateLayout = new SpringLayout<Note, Weight>(dummy, Weight.TRANSFORMER);
         Layout<Note, Weight> graphLayout = new AggregateLayout<Note, Weight>(delegateLayout);
@@ -67,6 +71,9 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, We
         DefaultModalGraphMouse<Note, Weight> graphMouse = new DefaultModalGraphMouse<Note, Weight>();
         graphMouse.setMode(ModalGraphMouse.Mode.PICKING);
         graphVisualiser.setGraphMouse(graphMouse);
+
+        
+        
         
         // TODO: popup Component, not tooltip
         graphVisualiser.setVertexToolTipTransformer(new ToStringLabeller<Note>());
@@ -96,23 +103,11 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, We
         return (AggregateLayout<Note, Weight>) layout.getDelegate();
     }
 
-    private Graph<Note, Weight> buildSubgraph(Set<Note> cluster) {
-        final Graph<Note, Weight> graph = graphVisualiser.getGraphLayout().getGraph();
-        final UndirectedSparseGraph<Note, Weight> subGraph = new UndirectedSparseGraph<Note, Weight>();
-        for (Note note : cluster) {
-            Preconditions.checkState(graph.containsVertex(note), note);
-            subGraph.addVertex(note);
-        }
-        Convenience.upperOuter(cluster, new Loop<Note>() {
-            @Override
-            public void action(Note first, Note second) {
-                Weight weight = graph.findEdge(first, second);
-                if (weight != null) {
-                    subGraph.addEdge(weight, first, second);
-                }
-            }
-        });
-        return subGraph;
+    @SuppressWarnings("unchecked")
+    private Graph<Note, Weight> subGraph(Set<Note> cluster) {
+        Graph<Note, Weight> graph = graphVisualiser.getGraphLayout().getGraph();
+        GraphCollapser collapser = new GraphCollapser(graph);
+        return collapser.getClusterGraph(graph, cluster);
     }
 
     @Override
@@ -123,11 +118,11 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, We
     @Override
     public void clustersChanged(Set<Set<Note>> clusters) {
         Preconditions.checkNotNull(clusters);
-
+        
         AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
         graphLayout.removeAll();
         for (Set<Note> cluster : clusters) {
-            Graph<Note, Weight> subGraph = buildSubgraph(cluster);
+            Graph<Note, Weight> subGraph = subGraph(cluster);
             Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(subGraph);
             subLayout.setInitializer(graphLayout);
             subLayout.setSize(new Dimension(50, 50));
@@ -136,5 +131,13 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, We
             Point2D subCentered = new Point(random.nextInt(getSize().width), random.nextInt(getSize().height));
             graphLayout.put(subLayout, subCentered);
         }
+    }
+
+    public void groupPicked() {
+        Set<Note> picked = graphVisualiser.getPickedVertexState().getPicked();
+        
+//        controller.doGroup(picked);
+        
+        //throw new UnsupportedOperationException("Not yet implemented");
     }
 }
