@@ -56,6 +56,8 @@ public class Reconciler {
     /**
      * Attempts to reconcile all the given {@link Note}s with those currently
      * persisted. {@link Note#getSource()} will be ignored.
+     * <p>
+     * TODO: callback to allow user reconciliation
      * 
      * @param incoming indexed by the proposed {@link Note#setSource(UUID)}.
      */

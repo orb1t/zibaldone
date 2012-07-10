@@ -86,8 +86,27 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
 
         private int pickedBefore;
 
+        private Note lastMouseOverNote;
+
         public ModelessGraphMouse() {
             add(picker);
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e) {
+            super.mouseMoved(e);
+
+            // TODO: require a mouse click for touchscreens
+            // HACK: this essentially implements mouseEntered/mouseExited on vertices
+            Note note = graphVisualiser.getPickSupport().getVertex(getGraphLayout(), e.getX(), e.getY());
+            if (note != lastMouseOverNote) {
+                lastMouseOverNote = note;
+                if (note != null) {
+                    JungGraphView.this.mouseEntered(note);
+                } else {
+                    JungGraphView.this.mouseExited(note);
+                }
+            }
         }
 
         @Override
@@ -127,7 +146,7 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
         graphVisualiser.setGraphMouse(new ModelessGraphMouse());
 
         // TODO: popup Note/Bunch Component, not tooltip
-        graphVisualiser.setVertexToolTipTransformer(new ToStringLabeller<Note>());
+//        graphVisualiser.setVertexToolTipTransformer(new ToStringLabeller<Note>());
 
         add(graphVisualiser, BorderLayout.CENTER);
         addComponentListener(new ComponentAdapter() {
@@ -216,6 +235,22 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
         SwingUtilities.convertPointFromScreen(mouse, this);
         // http://stackoverflow.com/questions/766956
         contextMenu.show(this, mouse.x, mouse.y);
+    }
+
+    private final JPopupMenu testPopup = new JPopupMenu();
+
+    private void mouseEntered(Note note) {
+        testPopup.removeAll();
+        testPopup.add(new JMenuItem(note.getTitle()));
+        testPopup.pack();
+        Point mouse = MouseInfo.getPointerInfo().getLocation();
+        SwingUtilities.convertPointFromScreen(mouse, this);
+        // http://stackoverflow.com/questions/766956
+        testPopup.show(this, mouse.x, mouse.y);
+    }
+
+    private void mouseExited(Note note) {
+        testPopup.setVisible(false);
     }
 
     @Override

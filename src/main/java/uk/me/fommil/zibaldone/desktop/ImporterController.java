@@ -89,8 +89,10 @@ public class ImporterController {
         reconciler.reconcile(sourceId, notes);
         NoteDao noteDao = new NoteDao(main.getEmf());
         Set<Tag> tags = noteDao.getAllTags();
+        
+        log.info("TAGS: " + tags.size());
+        
         fireTagsChanged(tags);
-
         main.doRefresh();
     }
 

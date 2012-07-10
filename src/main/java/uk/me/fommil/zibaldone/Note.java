@@ -33,12 +33,6 @@ public class Note implements Serializable {
     @Column(name = "NOTE_ID")
     private Long id;
 
-//    @JoinTable(name = "NOTE_BUNCH",
-//    joinColumns = {@JoinColumn(name = "NOTE_ID", referencedColumnName = "NOTE_ID")},
-//    inverseJoinColumns = {@JoinColumn(name = "BUNCH_ID", referencedColumnName = "BUNCH_ID")})
-//    @ManyToMany
-//    private Set<Bunch> bunches = Sets.newHashSet();
-
     @Column
     private String title;
 

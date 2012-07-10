@@ -132,7 +132,7 @@ public class ImporterView extends JXTaskPane {
     }//GEN-LAST:event_reloadButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    uk.me.fommil.beans.JBeanEditor jBeanEditor;
-    org.jdesktop.swingx.JXButton reloadButton;
+    private uk.me.fommil.beans.JBeanEditor jBeanEditor;
+    private org.jdesktop.swingx.JXButton reloadButton;
     // End of variables declaration//GEN-END:variables
 }

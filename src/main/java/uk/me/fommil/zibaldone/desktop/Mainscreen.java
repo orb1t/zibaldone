@@ -7,8 +7,6 @@
 package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
-import edu.uci.ics.jung.graph.ObservableGraph;
-import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import java.beans.PropertyEditorManager;
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +15,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import javax.swing.ComboBoxModel;
 import lombok.extern.java.Log;
@@ -26,7 +23,6 @@ import uk.me.fommil.beans.editors.DatePropertyEditor;
 import uk.me.fommil.beans.editors.FilePropertyEditor;
 import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Importer;
-import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.importer.OrgModeImporter;
 
 /**
@@ -53,17 +49,21 @@ public class Mainscreen extends javax.swing.JFrame {
                 OrgModeImporter importer = new OrgModeImporter();
                 importer.getSettings().setFile(new File("/Users/samuel/QT2-notes.org"));
                 importers.put(uuid, importer);
-                try {
-                    new ImporterController(controller, uuid).doImport();
-                } catch (IOException ex) {
-                    log.log(Level.SEVERE, null, ex);
-                }
 
                 Mainscreen main = new Mainscreen();
                 main.setController(controller);
                 main.setVisible(true);
+
+                // TODO: viewing of initial database entries
                 
-                controller.doRefresh(); // to send info to all listeners
+                // this needs to happen after so the views get the model
+                try {
+                    ImporterController importController = new ImporterController(controller, uuid);
+                    importController.addTagsChangedListener(main.tagSelectView);
+                    importController.doImport();
+                } catch (IOException ex) {
+                    log.log(Level.SEVERE, null, ex);
+                }
             }
         });
     }
@@ -256,12 +256,12 @@ public class Mainscreen extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonClustersActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    javax.swing.JComboBox importerSelector;
-    org.jdesktop.swingx.JXTaskPaneContainer importersPanel;
-    uk.me.fommil.zibaldone.desktop.JungGraphView jungGraphView;
-    javax.swing.JToggleButton settingsButton;
-    javax.swing.JTabbedPane settingsPanel;
-    javax.swing.JDialog tagDialog;
-    uk.me.fommil.zibaldone.desktop.TagSelectView tagSelectView;
+    private javax.swing.JComboBox importerSelector;
+    private org.jdesktop.swingx.JXTaskPaneContainer importersPanel;
+    private uk.me.fommil.zibaldone.desktop.JungGraphView jungGraphView;
+    private javax.swing.JToggleButton settingsButton;
+    private javax.swing.JTabbedPane settingsPanel;
+    private javax.swing.JDialog tagDialog;
+    private uk.me.fommil.zibaldone.desktop.TagSelectView tagSelectView;
     // End of variables declaration//GEN-END:variables
 }
