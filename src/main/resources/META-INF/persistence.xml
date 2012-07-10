@@ -5,6 +5,7 @@
     <!-- Zibaldone is a J2SE application - most properties are defined in jpa.properties -->
     <class>uk.me.fommil.zibaldone.Note</class>
     <class>uk.me.fommil.zibaldone.Synonym</class>
+    <class>uk.me.fommil.zibaldone.Bunch</class>
     <properties>
       <property name="hibernate.hbm2ddl.auto" value="create-drop"/>
     </properties>

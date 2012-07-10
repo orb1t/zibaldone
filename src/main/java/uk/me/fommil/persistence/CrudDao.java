@@ -5,6 +5,7 @@
 package uk.me.fommil.persistence;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.Reader;
@@ -165,6 +166,22 @@ public abstract class CrudDao<K, T> {
         Preconditions.checkNotNull(key);
         @Cleanup("close") EntityManager em = createEntityManager();
         return em.find(klass, key);
+    }
+
+    /**
+     * @param keys
+     * @return the entities with the given keys, or null if not found
+     * @throws PersistenceException
+     */
+    public List<T> read(Collection<K> keys) {
+        Preconditions.checkNotNull(keys);
+        List<T> results = Lists.newArrayList();
+        @Cleanup("close") EntityManager em = createEntityManager();
+        for (K key : keys) {
+            T result = em.find(klass, key);
+            results.add(result);
+        }
+        return results;
     }
 
     /**

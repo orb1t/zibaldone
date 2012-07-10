@@ -16,7 +16,6 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
-import java.io.Serializable;
 import java.util.*;
 import javax.annotation.Nullable;
 import javax.persistence.EntityManagerFactory;
@@ -31,7 +30,9 @@ import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.utils.Convenience.Loop;
 import uk.me.fommil.zibaldone.*;
 import uk.me.fommil.zibaldone.desktop.JungMainController.ClustersChangedListener;
+import uk.me.fommil.zibaldone.desktop.JungMainController.BunchesChangedListener;
 import uk.me.fommil.zibaldone.desktop.JungMainController.TagsChangedListener;
+import uk.me.fommil.zibaldone.persistence.BunchDao;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
 import uk.me.fommil.zibaldone.relator.TagRelator;
 
@@ -53,21 +54,30 @@ import uk.me.fommil.zibaldone.relator.TagRelator;
  */
 @Log
 @RequiredArgsConstructor
-@ListenerSupport({ClustersChangedListener.class, TagsChangedListener.class})
+@ListenerSupport({BunchesChangedListener.class, ClustersChangedListener.class, TagsChangedListener.class})
 public class JungMainController {
+
+    public interface BunchesChangedListener extends EventListener {
+
+        // TODO: fire the change, not the object
+        public void bunchesChanged(Collection<Bunch> bunches);
+
+        // TODO: fire the change, not the object
+        public void selectedBunchesChanged(Collection<Bunch> bunches);
+    }
 
     public interface ClustersChangedListener extends EventListener {
 
-        // ??: could fire the change, not the new object
+        // TODO: fire the change, not the object
         public void clustersChanged(Set<Set<Note>> clusters);
     }
 
     public interface TagsChangedListener extends EventListener {
 
-        // ??: could fire the change, not the new object
+        // TODO: fire the change, not the object
         public void tagSelectionChanged(Multimap<TagChoice, Tag> selection);
 
-        // ??: could fire the change, not the new object
+        // TODO: fire the change, not the object
         public void tagsChanged(Set<Tag> tags);
     }
 
@@ -76,9 +86,6 @@ public class JungMainController {
 
     @Getter @NonNull
     private final ObservableGraph<Note, Weight> graph;
-
-    @Getter
-    private final Set<Set<Note>> clusters = Sets.newHashSet();
 
     @Getter
     private final Settings settings = new Settings();
@@ -137,21 +144,21 @@ public class JungMainController {
             }
         }
 
-        clusters.clear();
+        update(update);
+
+        Set<Set<Note>> clusters = Sets.newHashSet();
         for (Set<Note> cluster : relator.cluster(notes)) {
-            log.info("Cluster size: " + cluster.size());
             if (cluster.size() > 0) {
                 clusters.add(cluster);
             }
         }
+        // TODO: check if the clusters have actually changed
+        fireClustersChanged(clusters);
 
         log.info(update.getVertexCount() + " vertices, " + update.getEdgeCount() + " edges, " + clusters.size() + " clusters");
 
-        update(update);
-
-        fireClustersChanged(clusters);
-
-        // TODO: visually cluster the selected Groups
+        // TODO: check if the bunch selections have actually changed
+        fireSelectedBunchesChanged();
     }
 
     // updates the 'graph' object, with minimal changes, to match the parameter
@@ -219,25 +226,66 @@ public class JungMainController {
         doRefresh();
     }
 
-    public void selectGroup(Group group) {
-        
+    public Collection<Bunch> getBunches() {
+        BunchDao dao = new BunchDao(emf);
+        return dao.readAll();
     }
-    
-    public void doGroup(String name, Set<Note> notes) {
-        // TODO: break up this monolithic controller into separate pieces
-        // TODO: consider how much Tag/Group UI code can be shared
-        
-        throw new UnsupportedOperationException("Not yet implemented");
+
+    public void newBunch(Collection<Note> notes) {
+        Preconditions.checkNotNull(notes);
+        Preconditions.checkArgument(!notes.isEmpty());
+
+        Bunch bunch = new Bunch();
+        bunch.setTitle("New Bunch");
+        BunchDao dao = new BunchDao(emf);
+        dao.create(bunch);
+
+        fireBunchesChanged(dao);
+    }
+
+    public void addToBunch(Bunch bunch, Note note) {
+        Preconditions.checkNotNull(bunch);
+        Preconditions.checkNotNull(note);
+
+        BunchDao dao = new BunchDao(emf);
+        Set<Note> notes = bunch.getNotes();
+        notes.add(note);
+        bunch.setNotes(notes);
+        dao.update(bunch);
+
+        fireBunchesChanged(dao);
+    }
+
+    public void selectBunch(Bunch bunch, boolean select) {
+        boolean change = false;
+        if (!select) {
+            change = settings.getSelectedBunches().remove(bunch.getId());
+        } else {
+            change = settings.getSelectedBunches().add(bunch.getId());
+        }
+        if (change) {
+            fireSelectedBunchesChanged();
+        }
+    }
+
+    private void fireBunchesChanged(BunchDao dao) {
+        List<Bunch> bunches = dao.readAll();
+        fireBunchesChanged(bunches);
+    }
+
+    private void fireSelectedBunchesChanged() {
+        BunchDao dao = new BunchDao(emf);
+        Collection<Bunch> bunches = dao.read(settings.getSelectedBunches());
+        fireSelectedBunchesChanged(bunches);
     }
 
     /**
-     * Keeps all the persistent settings in one place.
+     * Keeps all the persistent user settings in one place.
      *
-     * @deprecated TODO: API review to persist across sessions
+     * TODO: API review to persist across sessions and expose listeners
      */
-    @Deprecated
     @Data
-    public static class Settings implements Serializable {
+    public static class Settings {
 
         private int connections = 500;
 
@@ -245,7 +293,7 @@ public class JungMainController {
 
         private final SetMultimap<TagChoice, Tag> selectedTags = HashMultimap.create();
 
-        private final List<String> selectedGroups = Lists.newArrayList();
+        private final Set<Long> selectedBunches = Sets.newLinkedHashSet();
 
         private final Map<UUID, Importer> importers = Maps.newHashMap();
 

@@ -148,7 +148,7 @@ public class Mainscreen extends javax.swing.JFrame {
         });
         jToolBar.add(tagsButton);
 
-        jButtonClusters.setText("Group");
+        jButtonClusters.setText("Bunches");
         jButtonClusters.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonClustersActionPerformed(evt);
@@ -237,7 +237,7 @@ public class Mainscreen extends javax.swing.JFrame {
     }//GEN-LAST:event_tagsButtonActionPerformed
 
     private void jButtonClustersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonClustersActionPerformed
-        jungGraphView.groupPicked();
+        
     }//GEN-LAST:event_jButtonClustersActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
