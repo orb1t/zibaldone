@@ -52,4 +52,16 @@ public class NoteDao extends CrudDao<Long, Note> {
         List<String> result = query(em, q);
         return Tag.asTags(result);
     }
+
+    @Override
+    public void delete(Note entity) {
+        // TODO: delete and remove references from Bunches
+        throw new UnsupportedOperationException("not implemented yet: ");
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        // TODO: delete and remove references from Bunches
+        throw new UnsupportedOperationException("not implemented yet: ");
+    }
 }

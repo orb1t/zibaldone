@@ -11,10 +11,13 @@ import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import java.beans.PropertyEditorManager;
 import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import javax.swing.ComboBoxModel;
 import lombok.extern.java.Log;
@@ -24,6 +27,7 @@ import uk.me.fommil.beans.editors.FilePropertyEditor;
 import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Note;
+import uk.me.fommil.zibaldone.importer.OrgModeImporter;
 
 /**
  * @author Samuel Halliday
@@ -41,13 +45,25 @@ public class Mainscreen extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
-                ObservableGraph<Note, Weight> graph = new ObservableGraph<Note, Weight>(new UndirectedSparseGraph<Note, Weight>());
-//                ObservableGraph<Note, Weight> graph = getGraphForTheBenefitOfNetbeans();
+                JungMainController controller = new JungMainController(emf);
 
-                JungMainController controller = new JungMainController(emf, graph);
+                // DEBUG: programmatic load of importer
+                UUID uuid = UUID.randomUUID();
+                Map<UUID, Importer> importers = controller.getSettings().getImporters();
+                OrgModeImporter importer = new OrgModeImporter();
+                importer.getSettings().setFile(new File("/Users/samuel/QT2-notes.org"));
+                importers.put(uuid, importer);
+                try {
+                    new ImporterController(controller, uuid).doImport();
+                } catch (IOException ex) {
+                    log.log(Level.SEVERE, null, ex);
+                }
+
                 Mainscreen main = new Mainscreen();
                 main.setController(controller);
                 main.setVisible(true);
+                
+                controller.doRefresh(); // to send info to all listeners
             }
         });
     }
@@ -59,7 +75,7 @@ public class Mainscreen extends javax.swing.JFrame {
         initComponents();
         settingsPanel.setVisible(false);
     }
-    
+
     /**
      * @param controller
      */
@@ -70,7 +86,7 @@ public class Mainscreen extends javax.swing.JFrame {
         jungGraphView.setGraph(controller.getGraph());
         tagSelectView.setController(controller);
         jungGraphView.setController(controller);
-        
+
         controller.addClustersChangedListener(jungGraphView);
         controller.addTagsChangedListener(tagSelectView);
 
@@ -237,7 +253,6 @@ public class Mainscreen extends javax.swing.JFrame {
     }//GEN-LAST:event_tagsButtonActionPerformed
 
     private void jButtonClustersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonClustersActionPerformed
-        
     }//GEN-LAST:event_jButtonClustersActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

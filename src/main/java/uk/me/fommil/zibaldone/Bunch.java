@@ -27,17 +27,17 @@ import lombok.Data;
 @Data
 @Entity
 public class Bunch implements Serializable {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "BUNCH_ID")
     private Long id;
-    
+
     @Column
-    private String title;
+    private String name;
 
     // TODO: investigate how to magically delete references to Notes that are removed
-    @ManyToMany(mappedBy = "bunches")
+    @ManyToMany
     private Set<Note> notes = Sets.newHashSet();
-    
+
 }

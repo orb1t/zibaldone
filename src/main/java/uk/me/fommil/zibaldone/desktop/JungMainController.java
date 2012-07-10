@@ -84,8 +84,8 @@ public class JungMainController {
     @NonNull @Getter(AccessLevel.PROTECTED)
     private final EntityManagerFactory emf;
 
-    @Getter @NonNull
-    private final ObservableGraph<Note, Weight> graph;
+    @Getter
+    private final ObservableGraph<Note, Weight> graph = new ObservableGraph<Note, Weight>(new UndirectedSparseGraph<Note, Weight>());
 
     @Getter
     private final Settings settings = new Settings();
@@ -236,7 +236,7 @@ public class JungMainController {
         Preconditions.checkArgument(!notes.isEmpty());
 
         Bunch bunch = new Bunch();
-        bunch.setTitle("New Bunch");
+        bunch.setName("New Bunch");
         BunchDao dao = new BunchDao(emf);
         dao.create(bunch);
 

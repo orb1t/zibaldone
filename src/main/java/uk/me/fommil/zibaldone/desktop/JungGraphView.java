@@ -196,7 +196,7 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
         if (!bunches.isEmpty() && bunches.size() < 10) {
             contextMenu.add(new JSeparator());
             for (Bunch bunch : bunches) {
-                contextMenu.add(new JMenuItem("Add to \"" + bunch.getTitle() + "\""));
+                contextMenu.add(new JMenuItem("Add to \"" + bunch.getName() + "\""));
             }
         }
 
