@@ -224,6 +224,9 @@ public class JungMainController {
     }
     
     public void doGroup(String name, Set<Note> notes) {
+        // TODO: break up this monolithic controller into separate pieces
+        // TODO: consider how much Tag/Group UI code can be shared
+        
         throw new UnsupportedOperationException("Not yet implemented");
     }
 

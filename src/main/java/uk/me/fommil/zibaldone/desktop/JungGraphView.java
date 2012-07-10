@@ -17,12 +17,12 @@ import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.event.GraphEvent;
 import edu.uci.ics.jung.graph.event.GraphEventListener;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
-import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
-import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
+import edu.uci.ics.jung.visualization.control.GraphMousePlugin;
+import edu.uci.ics.jung.visualization.control.PickingGraphMousePlugin;
+import edu.uci.ics.jung.visualization.control.PluggableGraphMouse;
 import edu.uci.ics.jung.visualization.decorators.PickableVertexPaintTransformer;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.layout.ObservableCachingLayout;
-import edu.uci.ics.jung.visualization.subLayout.GraphCollapser;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -35,6 +35,8 @@ import java.util.Set;
 import javax.swing.JPanel;
 import lombok.Setter;
 import lombok.extern.java.Log;
+import uk.me.fommil.utils.Convenience;
+import uk.me.fommil.utils.Convenience.Loop;
 import uk.me.fommil.zibaldone.Group;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.desktop.JungMainController.ClustersChangedListener;
@@ -50,9 +52,25 @@ import uk.me.fommil.zibaldone.desktop.JungMainController.ClustersChangedListener
 public class JungGraphView extends JPanel implements GraphEventListener<Note, Weight>, ClustersChangedListener {
 
     private final VisualizationViewer<Note, Weight> graphVisualiser;
-    
+
     @Setter
     private JungMainController controller;
+
+    /**
+     * The JUNG mouse handling framework was developed
+     * to allow different plugins to function under different user-selected
+     * "modes", which is detrimental to the Zibaldone user experience.
+     * Here we go back to the highest abstraction in the JUNG mouse handling
+     * logic and provide a "modeless" experience.
+     */
+    private class ZibaldoneMouse extends PluggableGraphMouse {
+
+        private final GraphMousePlugin picker = new PickingGraphMousePlugin<Note, Weight>();
+
+        public ZibaldoneMouse() {
+            add(picker);
+        }
+    }
 
     public JungGraphView() {
         super(new BorderLayout());
@@ -67,14 +85,10 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, We
         graphVisualiser.getRenderContext().setVertexFillPaintTransformer(
                 new PickableVertexPaintTransformer<Note>(
                 graphVisualiser.getPickedVertexState(),
-                Color.red, Color.yellow));        
-        DefaultModalGraphMouse<Note, Weight> graphMouse = new DefaultModalGraphMouse<Note, Weight>();
-        graphMouse.setMode(ModalGraphMouse.Mode.PICKING);
-        graphVisualiser.setGraphMouse(graphMouse);
+                Color.red, Color.yellow));
 
-        
-        
-        
+        graphVisualiser.setGraphMouse(new ZibaldoneMouse());
+
         // TODO: popup Component, not tooltip
         graphVisualiser.setVertexToolTipTransformer(new ToStringLabeller<Note>());
 
@@ -103,11 +117,27 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, We
         return (AggregateLayout<Note, Weight>) layout.getDelegate();
     }
 
-    @SuppressWarnings("unchecked")
     private Graph<Note, Weight> subGraph(Set<Note> cluster) {
-        Graph<Note, Weight> graph = graphVisualiser.getGraphLayout().getGraph();
-        GraphCollapser collapser = new GraphCollapser(graph);
-        return collapser.getClusterGraph(graph, cluster);
+        // the GraphCollapser supposedly provides this functionality, but is unreliable
+        // Graph<Note, Weight> graph = graphVisualiser.getGraphLayout().getGraph();
+        // GraphCollapser collapser = new GraphCollapser(graph);
+        // return collapser.getClusterGraph(graph, cluster);
+        final Graph<Note, Weight> graph = graphVisualiser.getGraphLayout().getGraph();
+        final UndirectedSparseGraph<Note, Weight> subGraph = new UndirectedSparseGraph<Note, Weight>();
+        for (Note note : cluster) {
+            Preconditions.checkState(graph.containsVertex(note), note);
+            subGraph.addVertex(note);
+        }
+        Convenience.upperOuter(cluster, new Loop<Note>() {
+            @Override
+            public void action(Note first, Note second) {
+                Weight weight = graph.findEdge(first, second);
+                if (weight != null) {
+                    subGraph.addEdge(weight, first, second);
+                }
+            }
+        });
+        return subGraph;
     }
 
     @Override
@@ -118,7 +148,8 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, We
     @Override
     public void clustersChanged(Set<Set<Note>> clusters) {
         Preconditions.checkNotNull(clusters);
-        
+
+        // TODO: keep a record of the clusters so they don't jump around
         AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
         graphLayout.removeAll();
         for (Set<Note> cluster : clusters) {
@@ -134,10 +165,12 @@ public class JungGraphView extends JPanel implements GraphEventListener<Note, We
     }
 
     public void groupPicked() {
+        // TODO: have a "magnet" when moving a single Note into a Group to trigger this method
         Set<Note> picked = graphVisualiser.getPickedVertexState().getPicked();
-        
+
+
 //        controller.doGroup(picked);
-        
+
         //throw new UnsupportedOperationException("Not yet implemented");
     }
 }
