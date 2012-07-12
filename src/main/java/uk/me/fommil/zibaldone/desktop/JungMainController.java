@@ -202,7 +202,7 @@ public class JungMainController {
 
     public enum TagChoice {
 
-        SHOW, HIDE
+        IGNORE, SHOW, HIDE
 
     }
 
@@ -210,14 +210,14 @@ public class JungMainController {
      * @param choice
      * @param tag
      */
-    public void selectTag(Tag tag, @Nullable TagChoice choice) {
+    public void selectTag(Tag tag, TagChoice choice) {
         Preconditions.checkNotNull(tag);
         SetMultimap<TagChoice, Tag> selected = settings.getSelectedTags();
 
         for (TagChoice key : TagChoice.values()) {
             selected.remove(key, tag);
         }
-        if (choice != null) {
+        if (choice != TagChoice.IGNORE) {
             selected.put(choice, tag);
         }
 

@@ -119,7 +119,7 @@ public class Mainscreen extends javax.swing.JFrame {
     private void initComponents() {
 
         tagDialog = new javax.swing.JDialog();
-        tagSelectView = new uk.me.fommil.zibaldone.desktop.TagSelectView();
+        tagSelectView = new uk.me.fommil.zibaldone.desktop.TagsView();
         javax.swing.JToolBar jToolBar = new javax.swing.JToolBar();
         org.jdesktop.swingx.JXSearchField jSearch = new org.jdesktop.swingx.JXSearchField();
         javax.swing.JButton tagsButton = new javax.swing.JButton();
@@ -140,8 +140,12 @@ public class Mainscreen extends javax.swing.JFrame {
         javax.swing.JPanel jAdvancedPanel = new javax.swing.JPanel();
         javax.swing.JPanel jSynonymsPanel = new javax.swing.JPanel();
 
+        tagDialog.setTitle("Tags");
+        tagDialog.setAlwaysOnTop(true);
         tagDialog.setMinimumSize(new java.awt.Dimension(300, 300));
-        tagDialog.setModal(true);
+        tagDialog.setResizable(false);
+
+        tagSelectView.setSelectable(true);
         tagDialog.getContentPane().add(tagSelectView, java.awt.BorderLayout.CENTER);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -256,12 +260,12 @@ public class Mainscreen extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonClustersActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JComboBox importerSelector;
-    private org.jdesktop.swingx.JXTaskPaneContainer importersPanel;
-    private uk.me.fommil.zibaldone.desktop.JungGraphView jungGraphView;
-    private javax.swing.JToggleButton settingsButton;
-    private javax.swing.JTabbedPane settingsPanel;
-    private javax.swing.JDialog tagDialog;
-    private uk.me.fommil.zibaldone.desktop.TagSelectView tagSelectView;
+    javax.swing.JComboBox importerSelector;
+    org.jdesktop.swingx.JXTaskPaneContainer importersPanel;
+    uk.me.fommil.zibaldone.desktop.JungGraphView jungGraphView;
+    javax.swing.JToggleButton settingsButton;
+    javax.swing.JTabbedPane settingsPanel;
+    javax.swing.JDialog tagDialog;
+    uk.me.fommil.zibaldone.desktop.TagsView tagSelectView;
     // End of variables declaration//GEN-END:variables
 }

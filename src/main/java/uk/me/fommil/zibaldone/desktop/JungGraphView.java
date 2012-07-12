@@ -67,7 +67,8 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
     @Setter
     private JungMainController controller;
 
-    private final JPopupMenu contextMenu = new JPopupMenu();
+    // TODO: make a JDialog which can be resized
+    private final JPopupMenu popup = new JPopupMenu();
 
     /**
      * The JUNG mouse handling framework was developed
@@ -131,9 +132,9 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
         super(new BorderLayout());
         // the JUNG API needs a Graph instance to instantiate many visual objects
         Graph<Note, Weight> dummy = new UndirectedSparseGraph<Note, Weight>();
-        
+
         // TODO: often get relaxEdges exceptions when using SpringLayout
-        
+
         Layout<Note, Weight> delegateLayout = new SpringLayout<Note, Weight>(dummy, Weight.TRANSFORMER);
         Layout<Note, Weight> graphLayout = new AggregateLayout<Note, Weight>(delegateLayout);
         graphVisualiser = new VisualizationViewer<Note, Weight>(graphLayout);
@@ -200,34 +201,26 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
         return subGraph;
     }
 
-    @Deprecated
-    private final JPopupMenu testPopup = new JPopupMenu();
-
     private void selectNotes(final Collection<Note> notes) {
         assert notes != null;
         assert notes.size() > 0;
+
+        popup.removeAll();
 
         // TODO: selected notes shouldn't move
 
         if (notes.size() == 1) {
             // TODO: bring up the BunchView for active Bunches, if a member
-
-            testPopup.removeAll();
             Note note = Iterables.getOnlyElement(notes);
             NoteView noteView = new NoteView();
             noteView.setNote(note);
-            testPopup.add(noteView);
-            testPopup.pack();
-            Point mouse = MouseInfo.getPointerInfo().getLocation();
-            SwingUtilities.convertPointFromScreen(mouse, this);
-            testPopup.show(this, mouse.x, mouse.y);
-
+            popup.add(noteView);
+            popup();
             return;
         }
 
         // TODO: if all notes are in the same Bunch, consider bringing up BunchView
 
-        contextMenu.removeAll();
 
         JMenuItem newBunch = new JMenuItem("New Bunch", KeyEvent.VK_N);
         newBunch.addActionListener(new ActionListener() {
@@ -236,32 +229,35 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
                 controller.newBunch(notes);
             }
         });
-        contextMenu.add(newBunch);
+        popup.add(newBunch);
 
         Collection<Bunch> bunches = controller.getBunches();
         if (!bunches.isEmpty() && bunches.size() < 10) {
-            contextMenu.add(new JSeparator());
+            popup.add(new JSeparator());
             for (Bunch bunch : bunches) {
-                contextMenu.add(new JMenuItem("Add to \"" + bunch.getName() + "\""));
+                popup.add(new JMenuItem("Add to \"" + bunch.getName() + "\""));
             }
         }
 
         if (notes.size() < 10) {
-            contextMenu.add(new JSeparator());
+            popup.add(new JSeparator());
             for (Note note : notes) {
                 JMenuItem entry = new JMenuItem(note.getTitle());
                 entry.setEnabled(false);
                 Font font = entry.getFont();
                 entry.setFont(font.deriveFont(0.8f * font.getSize()));
-                contextMenu.add(entry);
+                popup.add(entry);
             }
         }
-        contextMenu.pack();
+        popup();
+    }
 
+    private void popup() {
+        popup.pack();
         Point mouse = MouseInfo.getPointerInfo().getLocation();
         SwingUtilities.convertPointFromScreen(mouse, this);
         // http://stackoverflow.com/questions/766956
-        contextMenu.show(this, mouse.x, mouse.y);
+        popup.show(this, mouse.x, mouse.y);
     }
 
     @Override

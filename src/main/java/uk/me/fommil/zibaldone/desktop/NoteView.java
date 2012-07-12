@@ -6,12 +6,13 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
-import javax.swing.JLabel;
 import uk.me.fommil.zibaldone.Note;
-import uk.me.fommil.zibaldone.Tag;
 
 /**
- *
+ * Popup view of a Note.
+ * 
+ * TODO: use an HTML rendered version of the contents instead of a JTextArea
+ * 
  * @author Samuel Halliday
  */
 public class NoteView extends javax.swing.JPanel {
@@ -27,10 +28,7 @@ public class NoteView extends javax.swing.JPanel {
      */
     public void setNote(Note note) {
         title.setText(note.getTitle());
-        for (Tag tag : note.getTags()) {
-            // TODO: resuse more generic TagView
-            tags.add(new JLabel(tag.getText()));
-        }
+        tags.setTags(note.getTags());
         contents.setText(note.getContents());
     }
 
@@ -40,32 +38,42 @@ public class NoteView extends javax.swing.JPanel {
 
         title = new javax.swing.JLabel();
         javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
-        tags = new javax.swing.JPanel();
         javax.swing.JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
         contents = new javax.swing.JTextArea();
+        tags = new uk.me.fommil.zibaldone.desktop.TagsView();
 
+        setMinimumSize(new java.awt.Dimension(100, 50));
         setLayout(new java.awt.BorderLayout());
 
+        title.setFont(new java.awt.Font("Lucida Grande", 1, 14)); // NOI18N
         title.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         title.setText("Title");
         add(title, java.awt.BorderLayout.NORTH);
 
         jPanel1.setLayout(new java.awt.BorderLayout());
 
-        tags.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
-        jPanel1.add(tags, java.awt.BorderLayout.NORTH);
+        jScrollPane1.setBackground(null);
+        jScrollPane1.setBorder(null);
+        jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-        contents.setColumns(20);
-        contents.setRows(5);
+        contents.setEditable(false);
+        contents.setBackground(null);
+        contents.setColumns(30);
+        contents.setLineWrap(true);
+        contents.setRows(10);
+        contents.setWrapStyleWord(true);
         jScrollPane1.setViewportView(contents);
 
         jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
+        tags.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
+        jPanel1.add(tags, java.awt.BorderLayout.PAGE_START);
+
         add(jPanel1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextArea contents;
-    private javax.swing.JPanel tags;
-    private javax.swing.JLabel title;
+    javax.swing.JTextArea contents;
+    uk.me.fommil.zibaldone.desktop.TagsView tags;
+    javax.swing.JLabel title;
     // End of variables declaration//GEN-END:variables
 }
