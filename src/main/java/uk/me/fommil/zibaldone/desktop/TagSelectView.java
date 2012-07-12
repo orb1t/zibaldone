@@ -27,7 +27,9 @@ import uk.me.fommil.zibaldone.desktop.JungMainController.TagsChangedListener;
 
 /**
  * Shows tags for the user to select.
- *
+ * <p>
+ * TODO: make more general view/editor for Tags.
+ * 
  * @author Samuel Halliday
  */
 @Log

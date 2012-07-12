@@ -7,6 +7,7 @@
 package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
@@ -44,6 +45,7 @@ import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 import lombok.Setter;
 import lombok.extern.java.Log;
+import org.jdesktop.swingx.SwingXUtilities;
 import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.utils.Convenience.Loop;
 import uk.me.fommil.zibaldone.Bunch;
@@ -86,32 +88,31 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
 
         private int pickedBefore;
 
-        private Note lastMouseOverNote;
-
         public ModelessGraphMouse() {
             add(picker);
         }
 
-        @Override
-        public void mouseMoved(MouseEvent e) {
-            super.mouseMoved(e);
-
-            // TODO: require a mouse click for touchscreens
-            // HACK: this essentially implements mouseEntered/mouseExited on vertices
-            Note note = graphVisualiser.getPickSupport().getVertex(getGraphLayout(), e.getX(), e.getY());
-            if (note != lastMouseOverNote) {
-                lastMouseOverNote = note;
-                if (note != null) {
-                    JungGraphView.this.mouseEntered(note);
-                } else {
-                    JungGraphView.this.mouseExited(note);
-                }
-            }
-        }
-
+//        private Note lastMouseOverNote;
+//
+//        @Override
+//        public void mouseMoved(MouseEvent e) {
+//            super.mouseMoved(e);
+//
+//            // TODO: require a mouse click for touchscreens
+//            // HACK: this essentially implements mouseEntered/mouseExited on vertices
+//            Note note = graphVisualiser.getPickSupport().getVertex(getGraphLayout(), e.getX(), e.getY());
+//            if (note != lastMouseOverNote) {
+//                lastMouseOverNote = note;
+//                if (note != null) {
+//                    JungGraphView.this.mouseEntered(note);
+//                } else {
+//                    JungGraphView.this.mouseExited(note);
+//                }
+//            }
+//        }
         @Override
         public void mousePressed(MouseEvent e) {
-            pickedBefore = graphVisualiser.getPickedVertexState().getPicked().size();
+            pickedBefore = graphVisualiser.getPickedVertexState().getPicked().hashCode();
             super.mousePressed(e);
         }
 
@@ -120,7 +121,7 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
             super.mouseReleased(e);
             Set<Note> picked = graphVisualiser.getPickedVertexState().getPicked();
 
-            if (picked.size() > 1 && picked.size() != pickedBefore) {
+            if (!picked.isEmpty() && picked.hashCode() != pickedBefore) {
                 selectNotes(picked);
             }
         }
@@ -130,6 +131,9 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
         super(new BorderLayout());
         // the JUNG API needs a Graph instance to instantiate many visual objects
         Graph<Note, Weight> dummy = new UndirectedSparseGraph<Note, Weight>();
+        
+        // TODO: often get relaxEdges exceptions when using SpringLayout
+        
         Layout<Note, Weight> delegateLayout = new SpringLayout<Note, Weight>(dummy, Weight.TRANSFORMER);
         Layout<Note, Weight> graphLayout = new AggregateLayout<Note, Weight>(delegateLayout);
         graphVisualiser = new VisualizationViewer<Note, Weight>(graphLayout);
@@ -196,9 +200,32 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
         return subGraph;
     }
 
+    @Deprecated
+    private final JPopupMenu testPopup = new JPopupMenu();
+
     private void selectNotes(final Collection<Note> notes) {
         assert notes != null;
         assert notes.size() > 0;
+
+        // TODO: selected notes shouldn't move
+
+        if (notes.size() == 1) {
+            // TODO: bring up the BunchView for active Bunches, if a member
+
+            testPopup.removeAll();
+            Note note = Iterables.getOnlyElement(notes);
+            NoteView noteView = new NoteView();
+            noteView.setNote(note);
+            testPopup.add(noteView);
+            testPopup.pack();
+            Point mouse = MouseInfo.getPointerInfo().getLocation();
+            SwingUtilities.convertPointFromScreen(mouse, this);
+            testPopup.show(this, mouse.x, mouse.y);
+
+            return;
+        }
+
+        // TODO: if all notes are in the same Bunch, consider bringing up BunchView
 
         contextMenu.removeAll();
 
@@ -235,22 +262,6 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
         SwingUtilities.convertPointFromScreen(mouse, this);
         // http://stackoverflow.com/questions/766956
         contextMenu.show(this, mouse.x, mouse.y);
-    }
-
-    private final JPopupMenu testPopup = new JPopupMenu();
-
-    private void mouseEntered(Note note) {
-        testPopup.removeAll();
-        testPopup.add(new JMenuItem(note.getTitle()));
-        testPopup.pack();
-        Point mouse = MouseInfo.getPointerInfo().getLocation();
-        SwingUtilities.convertPointFromScreen(mouse, this);
-        // http://stackoverflow.com/questions/766956
-        testPopup.show(this, mouse.x, mouse.y);
-    }
-
-    private void mouseExited(Note note) {
-        testPopup.setVisible(false);
     }
 
     @Override
