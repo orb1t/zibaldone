@@ -17,7 +17,6 @@ import com.google.common.collect.Sets;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import java.util.*;
-import javax.annotation.Nullable;
 import javax.persistence.EntityManagerFactory;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -231,16 +230,18 @@ public class JungMainController {
         return dao.readAll();
     }
 
-    public void newBunch(Collection<Note> notes) {
+    public Bunch newBunch(Set<Note> notes) {
         Preconditions.checkNotNull(notes);
         Preconditions.checkArgument(!notes.isEmpty());
 
         Bunch bunch = new Bunch();
         bunch.setName("New Bunch");
+        bunch.setNotes(notes);
         BunchDao dao = new BunchDao(emf);
         dao.create(bunch);
 
         fireBunchesChanged(dao);
+        return bunch;
     }
 
     public void addToBunch(Bunch bunch, Note note) {
@@ -287,6 +288,7 @@ public class JungMainController {
     @Data
     public static class Settings {
 
+        @Deprecated // with preference for sparsity value
         private int connections = 500;
 
         private String search = "";

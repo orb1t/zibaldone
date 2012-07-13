@@ -37,19 +37,19 @@
             <version>0.11.2</version>
             <scope>provided</scope>
         </dependency>-->
-        <dependency>
+<!--        <dependency>
             <groupId>com.github.peichhorn</groupId>
             <artifactId>lombok-pg</artifactId>
             <version>0.11.0</version>
             <scope>provided</scope>
-        </dependency>
+        </dependency>-->
 <!--        https://oss.sonatype.org/content/repositories/snapshots/com/github/peichhorn/lombok-pg/-->
-<!--        <dependency>
+        <dependency>
             <groupId>com.github.peichhorn</groupId>
             <artifactId>lombok-pg</artifactId>
             <version>0.11.2-SNAPSHOT</version>
             <scope>provided</scope>
-        </dependency>-->
+        </dependency>
         
         <dependency>
             <groupId>org.apache.lucene</groupId>

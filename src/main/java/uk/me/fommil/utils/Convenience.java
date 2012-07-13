@@ -13,6 +13,7 @@ import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.filter;
 import com.google.common.collect.Lists;
 import static com.google.common.collect.Lists.newArrayList;
+import com.google.common.collect.Sets;
 import static com.google.common.collect.Sets.intersection;
 import static com.google.common.collect.Sets.newHashSet;
 import java.util.Collection;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import uk.me.fommil.zibaldone.Note;
 
 /**
  * Arbitrary convenience methods for working with a variety of standard Java
@@ -106,5 +108,19 @@ public final class Convenience {
             }
         }
         return newHashSet(filter(disjoint, NO_EMPTIES));
+    }
+
+    /**
+     * @param test
+     * @param set
+     * @return true if test is a subset of set
+     */
+    public static boolean isSubset(Set<Note> test, Set<Note> set) {
+        Preconditions.checkNotNull(test);
+        Preconditions.checkNotNull(set);
+        if (test.isEmpty()) {
+            return false;
+        }
+        return Sets.intersection(test, set).size() == test.size();
     }
 }

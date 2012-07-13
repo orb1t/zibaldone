@@ -8,8 +8,11 @@ package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import com.google.common.collect.Sets.SetView;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
+import edu.uci.ics.jung.algorithms.layout.FRLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout;
 import edu.uci.ics.jung.graph.Graph;
@@ -135,7 +138,8 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
 
         // TODO: often get relaxEdges exceptions when using SpringLayout
 
-        Layout<Note, Weight> delegateLayout = new SpringLayout<Note, Weight>(dummy, Weight.TRANSFORMER);
+        Layout<Note, Weight> delegateLayout = new FRLayout<Note, Weight>(dummy);
+//        Layout<Note, Weight> delegateLayout = new SpringLayout<Note, Weight>(dummy, Weight.TRANSFORMER);
         Layout<Note, Weight> graphLayout = new AggregateLayout<Note, Weight>(delegateLayout);
         graphVisualiser = new VisualizationViewer<Note, Weight>(graphLayout);
         graphVisualiser.setBackground(Color.WHITE);
@@ -201,7 +205,7 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
         return subGraph;
     }
 
-    private void selectNotes(final Collection<Note> notes) {
+    private void selectNotes(final Set<Note> notes) {
         assert notes != null;
         assert notes.size() > 0;
 
@@ -209,8 +213,18 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
 
         // TODO: selected notes shouldn't move
 
+        // TODO: only go through active bunches
+        for (Bunch bunch : controller.getBunches()) {
+            if (Convenience.isSubset(notes, bunch.getNotes())) {
+                BunchView view = new BunchView();
+                view.setBunch(bunch);
+                popup.add(view);
+                popup();
+                return;
+            }
+        }
+
         if (notes.size() == 1) {
-            // TODO: bring up the BunchView for active Bunches, if a member
             Note note = Iterables.getOnlyElement(notes);
             NoteView noteView = new NoteView();
             noteView.setNote(note);
@@ -219,14 +233,16 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
             return;
         }
 
-        // TODO: if all notes are in the same Bunch, consider bringing up BunchView
-
-
         JMenuItem newBunch = new JMenuItem("New Bunch", KeyEvent.VK_N);
         newBunch.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                controller.newBunch(notes);
+                Bunch bunch = controller.newBunch(notes);
+                BunchView view = new BunchView();
+                view.setBunch(bunch);
+                popup.removeAll();
+                popup.add(view);
+                popup();
             }
         });
         popup.add(newBunch);

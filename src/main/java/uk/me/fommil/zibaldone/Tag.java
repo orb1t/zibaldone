@@ -51,4 +51,9 @@ public class Tag implements Serializable, Comparable<Tag> {
     public int compareTo(Tag o) {
         return text.compareTo(o.getText());
     }
+    
+    @Override
+    public String toString() {
+        return text;
+    }
 }
