@@ -7,6 +7,8 @@
 package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
+import java.awt.EventQueue;
+import java.awt.FlowLayout;
 import java.beans.PropertyEditorManager;
 import java.io.File;
 import java.io.IOException;
@@ -38,9 +40,11 @@ public class Mainscreen extends javax.swing.JFrame {
 
         final EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
 
-        java.awt.EventQueue.invokeLater(new Runnable() {
+        EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
+                // TODO: Swing Log capture and view
+                
                 JungMainController controller = new JungMainController(emf);
 
                 // DEBUG: programmatic load of importer
@@ -223,6 +227,8 @@ public class Mainscreen extends javax.swing.JFrame {
 
         jScrollPane1.setBorder(null);
         jScrollPane1.setViewportView(null);
+
+        importersPanel.setLayout(new java.awt.FlowLayout());
         jScrollPane1.setViewportView(importersPanel);
 
         jImportersPanel.add(jScrollPane1, java.awt.BorderLayout.CENTER);

@@ -18,7 +18,7 @@ import javax.swing.*;
 import javax.swing.table.*;
 import lombok.Getter;
 import lombok.extern.java.Log;
-import org.jdesktop.swingx.JXImagePanel;
+import org.jdesktop.swingx.JXImageView;
 import org.jdesktop.swingx.JXTable;
 import uk.me.fommil.beans.BeanHelper.Property;
 
@@ -260,7 +260,7 @@ public final class JBeanEditor extends JPanel {
             if (icon == null) {
                 remove(top);
             } else {
-                JXImagePanel logo = new JXImagePanel();
+                JXImageView logo = new JXImageView();
                 logo.setImage(icon);
                 add(logo, BorderLayout.NORTH);
             }

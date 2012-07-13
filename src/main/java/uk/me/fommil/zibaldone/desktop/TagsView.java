@@ -22,6 +22,7 @@ import javax.swing.JPanel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.java.Log;
+import uk.me.fommil.swing.WrapLayout;
 import uk.me.fommil.zibaldone.Tag;
 import uk.me.fommil.zibaldone.desktop.JungMainController.TagChoice;
 import uk.me.fommil.zibaldone.desktop.JungMainController.TagsChangedListener;
@@ -47,6 +48,7 @@ public class TagsView extends JPanel implements TagsChangedListener {
             super(tag.getText());
             Preconditions.checkNotNull(tag);
             Preconditions.checkNotNull(choice);
+            setLayout(new WrapLayout());
             this.tag = tag;
             setOpaque(true);
             setChoice(choice);

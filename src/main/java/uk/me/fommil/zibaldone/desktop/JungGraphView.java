@@ -8,13 +8,10 @@ package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
-import com.google.common.collect.Sets.SetView;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.algorithms.layout.FRLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
-import edu.uci.ics.jung.algorithms.layout.SpringLayout;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
@@ -23,12 +20,10 @@ import edu.uci.ics.jung.visualization.control.GraphMousePlugin;
 import edu.uci.ics.jung.visualization.control.PickingGraphMousePlugin;
 import edu.uci.ics.jung.visualization.control.PluggableGraphMouse;
 import edu.uci.ics.jung.visualization.decorators.PickableVertexPaintTransformer;
-import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.layout.ObservableCachingLayout;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -48,7 +43,6 @@ import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 import lombok.Setter;
 import lombok.extern.java.Log;
-import org.jdesktop.swingx.SwingXUtilities;
 import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.utils.Convenience.Loop;
 import uk.me.fommil.zibaldone.Bunch;
@@ -260,8 +254,7 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
             for (Note note : notes) {
                 JMenuItem entry = new JMenuItem(note.getTitle());
                 entry.setEnabled(false);
-                Font font = entry.getFont();
-                entry.setFont(font.deriveFont(0.8f * font.getSize()));
+                entry.setFont(entry.getFont().deriveFont(10f));
                 popup.add(entry);
             }
         }

@@ -18,11 +18,11 @@ import uk.me.fommil.zibaldone.Note;
 public class NoteView extends javax.swing.JPanel {
 
     private Note note;
-    
+
     public NoteView() {
         initComponents();
     }
-    
+
     /**
      * @param note
      */
@@ -52,12 +52,10 @@ public class NoteView extends javax.swing.JPanel {
 
         jPanel1.setLayout(new java.awt.BorderLayout());
 
-        jScrollPane1.setBackground(null);
         jScrollPane1.setBorder(null);
         jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
         contents.setEditable(false);
-        contents.setBackground(null);
         contents.setColumns(30);
         contents.setLineWrap(true);
         contents.setRows(10);
@@ -67,6 +65,7 @@ public class NoteView extends javax.swing.JPanel {
         jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
         tags.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
+        tags.setLayout(new uk.me.fommil.swing.WrapLayout());
         jPanel1.add(tags, java.awt.BorderLayout.PAGE_START);
 
         add(jPanel1, java.awt.BorderLayout.CENTER);

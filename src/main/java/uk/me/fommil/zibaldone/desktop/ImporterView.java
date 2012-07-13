@@ -12,7 +12,7 @@ import java.util.logging.Level;
 import javax.swing.JPanel;
 import lombok.extern.java.Log;
 import org.jdesktop.swingx.JXTaskPane;
-import uk.me.fommil.utils.Swing;
+import uk.me.fommil.swing.SwingConvenience;
 import uk.me.fommil.zibaldone.Importer;
 
 /**
@@ -127,7 +127,7 @@ public class ImporterView extends JXTaskPane {
             reloadButton.setText("Reload");
         } catch (IOException ex) {
             log.log(Level.WARNING, "failed import", ex);
-            Swing.warning(this, "There was a problem with the data source.");
+            SwingConvenience.warning(this, "There was a problem with the data source.");
         }
     }//GEN-LAST:event_reloadButtonActionPerformed
 

@@ -25,20 +25,23 @@ import uk.me.fommil.zibaldone.Tag;
  */
 @Log
 public class BunchView extends javax.swing.JPanel {
-    
+
     @Getter
     private Bunch bunch;
-    
+
     public BunchView() {
         initComponents();
+
+        // for the desired effect we have to use Size, not maximumSize
+        tags.setSize(400, 1);
     }
-    
+
     public void setBunch(final Bunch bunch) {
         Preconditions.checkNotNull(bunch);
         Preconditions.checkState(this.bunch == null, "bunch cannot be rebound");
         this.bunch = bunch;
         name.setText(bunch.getName());
-        
+
         Set<Note> allNotes = bunch.getNotes();
         Set<Tag> allTags = Sets.newTreeSet();
         Set<String> noteTitles = Sets.newTreeSet();
@@ -64,18 +67,20 @@ public class BunchView extends javax.swing.JPanel {
             }
         });
     }
-    
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         name = new javax.swing.JTextField();
         javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
+        javax.swing.JSplitPane jSplitPane1 = new javax.swing.JSplitPane();
         javax.swing.JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
         content = new javax.swing.JEditorPane();
-        tags = new uk.me.fommil.zibaldone.desktop.TagsView();
         javax.swing.JScrollPane jScrollPane2 = new javax.swing.JScrollPane();
         notes = new javax.swing.JList();
+        javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
+        tags = new uk.me.fommil.zibaldone.desktop.TagsView();
 
         setLayout(new java.awt.BorderLayout());
 
@@ -85,43 +90,42 @@ public class BunchView extends javax.swing.JPanel {
         name.setBorder(null);
         add(name, java.awt.BorderLayout.PAGE_START);
 
+        jPanel1.setMaximumSize(new java.awt.Dimension(800, 2147483647));
         jPanel1.setLayout(new java.awt.BorderLayout());
+
+        jSplitPane1.setBorder(null);
+        jSplitPane1.setDividerSize(10);
+        jSplitPane1.setResizeWeight(1.0);
 
         jScrollPane1.setBorder(null);
         jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane1.setMaximumSize(new java.awt.Dimension(400, 300));
+        jScrollPane1.setMinimumSize(new java.awt.Dimension(400, 300));
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(400, 300));
+
+        content.setBorder(javax.swing.BorderFactory.createTitledBorder("Comments"));
         jScrollPane1.setViewportView(content);
 
-        jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
+        jSplitPane1.setLeftComponent(jScrollPane1);
 
-        tags.setPreferredSize(new java.awt.Dimension(400, 20));
-
-        javax.swing.GroupLayout tagsLayout = new javax.swing.GroupLayout(tags);
-        tags.setLayout(tagsLayout);
-        tagsLayout.setHorizontalGroup(
-            tagsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
-        tagsLayout.setVerticalGroup(
-            tagsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 20, Short.MAX_VALUE)
-        );
-
-        jPanel1.add(tags, java.awt.BorderLayout.NORTH);
-
-        jScrollPane2.setBorder(null);
+        jScrollPane2.setBorder(javax.swing.BorderFactory.createTitledBorder("Notes"));
         jScrollPane2.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        jScrollPane2.setMaximumSize(new java.awt.Dimension(75, 32767));
-        jScrollPane2.setMinimumSize(new java.awt.Dimension(50, 0));
+        jScrollPane2.setMaximumSize(new java.awt.Dimension(250, 32767));
+        jScrollPane2.setMinimumSize(new java.awt.Dimension(100, 200));
+        jScrollPane2.setPreferredSize(new java.awt.Dimension(250, 200));
 
         notes.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
-        notes.setModel(new javax.swing.AbstractListModel() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
         jScrollPane2.setViewportView(notes);
 
-        jPanel1.add(jScrollPane2, java.awt.BorderLayout.EAST);
+        jSplitPane1.setRightComponent(jScrollPane2);
+
+        jPanel1.add(jSplitPane1, java.awt.BorderLayout.CENTER);
+
+        tags.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
+        tags.setLayout(new uk.me.fommil.swing.WrapLayout());
+        jPanel2.add(tags);
+
+        jPanel1.add(jPanel2, java.awt.BorderLayout.NORTH);
 
         add(jPanel1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
