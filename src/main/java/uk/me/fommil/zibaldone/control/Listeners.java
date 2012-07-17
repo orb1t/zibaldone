@@ -19,7 +19,7 @@ import uk.me.fommil.zibaldone.Tag;
  * 
  * @author Samuel Halliday
  */
-public class Listeners {
+public final class Listeners {
 
     public final static class ClusterId {
     }
@@ -42,9 +42,6 @@ public class Listeners {
      * not indicate {@link Bunch} membership.
      */
     public interface ClustersChangedListener extends EventListener {
-
-        @Deprecated
-        public void clustersChanged(Set<Set<Note>> clusters);
 
         public void clusterAdded(ClusterId id, Set<Note> newCluster);
 

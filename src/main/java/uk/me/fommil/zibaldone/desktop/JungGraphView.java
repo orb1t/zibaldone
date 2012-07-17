@@ -9,6 +9,7 @@ package uk.me.fommil.zibaldone.desktop;
 import uk.me.fommil.zibaldone.control.JungMainController;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.algorithms.layout.FRLayout;
@@ -35,6 +36,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import javax.swing.JMenuItem;
@@ -160,6 +162,8 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
             public void componentResized(ComponentEvent ce) {
                 graphVisualiser.setSize(getSize());
                 getGraphLayout().setSize(getSize());
+                
+                // TODO: reposition clusters on window resize
             }
         });
     }
@@ -273,37 +277,53 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
         popup.show(this, mouse.x, mouse.y);
     }
 
-    @Override
-    public void clustersChanged(Set<Set<Note>> clusters) {
-        Preconditions.checkNotNull(clusters);
+    private final Map<ClusterId, Layout<Note, Weight>> clusters = Maps.newHashMap();
 
-        // TODO: keep a record of the clusters so they don't jump around
+    @Override
+    public void clusterAdded(ClusterId id, Set<Note> cluster) {
+        Preconditions.checkNotNull(id);
+
         AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
-        graphLayout.removeAll();
-        for (Set<Note> cluster : clusters) {
-            Graph<Note, Weight> subGraph = subGraph(cluster);
-            Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(subGraph);
-            subLayout.setInitializer(graphLayout);
-            subLayout.setSize(new Dimension(50, 50));
-            // TODO: calculate a good position/size for the cluster
-            Random random = new Random();
-            Point2D subCentered = new Point(random.nextInt(getSize().width), random.nextInt(getSize().height));
-            graphLayout.put(subLayout, subCentered);
-        }
-    }
+        Graph<Note, Weight> subGraph = subGraph(cluster);
+        Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(subGraph);
 
-    @Override
-    public void clusterAdded(ClusterId id, Set<Note> newCluster) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        subLayout.setInitializer(graphLayout);
+
+        int size = Math.min(50, cluster.size() * 5);
+        subLayout.setSize(new Dimension(size, size));
+
+        // TODO: smarter positioning of clusters
+        Random random = new Random();
+        Point2D subCentered = new Point(random.nextInt(getSize().width), random.nextInt(getSize().height));
+        graphLayout.put(subLayout, subCentered);
+        clusters.put(id, subLayout);
+        graphVisualiser.repaint();
     }
 
     @Override
     public void clusterRemoved(ClusterId id) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        Preconditions.checkNotNull(id);
+        Preconditions.checkArgument(clusters.containsKey(id));
+
+        Layout<Note, Weight> subLayout = clusters.get(id);
+        AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
+        graphLayout.remove(subLayout);
+
+        clusters.remove(id);
+        graphVisualiser.repaint();
     }
 
     @Override
-    public void clusterUpdated(ClusterId id, Set<Note> updatedCluster) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void clusterUpdated(ClusterId id, Set<Note> cluster) {
+        Preconditions.checkNotNull(id);
+        Preconditions.checkArgument(clusters.containsKey(id));
+
+        Layout<Note, Weight> subLayout = clusters.get(id);
+        int size = Math.min(50, cluster.size() * 5);
+        subLayout.setSize(new Dimension(size, size));
+
+        Graph<Note, Weight> subGraph = subGraph(cluster);
+        subLayout.setGraph(subGraph);
+        graphVisualiser.repaint();
     }
 }
