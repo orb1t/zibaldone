@@ -6,6 +6,7 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
+import uk.me.fommil.zibaldone.control.JungMainController;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
@@ -47,7 +48,9 @@ import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.utils.Convenience.Loop;
 import uk.me.fommil.zibaldone.Bunch;
 import uk.me.fommil.zibaldone.Note;
-import uk.me.fommil.zibaldone.desktop.JungMainController.ClustersChangedListener;
+import uk.me.fommil.zibaldone.control.Listeners.ClusterId;
+import uk.me.fommil.zibaldone.control.Listeners.ClustersChangedListener;
+import uk.me.fommil.zibaldone.control.Weight;
 
 /**
  * Draws the network graph of the {@link Note}s and {@link Bunch}s
@@ -165,6 +168,7 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
      * @param graph 
      */
     public void setGraph(ObservableGraph<Note, Weight> graph) {
+        // TODO: should this not be set from the controller?
         Preconditions.checkNotNull(graph);
         //        this.graph.removeGraphEventListener(this);
         getGraphLayout().setGraph(graph);
@@ -286,5 +290,20 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
             Point2D subCentered = new Point(random.nextInt(getSize().width), random.nextInt(getSize().height));
             graphLayout.put(subLayout, subCentered);
         }
+    }
+
+    @Override
+    public void clusterAdded(ClusterId id, Set<Note> newCluster) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void clusterRemoved(ClusterId id) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void clusterUpdated(ClusterId id, Set<Note> updatedCluster) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

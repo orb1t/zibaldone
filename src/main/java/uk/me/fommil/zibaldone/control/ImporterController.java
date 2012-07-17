@@ -4,12 +4,18 @@
  * Copyright Samuel Halliday 2012
  * PROPRIETARY/CONFIDENTIAL. Use is subject to licence terms.
  */
-package uk.me.fommil.zibaldone.desktop;
+package uk.me.fommil.zibaldone.control;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import java.io.IOException;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.Set;
+import java.util.UUID;
 import lombok.ListenerSupport;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +24,7 @@ import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Reconciler;
 import uk.me.fommil.zibaldone.Tag;
-import uk.me.fommil.zibaldone.desktop.JungMainController.TagsChangedListener;
+import uk.me.fommil.zibaldone.control.Listeners.TagsChangedListener;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
 
 /**

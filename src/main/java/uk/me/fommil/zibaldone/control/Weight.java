@@ -4,7 +4,7 @@
  * Copyright Samuel Halliday 2012
  * PROPRIETARY/CONFIDENTIAL. Use is subject to licence terms.
  */
-package uk.me.fommil.zibaldone.desktop;
+package uk.me.fommil.zibaldone.control;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;

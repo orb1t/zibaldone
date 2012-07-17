@@ -6,6 +6,7 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
+import uk.me.fommil.zibaldone.control.JungMainController;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -24,8 +25,8 @@ import lombok.Setter;
 import lombok.extern.java.Log;
 import uk.me.fommil.swing.WrapLayout;
 import uk.me.fommil.zibaldone.Tag;
-import uk.me.fommil.zibaldone.desktop.JungMainController.TagChoice;
-import uk.me.fommil.zibaldone.desktop.JungMainController.TagsChangedListener;
+import uk.me.fommil.zibaldone.control.JungMainController.TagChoice;
+import uk.me.fommil.zibaldone.control.Listeners.TagsChangedListener;
 
 /**
  * Shows tags and provides programmatic options to enable tag selection,
@@ -40,8 +41,10 @@ public class TagsView extends JPanel implements TagsChangedListener {
 
     private final class TagView extends JLabel {
 
+        @Getter
         private final Tag tag;
 
+        @Getter @Setter
         private TagChoice choice;
 
         public TagView(Tag tag, TagChoice choice) {
@@ -68,14 +71,6 @@ public class TagsView extends JPanel implements TagsChangedListener {
             }
             setChoice(nextChoice());
             controller.selectTag(tag, choice);
-        }
-
-        public void setChoice(TagChoice choice) {
-            Preconditions.checkNotNull(choice);
-            if (this.choice == choice) {
-                return;
-            }
-            this.choice = choice;
             // TODO: rounded borders for tag background
             setBackground(getColorForChoice(choice));
             repaint();

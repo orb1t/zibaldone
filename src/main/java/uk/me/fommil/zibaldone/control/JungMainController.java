@@ -4,19 +4,23 @@
  * Copyright Samuel Halliday 2012
  * PROPRIETARY/CONFIDENTIAL. Use is subject to licence terms.
  */
-package uk.me.fommil.zibaldone.desktop;
+package uk.me.fommil.zibaldone.control;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import javax.persistence.EntityManagerFactory;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -27,58 +31,36 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.utils.Convenience.Loop;
-import uk.me.fommil.zibaldone.*;
-import uk.me.fommil.zibaldone.desktop.JungMainController.ClustersChangedListener;
-import uk.me.fommil.zibaldone.desktop.JungMainController.BunchesChangedListener;
-import uk.me.fommil.zibaldone.desktop.JungMainController.TagsChangedListener;
+import uk.me.fommil.zibaldone.Bunch;
+import uk.me.fommil.zibaldone.Importer;
+import uk.me.fommil.zibaldone.Note;
+import uk.me.fommil.zibaldone.Relator;
+import uk.me.fommil.zibaldone.Tag;
+import uk.me.fommil.zibaldone.control.Listeners.BunchesChangedListener;
+import uk.me.fommil.zibaldone.control.Listeners.ClustersChangedListener;
+import uk.me.fommil.zibaldone.control.Listeners.TagsChangedListener;
 import uk.me.fommil.zibaldone.persistence.BunchDao;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
 import uk.me.fommil.zibaldone.relator.TagRelator;
 
 /**
- * An MVC Controller that uses JUNG to organise the core
- * Zibaldone objects (the Model). Most tasks
- * are performed by specialist controllers, obtained here.
+ * The main MVC Controller that uses JUNG to organise the core Zibaldone
+ * objects (the Model).
  * <p>
- * The View primarily receives asynchronous updates via {@link ObservableGraph}.
- * However, some information is available synchronously through getters/setters.
- * Standard Java objects are preferred in the Controller APIs to simplify
- * the Views and to minimise the risk of incorrect persistence handling.
+ * The View primarily receives asynchronous updates via {@link ObservableGraph}
+ * and {@link Listeners}.
  * <p>
  * The JUNG graph has {@link Note}s on vertices and {@link Weight} values
- * {@code [0, 1]}, as defined in the {@link Relator}, on the edges.
+ * {@code [0, 1]}, as defined in the {@link Relator}, on the edges. User
+ * preferences result in the graph being trimmed to make computationally
+ * tractable the rendering of larger graphs.
  * 
- * @see JungGraphView
  * @author Samuel Halliday
  */
 @Log
 @RequiredArgsConstructor
 @ListenerSupport({BunchesChangedListener.class, ClustersChangedListener.class, TagsChangedListener.class})
 public class JungMainController {
-
-    public interface BunchesChangedListener extends EventListener {
-
-        // TODO: fire the change, not the object
-        public void bunchesChanged(Collection<Bunch> bunches);
-
-        // TODO: fire the change, not the object
-        public void selectedBunchesChanged(Collection<Bunch> bunches);
-    }
-
-    public interface ClustersChangedListener extends EventListener {
-
-        // TODO: fire the change, not the object
-        public void clustersChanged(Set<Set<Note>> clusters);
-    }
-
-    public interface TagsChangedListener extends EventListener {
-
-        // TODO: fire the change, not the object
-        public void tagSelectionChanged(Multimap<TagChoice, Tag> selection);
-
-        // TODO: fire the change, not the object
-        public void tagsChanged(Set<Tag> tags);
-    }
 
     @NonNull @Getter(AccessLevel.PROTECTED)
     private final EntityManagerFactory emf;

@@ -14,6 +14,7 @@ import lombok.extern.java.Log;
 import org.jdesktop.swingx.JXTaskPane;
 import uk.me.fommil.swing.SwingConvenience;
 import uk.me.fommil.zibaldone.Importer;
+import uk.me.fommil.zibaldone.control.ImporterController;
 
 /**
  * The specialist GUI widget for interacting with {@link Importer}s.

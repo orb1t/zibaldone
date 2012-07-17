@@ -6,9 +6,9 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
+import uk.me.fommil.zibaldone.control.JungMainController;
 import com.google.common.base.Preconditions;
 import java.awt.EventQueue;
-import java.awt.FlowLayout;
 import java.beans.PropertyEditorManager;
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +25,7 @@ import uk.me.fommil.beans.editors.DatePropertyEditor;
 import uk.me.fommil.beans.editors.FilePropertyEditor;
 import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Importer;
+import uk.me.fommil.zibaldone.control.ImporterController;
 import uk.me.fommil.zibaldone.importer.OrgModeImporter;
 
 /**
@@ -44,7 +45,7 @@ public class Mainscreen extends javax.swing.JFrame {
             @Override
             public void run() {
                 // TODO: Swing Log capture and view
-                
+
                 JungMainController controller = new JungMainController(emf);
 
                 // DEBUG: programmatic load of importer
@@ -59,7 +60,7 @@ public class Mainscreen extends javax.swing.JFrame {
                 main.setVisible(true);
 
                 // TODO: viewing of initial database entries
-                
+
                 // this needs to happen after so the views get the model
                 try {
                     ImporterController importController = new ImporterController(controller, uuid);
@@ -87,6 +88,7 @@ public class Mainscreen extends javax.swing.JFrame {
         Preconditions.checkNotNull(controller);
         this.controller = controller;
 
+        // TODO: more elegant registering process outside of this setter
         jungGraphView.setGraph(controller.getGraph());
         tagSelectView.setController(controller);
         jungGraphView.setController(controller);
