@@ -39,7 +39,7 @@ public class TagRelator implements Relator {
     @Getter
     private final String name = "Tags";
 
-    // FIXME: tag resolving should be done in a separate object
+    // TODO: tag resolving should be done in a separate object
     // tags that appear in a Synonym are resolved to an arbitrary tag
     private final transient Map<Tag, Tag> resolve = Maps.newHashMap();
 

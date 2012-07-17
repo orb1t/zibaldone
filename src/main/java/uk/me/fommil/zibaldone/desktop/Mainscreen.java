@@ -103,7 +103,6 @@ public class Mainscreen extends javax.swing.JFrame {
         }
 
         // TODO: add the 'null' importer        
-        // TODO: JSplitPane for settings size
         // TODO: animated settings panel
         // TODO: icons for the toolbar buttons
         // TODO: menu entries
@@ -162,6 +161,7 @@ public class Mainscreen extends javax.swing.JFrame {
 
         jSearch.setMaximumSize(new java.awt.Dimension(1000, 2147483647));
         jSearch.setMinimumSize(new java.awt.Dimension(100, 28));
+        jSearch.setPrompt("Search titles, tags and contents");
         jToolBar.add(jSearch);
 
         tagsButton.setText("Tags");

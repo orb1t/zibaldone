@@ -38,6 +38,7 @@ public class BunchView extends javax.swing.JPanel {
 
     public void setBunch(final Bunch bunch) {
         Preconditions.checkNotNull(bunch);
+        // TODO: allow rebinding of bunch
         Preconditions.checkState(this.bunch == null, "bunch cannot be rebound");
         this.bunch = bunch;
         name.setText(bunch.getName());
@@ -49,7 +50,6 @@ public class BunchView extends javax.swing.JPanel {
             allTags.addAll(note.getTags());
             noteTitles.add(note.getTitle());
         }
-        log.info(allTags.toString());
         tags.setTags(allTags);
         notes.setModel(new ListComboBoxModel<String>(Lists.newArrayList(noteTitles)));
 
@@ -74,13 +74,12 @@ public class BunchView extends javax.swing.JPanel {
 
         name = new javax.swing.JTextField();
         javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
-        javax.swing.JSplitPane jSplitPane1 = new javax.swing.JSplitPane();
+        javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
+        tags = new uk.me.fommil.zibaldone.desktop.TagsView();
         javax.swing.JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
         content = new javax.swing.JEditorPane();
         javax.swing.JScrollPane jScrollPane2 = new javax.swing.JScrollPane();
         notes = new javax.swing.JList();
-        javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
-        tags = new uk.me.fommil.zibaldone.desktop.TagsView();
 
         setLayout(new java.awt.BorderLayout());
 
@@ -93,20 +92,22 @@ public class BunchView extends javax.swing.JPanel {
         jPanel1.setMaximumSize(new java.awt.Dimension(800, 2147483647));
         jPanel1.setLayout(new java.awt.BorderLayout());
 
-        jSplitPane1.setBorder(null);
-        jSplitPane1.setDividerSize(10);
-        jSplitPane1.setResizeWeight(1.0);
+        tags.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
+        uk.me.fommil.swing.WrapLayout wrapLayout1 = new uk.me.fommil.swing.WrapLayout();
+        wrapLayout1.setVgap(2);
+        tags.setLayout(wrapLayout1);
+        jPanel2.add(tags);
+
+        jPanel1.add(jPanel2, java.awt.BorderLayout.NORTH);
 
         jScrollPane1.setBorder(null);
         jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        jScrollPane1.setMaximumSize(new java.awt.Dimension(400, 300));
-        jScrollPane1.setMinimumSize(new java.awt.Dimension(400, 300));
         jScrollPane1.setPreferredSize(new java.awt.Dimension(400, 300));
 
         content.setBorder(javax.swing.BorderFactory.createTitledBorder("Comments"));
         jScrollPane1.setViewportView(content);
 
-        jSplitPane1.setLeftComponent(jScrollPane1);
+        jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
         jScrollPane2.setBorder(javax.swing.BorderFactory.createTitledBorder("Notes"));
         jScrollPane2.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -117,15 +118,7 @@ public class BunchView extends javax.swing.JPanel {
         notes.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
         jScrollPane2.setViewportView(notes);
 
-        jSplitPane1.setRightComponent(jScrollPane2);
-
-        jPanel1.add(jSplitPane1, java.awt.BorderLayout.CENTER);
-
-        tags.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
-        tags.setLayout(new uk.me.fommil.swing.WrapLayout());
-        jPanel2.add(tags);
-
-        jPanel1.add(jPanel2, java.awt.BorderLayout.NORTH);
+        jPanel1.add(jScrollPane2, java.awt.BorderLayout.EAST);
 
         add(jPanel1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents

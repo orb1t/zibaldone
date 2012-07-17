@@ -11,7 +11,6 @@ import java.io.Serializable;
 import java.util.Set;
 import javax.persistence.*;
 import lombok.Data;
-import lombok.NonNull;
 
 /**
  * Synonyms between {@link Tag}s, i.e. tags that are not byte-for-byte the
@@ -20,6 +19,8 @@ import lombok.NonNull;
  * Synonyms may be user defined but are also automatically created
  * in the {@link Reconciler}. The user may choose to ignore an automatic
  * synonym.
+ * <p>
+ * ??: a future feature could automatically generate synonyms based on a knowledge base of synonyms.
  * 
  * @author Samuel Halliday
  */
