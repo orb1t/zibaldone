@@ -6,6 +6,7 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
+import com.google.common.base.Joiner;
 import uk.me.fommil.zibaldone.control.JungMainController;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
@@ -35,6 +36,9 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Math.round;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Random;
@@ -91,6 +95,8 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
 
         private int pickedBefore;
 
+        private Point location;
+
         public ModelessGraphMouse() {
             add(picker);
         }
@@ -115,6 +121,7 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
 //        }
         @Override
         public void mousePressed(MouseEvent e) {
+            location = e.getLocationOnScreen();
             pickedBefore = graphVisualiser.getPickedVertexState().getPicked().hashCode();
             super.mousePressed(e);
         }
@@ -124,7 +131,7 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
             super.mouseReleased(e);
             Set<Note> picked = graphVisualiser.getPickedVertexState().getPicked();
 
-            if (!picked.isEmpty() && picked.hashCode() != pickedBefore) {
+            if (!picked.isEmpty() && picked.hashCode() != pickedBefore && location.distance(e.getLocationOnScreen()) < 10) {
                 selectNotes(picked);
             }
         }
@@ -134,8 +141,6 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
         super(new BorderLayout());
         // the JUNG API needs a Graph instance to instantiate many visual objects
         Graph<Note, Weight> dummy = new UndirectedSparseGraph<Note, Weight>();
-
-        // TODO: often get relaxEdges exceptions when using SpringLayout
 
         Layout<Note, Weight> delegateLayout = new FRLayout<Note, Weight>(dummy);
 //        Layout<Note, Weight> delegateLayout = new SpringLayout<Note, Weight>(dummy, Weight.TRANSFORMER);
@@ -153,17 +158,16 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
 
         graphVisualiser.setGraphMouse(new ModelessGraphMouse());
 
-        // TODO: popup Note/Bunch Component, not tooltip
-//        graphVisualiser.setVertexToolTipTransformer(new ToStringLabeller<Note>());
-
         add(graphVisualiser, BorderLayout.CENTER);
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent ce) {
                 graphVisualiser.setSize(getSize());
                 getGraphLayout().setSize(getSize());
-                
-                // TODO: reposition clusters on window resize
+
+                for (ClusterId cluster : clusterLayouts.keySet()) {
+                    positionCluster(cluster);
+                }
             }
         });
     }
@@ -212,8 +216,6 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
         assert notes.size() > 0;
 
         popup.removeAll();
-
-        // TODO: selected notes shouldn't move
 
         // TODO: only go through active bunches
         for (Bunch bunch : controller.getBunches()) {
@@ -277,53 +279,76 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
         popup.show(this, mouse.x, mouse.y);
     }
 
-    private final Map<ClusterId, Layout<Note, Weight>> clusters = Maps.newHashMap();
+    private final Map<ClusterId, Layout<Note, Weight>> clusterLayouts = Maps.newHashMap();
+
+    // double [0, 1]
+    private final Map<ClusterId, Point2D.Double> clusterPositions = Maps.newHashMap();
+
+    // resets the location of the cluster by scaling 'clusterPositions' to the
+    // window size, also with some padding on the border.
+    private void positionCluster(ClusterId id) {
+        AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
+        Point2D position = clusterPositions.get(id);
+        Layout<Note, Weight> layout = clusterLayouts.get(id);
+        Dimension size = getSize();
+        Dimension padding = layout.getSize();
+        int x = (int) min(max(padding.width / 2, round(size.width * position.getX())), size.width - padding.width / 2);
+        int y = (int) min(max(padding.height / 2, round(size.height * position.getY())), size.height - padding.height / 2);
+        Point location = new Point(x, y);
+        graphLayout.put(layout, location);
+    }
+
+    private Dimension calculateClusterSize(Set<Note> cluster) {
+        int size = Math.min(75, cluster.size() * 10);
+        return new Dimension(size, size);
+    }
 
     @Override
     public void clusterAdded(ClusterId id, Set<Note> cluster) {
         Preconditions.checkNotNull(id);
 
-        AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
         Graph<Note, Weight> subGraph = subGraph(cluster);
         Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(subGraph);
-
-        subLayout.setInitializer(graphLayout);
-
-        int size = Math.min(50, cluster.size() * 5);
-        subLayout.setSize(new Dimension(size, size));
+        subLayout.setInitializer(getGraphLayout());
+        subLayout.setSize(calculateClusterSize(cluster));
 
         // TODO: smarter positioning of clusters
+        // https://issues.apache.org/jira/browse/MATH-826
         Random random = new Random();
-        Point2D subCentered = new Point(random.nextInt(getSize().width), random.nextInt(getSize().height));
-        graphLayout.put(subLayout, subCentered);
-        clusters.put(id, subLayout);
+        Point2D.Double position = new Point2D.Double();
+        position.setLocation(random.nextDouble(), random.nextDouble());
+
+        clusterPositions.put(id, position);
+        clusterLayouts.put(id, subLayout);
+
+        positionCluster(id);
+
         graphVisualiser.repaint();
     }
 
     @Override
     public void clusterRemoved(ClusterId id) {
         Preconditions.checkNotNull(id);
-        Preconditions.checkArgument(clusters.containsKey(id));
+        Preconditions.checkArgument(clusterLayouts.containsKey(id));
 
-        Layout<Note, Weight> subLayout = clusters.get(id);
+        Layout<Note, Weight> subLayout = clusterLayouts.get(id);
         AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
         graphLayout.remove(subLayout);
 
-        clusters.remove(id);
+        clusterLayouts.remove(id);
         graphVisualiser.repaint();
     }
 
     @Override
     public void clusterUpdated(ClusterId id, Set<Note> cluster) {
         Preconditions.checkNotNull(id);
-        Preconditions.checkArgument(clusters.containsKey(id));
+        Preconditions.checkArgument(clusterLayouts.containsKey(id));
 
-        Layout<Note, Weight> subLayout = clusters.get(id);
-        int size = Math.min(50, cluster.size() * 5);
-        subLayout.setSize(new Dimension(size, size));
-
+        Layout<Note, Weight> subLayout = clusterLayouts.get(id);
+        subLayout.setSize(calculateClusterSize(cluster));
         Graph<Note, Weight> subGraph = subGraph(cluster);
         subLayout.setGraph(subGraph);
+
         graphVisualiser.repaint();
     }
 }
