@@ -59,60 +59,11 @@
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout"/>
           <SubComponents>
-            <Container class="uk.me.fommil.zibaldone.desktop.TagsView" name="tags">
-              <Properties>
-                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Lucida Grande" size="10" style="0"/>
-                </Property>
-              </Properties>
+            <Component class="uk.me.fommil.zibaldone.desktop.TagsView" name="tags">
               <AuxValues>
                 <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="false"/>
               </AuxValues>
-              <LayoutCode>
-                <CodeStatement>
-                  <CodeExpression id="1_wrapLayout1">
-                    <CodeVariable name="wrapLayout1" type="4096" declaredType="uk.me.fommil.swing.WrapLayout"/>
-                    <ExpressionOrigin>
-                      <ExpressionProvider type="CodeConstructor">
-                        <CodeConstructor class="uk.me.fommil.swing.WrapLayout" parameterTypes=""/>
-                      </ExpressionProvider>
-                    </ExpressionOrigin>
-                  </CodeExpression>
-                  <StatementProvider type="CodeExpression">
-                    <CodeExpression id="1_wrapLayout1"/>
-                  </StatementProvider>
-                </CodeStatement>
-                <CodeStatement>
-                  <CodeExpression id="1_wrapLayout1"/>
-                  <StatementProvider type="CodeMethod">
-                    <CodeMethod name="setVgap" class="java.awt.FlowLayout" parameterTypes="int"/>
-                  </StatementProvider>
-                  <Parameters>
-                    <CodeExpression id="2">
-                      <ExpressionOrigin>
-                        <Value type="int" value="2"/>
-                      </ExpressionOrigin>
-                    </CodeExpression>
-                  </Parameters>
-                </CodeStatement>
-                <CodeStatement>
-                  <CodeExpression id="3_tags">
-                    <CodeVariable name="tags" type="24576" declaredType="uk.me.fommil.zibaldone.desktop.TagsView"/>
-                    <ExpressionOrigin>
-                      <ExpressionProvider type="ComponentRef">
-                        <ComponentRef name="tags"/>
-                      </ExpressionProvider>
-                    </ExpressionOrigin>
-                  </CodeExpression>
-                  <StatementProvider type="CodeMethod">
-                    <CodeMethod name="setLayout" class="java.awt.Container" parameterTypes="java.awt.LayoutManager"/>
-                  </StatementProvider>
-                  <Parameters>
-                    <CodeExpression id="1_wrapLayout1"/>
-                  </Parameters>
-                </CodeStatement>
-              </LayoutCode>
-            </Container>
+            </Component>
           </SubComponents>
         </Container>
         <Container class="javax.swing.JScrollPane" name="jScrollPane1">

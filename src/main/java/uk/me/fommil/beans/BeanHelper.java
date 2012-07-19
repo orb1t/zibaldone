@@ -10,12 +10,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import java.awt.Image;
 import java.beans.*;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 import javax.annotation.Nullable;
 import lombok.Delegate;
 import lombok.Getter;
@@ -24,7 +22,8 @@ import lombok.extern.java.Log;
 /**
  * Abstracts the JavaBeans API providing sensible actions and accessors.
  * Unless documented here, the JavaBeans API and surrounding ecosystem is
- * ignored.
+ * ignored (this is a caveat against "Beware of the Leopard" signs, of which
+ * there are many when it comes to JavaBeans).
  * <p>
  * The following listeners are kept informed of changes made via the
  * {@link Property} methods, but (unless manually managed) they will not
@@ -39,7 +38,7 @@ import lombok.extern.java.Log;
  * </ul>
  * Any other listeners are the business of the bean itself.
  * <p>
- * TODO: support beans that support PropertyChangeSupport
+ * TODO: support beans that internally support PropertyChangeSupport/Vetoable
  * 
  * @author Samuel Halliday
  */
@@ -73,33 +72,21 @@ public class BeanHelper {
     private final VetoableChangeSupport vetoListeners;
 
     /**
-     * Attempts to obtain a {@link BeanInfo} for the given bean by
-     * instantiating a class of the same name with {@code BeanInfo} appended
-     * to the end.
+     * Attempts to obtain a {@link BeanInfo} for the given bean.
      *
      * @param bean
      * @return {@code null} if no suitable BeanInfo was found
+     * @deprecated is this needed?
      */
+    @Deprecated
     static public BeanInfo loadBeanInfo(Object bean) {
         Preconditions.checkNotNull(bean);
-
-        String canonical = bean.getClass().getCanonicalName();
-        if (canonical == null) {
+        try {
+            return Introspector.getBeanInfo(bean.getClass());
+        } catch (IntrospectionException ex) {
+            log.info("Didn't get a BeanInfo for " + bean.getClass() + ": " + ex.getMessage());
             return null;
         }
-        String testName = canonical + "BeanInfo";
-        try {
-            Class<?> klass = Class.forName(testName);
-            if (!klass.isInstance(BeanInfo.class)) {
-                throw new ClassCastException(testName + " not a BeanInfo");
-            }
-            Constructor<?> constructor = klass.getConstructor(new Class<?>[0]);
-            return (BeanInfo) constructor.newInstance(new Object[0]);
-        } catch (ClassNotFoundException ex) {
-        } catch (Exception e) {
-            log.log(Level.INFO, "Reflection problems with " + testName, e);
-        }
-        return null;
     }
 
     /**
@@ -201,7 +188,9 @@ public class BeanHelper {
          * @param propagationId this is a "reserved" value in Javabeans, but we
          * expose this to track where a change originated - making it possible to
          * ignore events that you created.
+         * @deprecated as this will never work for beans that internally support listeners
          */
+        @Deprecated
         public void setValue(Object value, Object propagationId) {
             Object old = getValue();
             Method method = descriptor.getWriteMethod();

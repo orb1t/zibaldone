@@ -93,30 +93,6 @@
               <BorderConstraints direction="First"/>
             </Constraint>
           </Constraints>
-          <LayoutCode>
-            <CodeStatement>
-              <CodeExpression id="1_tags">
-                <CodeVariable name="tags" type="24576" declaredType="uk.me.fommil.zibaldone.desktop.TagsView"/>
-                <ExpressionOrigin>
-                  <ExpressionProvider type="ComponentRef">
-                    <ComponentRef name="tags"/>
-                  </ExpressionProvider>
-                </ExpressionOrigin>
-              </CodeExpression>
-              <StatementProvider type="CodeMethod">
-                <CodeMethod name="setLayout" class="java.awt.Container" parameterTypes="java.awt.LayoutManager"/>
-              </StatementProvider>
-              <Parameters>
-                <CodeExpression id="2">
-                  <ExpressionOrigin>
-                    <ExpressionProvider type="CodeConstructor">
-                      <CodeConstructor class="uk.me.fommil.swing.WrapLayout" parameterTypes=""/>
-                    </ExpressionProvider>
-                  </ExpressionOrigin>
-                </CodeExpression>
-              </Parameters>
-            </CodeStatement>
-          </LayoutCode>
         </Container>
       </SubComponents>
     </Container>

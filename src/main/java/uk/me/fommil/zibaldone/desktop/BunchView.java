@@ -92,10 +92,6 @@ public class BunchView extends javax.swing.JPanel {
         jPanel1.setMaximumSize(new java.awt.Dimension(800, 2147483647));
         jPanel1.setLayout(new java.awt.BorderLayout());
 
-        tags.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
-        uk.me.fommil.swing.WrapLayout wrapLayout1 = new uk.me.fommil.swing.WrapLayout();
-        wrapLayout1.setVgap(2);
-        tags.setLayout(wrapLayout1);
         jPanel2.add(tags);
 
         jPanel1.add(jPanel2, java.awt.BorderLayout.NORTH);
@@ -126,6 +122,6 @@ public class BunchView extends javax.swing.JPanel {
     javax.swing.JEditorPane content;
     javax.swing.JTextField name;
     javax.swing.JList notes;
-    uk.me.fommil.zibaldone.desktop.TagsView tags;
+    private uk.me.fommil.zibaldone.desktop.TagsView tags;
     // End of variables declaration//GEN-END:variables
 }
