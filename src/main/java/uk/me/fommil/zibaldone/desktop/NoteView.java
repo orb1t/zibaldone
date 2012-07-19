@@ -65,7 +65,6 @@ public class NoteView extends javax.swing.JPanel {
         jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
         tags.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
-        tags.setLayout(new uk.me.fommil.swing.WrapLayout());
         jPanel1.add(tags, java.awt.BorderLayout.PAGE_START);
 
         add(jPanel1, java.awt.BorderLayout.CENTER);

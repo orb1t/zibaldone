@@ -122,6 +122,6 @@ public class BunchView extends javax.swing.JPanel {
     javax.swing.JEditorPane content;
     javax.swing.JTextField name;
     javax.swing.JList notes;
-    private uk.me.fommil.zibaldone.desktop.TagsView tags;
+    uk.me.fommil.zibaldone.desktop.TagsView tags;
     // End of variables declaration//GEN-END:variables
 }
