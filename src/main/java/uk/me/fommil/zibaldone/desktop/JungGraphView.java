@@ -6,7 +6,6 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
-import com.google.common.base.Joiner;
 import uk.me.fommil.zibaldone.control.JungMainController;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;

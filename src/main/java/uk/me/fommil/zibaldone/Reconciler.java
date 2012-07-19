@@ -18,6 +18,7 @@ import java.util.UUID;
 import javax.persistence.EntityManagerFactory;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Synchronized;
 import lombok.extern.java.Log;
 import org.tartarus.snowball.SnowballProgram;
 import org.tartarus.snowball.ext.EnglishStemmer;
@@ -61,8 +62,8 @@ public class Reconciler {
      * 
      * @param incoming indexed by the proposed {@link Note#setSource(UUID)}.
      */
-    // @Synchronized TODO http://netbeans.org/bugzilla/show_bug.cgi?id=215078
-    public synchronized void reconcile(Map<UUID, List<Note>> incoming) {
+    @Synchronized
+    public void reconcile(Map<UUID, List<Note>> incoming) {
         Preconditions.checkNotNull(incoming);
 
         NoteDao dao = new NoteDao(emf);

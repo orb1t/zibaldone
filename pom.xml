@@ -20,13 +20,13 @@
     </prerequisites>
     
     <repositories>
-<!--        <repository>
+        <repository>
             <id>sonatype-oss-repo-snapshots</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
-        </repository>-->
+        </repository>
         <repository>
             <id>java.net-Public</id>
             <name>Maven Java Net Snapshots and Releases</name>
@@ -42,7 +42,7 @@
         <dependency>
             <groupId>com.github.peichhorn</groupId>
             <artifactId>lombok-pg</artifactId>
-            <version>0.11.2</version>
+            <version>0.11.3-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         
