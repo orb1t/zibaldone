@@ -95,20 +95,15 @@ public final class IOUtils {
      */
     public static String streamToString(InputStream stream, String charsetName) throws IOException {
         Preconditions.checkNotNull(stream);
-        try {
-            @Cleanup("close") InputStreamReader reader = new InputStreamReader(stream, charsetName);
-            @Cleanup("close") BufferedReader buffered = new BufferedReader(reader);
-            StringBuilder builder = new StringBuilder();
-            String line;
-            while ((line = buffered.readLine()) != null) {
-                builder.append(line);
-                builder.append("\n");
-            }
-            return builder.toString();
-        } finally {
-            // @Cleanup("close") doesn't work on parameters
-            Closeables.closeQuietly(stream);
+        InputStreamReader reader = new InputStreamReader(stream, charsetName);
+        @Cleanup(quietly = true) BufferedReader buffered = new BufferedReader(reader);
+        StringBuilder builder = new StringBuilder();
+        String line;
+        while ((line = buffered.readLine()) != null) {
+            builder.append(line);
+            builder.append("\n");
         }
+        return builder.toString();
     }
 
     /**
