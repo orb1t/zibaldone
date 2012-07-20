@@ -14,11 +14,13 @@ import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.UUID;
 import lombok.Data;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Relator;
 import uk.me.fommil.zibaldone.Tag;
+import uk.me.fommil.zibaldone.control.TagController.TagChoice;
 
 /**
  * Keeps all the persistent user settings in one place.
@@ -36,7 +38,7 @@ public class Settings {
 
     private String search = "";
 
-    private final SetMultimap<JungMainController.TagChoice, Tag> selectedTags = HashMultimap.create();
+    private final Map<Tag, TagChoice> selectedTags = Maps.newTreeMap();
 
     private final Set<Long> selectedBunches = Sets.newLinkedHashSet();
 

@@ -6,6 +6,7 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
+import com.google.common.base.Preconditions;
 import uk.me.fommil.zibaldone.Note;
 
 /**
@@ -20,6 +21,7 @@ public class NoteView extends javax.swing.JPanel {
     private Note note;
 
     public NoteView() {
+        super();
         initComponents();
     }
 
@@ -27,8 +29,10 @@ public class NoteView extends javax.swing.JPanel {
      * @param note
      */
     public void setNote(Note note) {
+        Preconditions.checkNotNull(note);
+        this.note = note;
         title.setText(note.getTitle());
-        tags.setTags(note.getTags());
+        tags.tagsAdded(note.getTags());
         contents.setText(note.getContents());
     }
 

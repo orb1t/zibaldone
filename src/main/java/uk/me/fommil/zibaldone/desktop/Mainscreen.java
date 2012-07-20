@@ -6,9 +6,10 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
-import uk.me.fommil.zibaldone.control.JungMainController;
+import uk.me.fommil.zibaldone.control.GraphController;
 import com.google.common.base.Preconditions;
-import java.awt.EventQueue;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.beans.PropertyEditorManager;
 import java.io.File;
 import java.io.IOException;
@@ -19,90 +20,114 @@ import java.util.UUID;
 import java.util.logging.Level;
 import javax.persistence.EntityManagerFactory;
 import javax.swing.ComboBoxModel;
+import javax.swing.JFrame;
+import lombok.BoundSetter;
 import lombok.extern.java.Log;
 import org.jdesktop.swingx.combobox.MapComboBoxModel;
 import uk.me.fommil.beans.editors.DatePropertyEditor;
 import uk.me.fommil.beans.editors.FilePropertyEditor;
 import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Importer;
+import uk.me.fommil.zibaldone.control.BunchController;
 import uk.me.fommil.zibaldone.control.ImporterController;
+import uk.me.fommil.zibaldone.control.Settings;
+import uk.me.fommil.zibaldone.control.TagController;
 import uk.me.fommil.zibaldone.importer.OrgModeImporter;
 
 /**
  * @author Samuel Halliday
  */
 @Log
-public class Mainscreen extends javax.swing.JFrame {
+public final class Mainscreen extends JFrame implements PropertyChangeListener {
 
     /** @param args */
     public static void main(String args[]) {
         PropertyEditorManager.registerEditor(File.class, FilePropertyEditor.class);
         PropertyEditorManager.registerEditor(Date.class, DatePropertyEditor.class);
 
-        final EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
+        EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
+        Settings settings = new Settings();
+        GraphController graphController = new GraphController(emf, settings);
+        TagController tagController = new TagController(settings);
+        BunchController bunchController = new BunchController(emf, settings);
+        ImporterController importerController = new ImporterController(emf, settings);
+        importerController.addTagListener(graphController);
+        tagController.addTagListener(graphController);
 
-        EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                // TODO: Swing Log capture and view
+        // TODO: Swing Log capture and view
+        Mainscreen main = new Mainscreen();
+        main.setTagController(tagController);
+        main.setGraphController(graphController);
+        main.setBunchController(bunchController);
+        main.setImporterController(importerController);
+        main.setSettings(settings);
+        main.setVisible(true);
 
-                JungMainController controller = new JungMainController(emf);
-
-                // DEBUG: programmatic load of importer
-                UUID uuid = UUID.randomUUID();
-                Map<UUID, Importer> importers = controller.getSettings().getImporters();
-                OrgModeImporter importer = new OrgModeImporter();
-                importer.getSettings().setFile(new File("/Users/samuel/QT2-notes.org"));
-                importers.put(uuid, importer);
-
-                Mainscreen main = new Mainscreen();
-                main.setController(controller);
-                main.setVisible(true);
-
-                // TODO: viewing of initial database entries
-
-                // this needs to happen after so the views get the model
-                try {
-                    ImporterController importController = new ImporterController(controller, uuid);
-                    importController.addTagsChangedListener(main.tagSelectView);
-                    importController.doImport();
-                } catch (IOException ex) {
-                    log.log(Level.SEVERE, null, ex);
-                }
+        {
+            // DEBUG: programmatic load of importer
+            UUID uuid = UUID.randomUUID();
+            Map<UUID, Importer> importers = settings.getImporters();
+            OrgModeImporter importer = new OrgModeImporter();
+            importer.getSettings().setFile(new File("/Users/samuel/QT2-notes.org"));
+            importers.put(uuid, importer);
+            try {
+                importerController.doImport(uuid);
+            } catch (IOException ex) {
+                log.log(Level.SEVERE, null, ex);
             }
-        });
+        }
     }
 
-    private JungMainController controller;
+    @BoundSetter
+    private GraphController graphController;
+
+    @BoundSetter
+    private TagController tagController;
+
+    @BoundSetter
+    private BunchController bunchController;
+
+    @BoundSetter
+    private ImporterController importerController;
+
+    @BoundSetter
+    private Settings settings;
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        Preconditions.checkNotNull(evt);
+        String property = evt.getPropertyName();
+        log.fine("Changed " + property);
+        if ("graphController".equals(property)) {
+            graphController.addClusterListener(jungGraphView);
+            jungGraphView.setGraphController(graphController);
+        } else if ("tagController".equals(property)) {
+            tagController.addTagListener(tagSelectView);
+            tagSelectView.setTagController(tagController);
+        } else if ("bunchController".equals(property)) {
+            bunchController.addBunchListener(jungGraphView);
+            jungGraphView.setBunchControl(bunchController);
+        } else if ("importerController".equals(property)) {
+            importerController.addTagListener(tagSelectView);
+            importerController.addNoteListener(graphController);
+        } else if ("settings".equals(property)) {
+            for (UUID uuid : settings.getImporters().keySet()) {
+                addImporter(uuid, true);
+            }
+        }
+    }
 
     public Mainscreen() {
+        super();
+        addPropertyChangeListener(this);
         rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         initComponents();
         settingsPanel.setVisible(false);
-    }
 
-    /**
-     * @param controller
-     */
-    public void setController(JungMainController controller) {
-        Preconditions.checkNotNull(controller);
-        this.controller = controller;
-
-        // TODO: more elegant registering process outside of this setter
-        jungGraphView.setGraph(controller.getGraph());
-        tagSelectView.setController(controller);
-        jungGraphView.setController(controller);
-
-        controller.addClustersChangedListener(jungGraphView);
-        controller.addTagsChangedListener(tagSelectView);
-
-        // TODO: dynamic lookup of available importers by querying controller
+        // FIXME: dynamic lookup of available importers by querying 'settings'
         Map<String, Class<Importer>> importers = ImporterController.getImporterImplementations();
         ComboBoxModel importerChoices = new MapComboBoxModel<String, Class<Importer>>(importers);
         importerSelector.setModel(importerChoices);
-        for (UUID uuid : controller.getSettings().getImporters().keySet()) {
-            addImporter(uuid, true);
-        }
 
         // TODO: add the 'null' importer        
         // TODO: animated settings panel
@@ -112,9 +137,10 @@ public class Mainscreen extends javax.swing.JFrame {
     }
 
     private void addImporter(UUID uuid, boolean used) {
-        ImporterController importerController = new ImporterController(controller, uuid);
-        importerController.addTagsChangedListener(tagSelectView);
-        ImporterView importerView = new ImporterView(importerController, used);
+        ImporterView importerView = new ImporterView();
+        importerView.setImporterController(importerController);
+        importerView.setUuid(uuid);
+        importerView.setCollapsed(used);
         importersPanel.add(importerView);
         importersPanel.revalidate();
     }
@@ -256,7 +282,7 @@ public class Mainscreen extends javax.swing.JFrame {
     private void jAddImporterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jAddImporterButtonActionPerformed
         String name = (String) importerSelector.getSelectedItem();
         Entry<UUID, Importer> pair = ImporterController.newImporter(name);
-        controller.getSettings().getImporters().put(pair.getKey(), pair.getValue());
+        settings.getImporters().put(pair.getKey(), pair.getValue());
         addImporter(pair.getKey(), false);
     }//GEN-LAST:event_jAddImporterButtonActionPerformed
 

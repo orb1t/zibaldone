@@ -6,10 +6,16 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
+import com.google.common.base.Preconditions;
 import java.awt.Dimension;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.util.UUID;
 import java.util.logging.Level;
 import javax.swing.JPanel;
+import lombok.BoundSetter;
+import lombok.Getter;
 import lombok.extern.java.Log;
 import org.jdesktop.swingx.JXTaskPane;
 import uk.me.fommil.swing.SwingConvenience;
@@ -22,31 +28,30 @@ import uk.me.fommil.zibaldone.control.ImporterController;
  * @author Samuel Halliday
  */
 @Log
-public class ImporterView extends JXTaskPane {
+public final class ImporterView extends JXTaskPane implements PropertyChangeListener {
 
-    private final ImporterController controller;
+    @Getter @BoundSetter
+    private ImporterController importerController;
 
-    /**
-     * @deprecated exists only for GUI Editors
-     */
+    @Getter @BoundSetter
     @Deprecated
+    private UUID uuid;
+
     public ImporterView() {
-        this(null, false);
+        super();
+        addPropertyChangeListener(this);
+        initComponents();
     }
 
-    /**
-     * @param controller
-     * @param used {@code true} if this importer has been previously used 
-     */
-    public ImporterView(ImporterController controller, boolean used) {
-        super();
-        initComponents();
-        setCollapsed(used);
-        setTitle(controller.getImporter().getName());
-
-        this.controller = controller;
-
-        jBeanEditor.setBean(controller.getImporter().getSettings());
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        Preconditions.checkNotNull(evt);
+        String property = evt.getPropertyName();
+        if (importerController != null && uuid != null
+                && ("uuid".equals(property) || "importerController".equals(property))) {
+            setTitle(importerController.getImporter(uuid).getName());
+            jBeanEditor.setBean(importerController.getImporter(uuid).getSettings());
+        }
     }
 
     @Override
@@ -56,9 +61,6 @@ public class ImporterView extends JXTaskPane {
         return preferred;
     }
 
-    /**
-     * WARNING: Do NOT modify this code.
-     */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -115,7 +117,7 @@ public class ImporterView extends JXTaskPane {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jXRemoveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jXRemoveButtonActionPerformed
-        controller.doRemove();
+        importerController.doRemove(uuid);
         JPanel parent = (JPanel) getParent();
         parent.remove(this);
         parent.revalidate();
@@ -124,7 +126,7 @@ public class ImporterView extends JXTaskPane {
     private void reloadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reloadButtonActionPerformed
         try {
             // TODO: visual "wait" feedback
-            controller.doImport();
+            importerController.doImport(uuid);
             reloadButton.setText("Reload");
         } catch (IOException ex) {
             log.log(Level.WARNING, "failed import", ex);

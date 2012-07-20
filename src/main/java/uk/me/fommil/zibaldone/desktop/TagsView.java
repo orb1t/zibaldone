@@ -6,16 +6,12 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
-import uk.me.fommil.zibaldone.control.JungMainController;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Collection;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import javax.swing.JLabel;
@@ -25,8 +21,9 @@ import lombok.Setter;
 import lombok.extern.java.Log;
 import uk.me.fommil.swing.WrapLayout;
 import uk.me.fommil.zibaldone.Tag;
-import uk.me.fommil.zibaldone.control.JungMainController.TagChoice;
-import uk.me.fommil.zibaldone.control.Listeners.TagsChangedListener;
+import uk.me.fommil.zibaldone.control.Listeners.TagListener;
+import uk.me.fommil.zibaldone.control.TagController;
+import uk.me.fommil.zibaldone.control.TagController.TagChoice;
 
 /**
  * Shows tags and provides programmatic options to enable tag selection,
@@ -37,16 +34,17 @@ import uk.me.fommil.zibaldone.control.Listeners.TagsChangedListener;
  * @author Samuel Halliday
  */
 @Log
-public class TagsView extends JPanel implements TagsChangedListener {
+public class TagsView extends JPanel implements TagListener {
 
     private final class TagView extends JLabel {
 
         @Getter
         private final Tag tag;
 
-        @Getter @Setter
+        @Getter
         private TagChoice choice;
 
+        // TODO: rounded borders for tag background
         public TagView(Tag tag, TagChoice choice) {
             super(tag.getText());
             Preconditions.checkNotNull(tag);
@@ -69,9 +67,12 @@ public class TagsView extends JPanel implements TagsChangedListener {
             if (!selectable) {
                 return;
             }
-            setChoice(nextChoice());
-            controller.selectTag(tag, choice);
-            // TODO: rounded borders for tag background
+            tagController.selectTag(tag, nextChoice());
+        }
+        
+        public void setChoice(TagChoice choice) {
+            Preconditions.checkNotNull(choice);
+            this.choice = choice;
             setBackground(getColorForChoice(choice));
             repaint();
         }
@@ -100,7 +101,7 @@ public class TagsView extends JPanel implements TagsChangedListener {
     }
 
     @Setter
-    private JungMainController controller;
+    private TagController tagController;
 
     // TODO: editable/selectable should be listened to
     @Getter @Setter
@@ -115,50 +116,41 @@ public class TagsView extends JPanel implements TagsChangedListener {
 
     private final SortedMap<Tag, TagView> views = Maps.newTreeMap();
 
-    public void setTags(Set<Tag> tags) {
-        Preconditions.checkNotNull(tags);
-
+    @Override
+    public void tagsAdded(Set<Tag> tags) {
         for (Tag tag : tags) {
             if (!views.containsKey(tag)) {
                 TagView view = new TagView(tag, TagChoice.IGNORE);
                 views.put(tag, view);
             }
         }
+        redraw();
+    }
+
+    @Override
+    public void tagsRemoved(Set<Tag> tags) {
         for (Tag tag : views.keySet()) {
             if (!tags.contains(tag)) {
                 views.remove(tag);
             }
         }
+        redraw();
+    }
+
+    @Override
+    public void tagSelection(Tag tag, TagChoice choice) {
+        Preconditions.checkNotNull(tag);
+        Preconditions.checkNotNull(choice);
+        
+        views.get(tag).setChoice(choice);
+    }
+
+    private void redraw() {
         removeAll();
         for (TagView view : views.values()) {
             add(view);
         }
-    }
-
-    @Override
-    public void tagsChanged(Set<Tag> tags) {
-        setTags(tags);
         revalidate();
         repaint();
-    }
-
-    @Override
-    public void tagSelectionChanged(Multimap<TagChoice, Tag> selection) {
-        Preconditions.checkNotNull(selection);
-        Preconditions.checkState(selectable, "not selectable");
-
-        Collection<Tag> selected = selection.values();
-
-        for (Tag tag : views.keySet()) {
-            if (!selected.contains(tag)) {
-                views.get(tag).setChoice(TagChoice.IGNORE);
-            }
-        }
-        for (Entry<TagChoice, Tag> entry : selection.entries()) {
-            Preconditions.checkState(views.containsKey(entry.getValue()));
-            views.get(entry.getValue()).setChoice(entry.getKey());
-        }
-
-        // no layout changes, so no revalidation needed
     }
 }

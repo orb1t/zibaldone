@@ -6,13 +6,12 @@
  */
 package uk.me.fommil.zibaldone.control;
 
-import com.google.common.collect.Multimap;
-import java.util.Collection;
 import java.util.EventListener;
 import java.util.Set;
 import uk.me.fommil.zibaldone.Bunch;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Tag;
+import uk.me.fommil.zibaldone.control.TagController.TagChoice;
 
 /**
  * Custom listeners that are made available by the controller.
@@ -24,15 +23,25 @@ public final class Listeners {
     public final static class ClusterId {
     }
 
-    public interface BunchesChangedListener extends EventListener {
+    // TODO: is it possible to use generics to reduce the number of APIs?
+    public interface GenericListener<T> extends EventListener {
 
-        // TODO: fire the change, not the object
-        @Deprecated
-        public void bunchesChanged(Collection<Bunch> bunches);
+        public void listenToAdded(T added);
 
-        // TODO: fire the change, not the object
-        @Deprecated
-        public void selectedBunchesChanged(Collection<Bunch> bunches);
+        public void listenToRemoved(T removed);
+
+        public void listenToUpdated(T updated);
+    }
+
+    public interface BunchListener extends EventListener {
+
+        public void bunchAdded(Bunch bunch);
+
+        public void bunchRemoved(Bunch bunch);
+
+        public void bunchUpdated(Bunch bunch);
+
+        public void bunchSelectionChanged(Bunch bunch, TagChoice choice);
     }
 
     /**
@@ -41,7 +50,7 @@ public final class Listeners {
      * user settings and can change frequently. A cluster does
      * not indicate {@link Bunch} membership.
      */
-    public interface ClustersChangedListener extends EventListener {
+    public interface ClusterListener extends EventListener {
 
         public void clusterAdded(ClusterId id, Set<Note> newCluster);
 
@@ -50,14 +59,25 @@ public final class Listeners {
         public void clusterUpdated(ClusterId id, Set<Note> updatedCluster);
     }
 
-    public interface TagsChangedListener extends EventListener {
+    /**
+     * Tags tend to be in bulk.
+     */
+    public interface TagListener extends EventListener {
 
-        // TODO: fire the change, not the object
-        @Deprecated
-        public void tagSelectionChanged(Multimap<JungMainController.TagChoice, Tag> selection);
+        public void tagsAdded(Set<Tag> tags);
 
-        // TODO: fire the change, not the object
-        @Deprecated
-        public void tagsChanged(Set<Tag> tags);
+        public void tagsRemoved(Set<Tag> tags);
+
+        public void tagSelection(Tag tag, TagChoice choice);
+    }
+
+    /**
+     * Notes tend to be updated in bulk.
+     */
+    public interface NoteListener extends EventListener {
+
+        public void notesAdded(Set<Note> note);
+
+        public void notesRemoved(Set<Note> note);
     }
 }

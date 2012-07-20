@@ -6,7 +6,7 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
-import uk.me.fommil.zibaldone.control.JungMainController;
+import uk.me.fommil.zibaldone.control.GraphController;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
@@ -15,7 +15,6 @@ import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.algorithms.layout.FRLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.graph.Graph;
-import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.GraphMousePlugin;
@@ -53,27 +52,52 @@ import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.utils.Convenience.Loop;
 import uk.me.fommil.zibaldone.Bunch;
 import uk.me.fommil.zibaldone.Note;
+import uk.me.fommil.zibaldone.control.BunchController;
+import uk.me.fommil.zibaldone.control.Listeners.BunchListener;
 import uk.me.fommil.zibaldone.control.Listeners.ClusterId;
-import uk.me.fommil.zibaldone.control.Listeners.ClustersChangedListener;
+import uk.me.fommil.zibaldone.control.Listeners.ClusterListener;
+import uk.me.fommil.zibaldone.control.TagController.TagChoice;
 import uk.me.fommil.zibaldone.control.Weight;
 
 /**
  * Draws the network graph of the {@link Note}s and {@link Bunch}s
  * using JUNG.
  * 
- * @see JungMainController
+ * @see GraphController
  * @author Samuel Halliday
  */
 @Log
-public class JungGraphView extends JPanel implements ClustersChangedListener {
+public class JungGraphView extends JPanel implements ClusterListener, BunchListener {
 
     private final VisualizationViewer<Note, Weight> graphVisualiser;
 
+    private GraphController graphControl;
+
     @Setter
-    private JungMainController controller;
+    private BunchController bunchControl;
 
     // TODO: make a JDialog which can be resized
     private final JPopupMenu popup = new JPopupMenu();
+
+    @Override
+    public void bunchAdded(Bunch bunch) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void bunchRemoved(Bunch bunch) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void bunchUpdated(Bunch bunch) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void bunchSelectionChanged(Bunch bunch, TagChoice choice) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 
     /**
      * The JUNG mouse handling framework was developed
@@ -100,24 +124,6 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
             add(picker);
         }
 
-//        private Note lastMouseOverNote;
-//
-//        @Override
-//        public void mouseMoved(MouseEvent e) {
-//            super.mouseMoved(e);
-//
-//            // TODO: require a mouse click for touchscreens
-//            // HACK: this essentially implements mouseEntered/mouseExited on vertices
-//            Note note = graphVisualiser.getPickSupport().getVertex(getGraphLayout(), e.getX(), e.getY());
-//            if (note != lastMouseOverNote) {
-//                lastMouseOverNote = note;
-//                if (note != null) {
-//                    JungGraphView.this.mouseEntered(note);
-//                } else {
-//                    JungGraphView.this.mouseExited(note);
-//                }
-//            }
-//        }
         @Override
         public void mousePressed(MouseEvent e) {
             location = e.getLocationOnScreen();
@@ -171,15 +177,10 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
         });
     }
 
-    /**
-     * @param graph 
-     */
-    public void setGraph(ObservableGraph<Note, Weight> graph) {
-        // TODO: should this not be set from the controller?
-        Preconditions.checkNotNull(graph);
-        //        this.graph.removeGraphEventListener(this);
-        getGraphLayout().setGraph(graph);
-        //        graph.addGraphEventListener(this);
+    public void setGraphController(GraphController graphControl) {
+        Preconditions.checkNotNull(graphControl);
+        this.graphControl = graphControl;
+        getGraphLayout().setGraph(graphControl.getGraph());
     }
 
     private AggregateLayout<Note, Weight> getGraphLayout() {
@@ -217,7 +218,7 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
         popup.removeAll();
 
         // TODO: only go through active bunches
-        for (Bunch bunch : controller.getBunches()) {
+        for (Bunch bunch : bunchControl.getBunches()) {
             if (Convenience.isSubset(notes, bunch.getNotes())) {
                 BunchView view = new BunchView();
                 view.setBunch(bunch);
@@ -240,17 +241,17 @@ public class JungGraphView extends JPanel implements ClustersChangedListener {
         newBunch.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Bunch bunch = controller.newBunch(notes);
-                BunchView view = new BunchView();
-                view.setBunch(bunch);
-                popup.removeAll();
-                popup.add(view);
-                popup();
+                bunchControl.newBunch(notes);
+//                BunchView view = new BunchView();
+//                view.setBunch(bunch);
+//                popup.removeAll();
+//                popup.add(view);
+//                popup();
             }
         });
         popup.add(newBunch);
 
-        Collection<Bunch> bunches = controller.getBunches();
+        Collection<Bunch> bunches = bunchControl.getBunches();
         if (!bunches.isEmpty() && bunches.size() < 10) {
             popup.add(new JSeparator());
             for (Bunch bunch : bunches) {

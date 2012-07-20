@@ -29,6 +29,7 @@ public class BunchView extends javax.swing.JPanel {
     @Getter
     private Bunch bunch;
 
+    // TODO: remove button for Notes in the list
     public BunchView() {
         initComponents();
 
@@ -50,7 +51,7 @@ public class BunchView extends javax.swing.JPanel {
             allTags.addAll(note.getTags());
             noteTitles.add(note.getTitle());
         }
-        tags.setTags(allTags);
+        tags.tagsAdded(allTags);
         notes.setModel(new ListComboBoxModel<String>(Lists.newArrayList(noteTitles)));
 
         // TODO: ensure changes to the bunch are persisted

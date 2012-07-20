@@ -8,6 +8,7 @@ package uk.me.fommil.zibaldone.control;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.HashMap;
@@ -16,6 +17,7 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.UUID;
+import javax.persistence.EntityManagerFactory;
 import lombok.ListenerSupport;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +26,8 @@ import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Reconciler;
 import uk.me.fommil.zibaldone.Tag;
-import uk.me.fommil.zibaldone.control.Listeners.TagsChangedListener;
+import uk.me.fommil.zibaldone.control.Listeners.NoteListener;
+import uk.me.fommil.zibaldone.control.Listeners.TagListener;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
 
 /**
@@ -34,7 +37,7 @@ import uk.me.fommil.zibaldone.persistence.NoteDao;
  */
 @Log
 @RequiredArgsConstructor
-@ListenerSupport({TagsChangedListener.class})
+@ListenerSupport({TagListener.class, NoteListener.class})
 public class ImporterController {
 
     /**
@@ -80,31 +83,79 @@ public class ImporterController {
     }
 
     @NonNull
-    private final JungMainController main;
+    private final EntityManagerFactory emf;
 
     @NonNull
-    private final UUID sourceId;
-
-    public Importer getImporter() {
-        return main.getSettings().getImporters().get(sourceId);
+    private final Settings settings;
+    
+    public Importer getImporter(UUID sourceId) {
+        return settings.getImporters().get(sourceId);
     }
 
-    public void doImport() throws IOException {
-        List<Note> notes = getImporter().getNotes();
-        Reconciler reconciler = new Reconciler(main.getEmf());
-        reconciler.reconcile(sourceId, notes);
-        NoteDao noteDao = new NoteDao(main.getEmf());
-        Set<Tag> tags = noteDao.getAllTags();
-        
-        log.info("TAGS: " + tags.size());
-        
-        fireTagsChanged(tags);
-        main.doRefresh();
+    public void doImport(UUID sourceId) throws IOException {
+        NoteDao dao = new NoteDao(emf);
+        Set<Tag> tagsBefore = dao.getAllTags();
+        Set<Note> notesBefore = Sets.newHashSet(dao.readAll());
+
+        List<Note> importedNotes = getImporter(sourceId).getNotes();
+        Reconciler reconciler = new Reconciler(emf);
+        reconciler.reconcile(sourceId, importedNotes);
+
+        Set<Tag> tagsAfter = dao.getAllTags();
+        Set<Note> notesAfter = Sets.newHashSet(dao.readAll());
+
+        diffTags(tagsBefore, tagsAfter);
+        diffNotes(notesBefore, notesAfter);
     }
 
-    public void doRemove() {
-        main.getSettings().getImporters().remove(sourceId);
+    public void doRemove(UUID sourceId) {
+        settings.getImporters().remove(sourceId);
         // TODO: implement method
         log.warning("doRemove() not implemented yet");
+    }
+
+    private void diffTags(Set<Tag> before, Set<Tag> after) {
+        Set<Tag> removed = Sets.newHashSet();
+        for (Tag note : before) {
+            if (!after.contains(note)) {
+                removed.add(note);
+            }
+        }
+        if (!removed.isEmpty()) {
+            fireTagsRemoved(removed);
+        }
+
+        Set<Tag> added = Sets.newHashSet();
+        for (Tag note : after) {
+            if (!before.contains(note)) {
+                added.add(note);
+            }
+        }
+        if (!added.isEmpty()) {
+            fireTagsAdded(added);
+        }
+    }
+
+    // ?? code repetition with diffTags
+    private void diffNotes(Set<Note> before, Set<Note> after) {
+        Set<Note> removed = Sets.newHashSet();
+        for (Note note : before) {
+            if (!after.contains(note)) {
+                removed.add(note);
+            }
+        }
+        if (!removed.isEmpty()) {
+            fireNotesRemoved(removed);
+        }
+
+        Set<Note> added = Sets.newHashSet();
+        for (Note note : after) {
+            if (!before.contains(note)) {
+                added.add(note);
+            }
+        }
+        if (!added.isEmpty()) {
+            fireNotesAdded(added);
+        }
     }
 }
