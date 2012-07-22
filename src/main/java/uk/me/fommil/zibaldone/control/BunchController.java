@@ -40,7 +40,7 @@ public class BunchController {
         BunchDao dao = new BunchDao(emf);
         return dao.readAll();
     }
-
+    
     /**
      * @param notes 
      */
@@ -55,6 +55,7 @@ public class BunchController {
         dao.create(bunch);
 
         fireBunchAdded(bunch);
+        fireBunchSelectionChanged(bunch, TagChoice.SHOW);
     }
 
     public void removeBunch(Bunch bunch) {
@@ -73,7 +74,6 @@ public class BunchController {
         Preconditions.checkNotNull(bunch);
 
         BunchDao dao = new BunchDao(emf);
-        Set<Note> notes = bunch.getNotes();
         Bunch update = dao.update(bunch);
 
         fireBunchUpdated(update);

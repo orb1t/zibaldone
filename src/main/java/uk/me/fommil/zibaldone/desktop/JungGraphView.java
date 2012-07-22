@@ -10,11 +10,13 @@ import uk.me.fommil.zibaldone.control.GraphController;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.algorithms.layout.FRLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.graph.Graph;
+import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.GraphMousePlugin;
@@ -33,6 +35,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -41,6 +45,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.logging.Logger;
+import javax.swing.JDialog;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -71,32 +77,79 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
     private final VisualizationViewer<Note, Weight> graphVisualiser;
 
-    private GraphController graphControl;
-
     @Setter
-    private BunchController bunchControl;
+    private BunchController bunchController;
 
     // TODO: make a JDialog which can be resized
     private final JPopupMenu popup = new JPopupMenu();
 
+    // use the immutable BunchId as the key
+    private Map<Long, Layout<Note, Weight>> activeBunches = Maps.newHashMap();
+
+    // FIXME: ensure clusterLayouts do not override bunches
+    private final Map<ClusterId, Layout<Note, Weight>> clusterLayouts = Maps.newHashMap();
+
+    // TODO: a better way to store layout positions
+    // double [0, 1]
+    private final Map<Layout<Note, Weight>, Point2D.Double> positions = Maps.newHashMap();
+
     @Override
     public void bunchAdded(Bunch bunch) {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public void bunchRemoved(Bunch bunch) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (activeBunches.containsKey(bunch.getId())) {
+            removeClump(activeBunches.get(bunch.getId()));
+            activeBunches.remove(bunch.getId());
+        }
     }
 
     @Override
     public void bunchUpdated(Bunch bunch) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        Layout<Note, Weight> layout = activeBunches.get(bunch.getId());
+        updateClump(layout, bunch.getNotes());
     }
 
     @Override
     public void bunchSelectionChanged(Bunch bunch, TagChoice choice) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        switch (choice) {
+            case SHOW:
+                Preconditions.checkState(!activeBunches.containsKey(bunch.getId()));
+                Layout<Note, Weight> layout = createClump(bunch.getNotes());
+                activeBunches.put(bunch.getId(), layout);
+                break;
+            case HIDE:
+                Preconditions.checkState(activeBunches.containsKey(bunch.getId()));
+                layout = activeBunches.get(bunch.getId());
+                removeClump(layout);
+                activeBunches.remove(bunch.getId());
+        }
+    }
+
+    private void showBunch(final Bunch bunch) {
+        JDialog dialog = new JDialog();
+        dialog.setTitle("Bunch Editor");
+        dialog.setModal(true);
+        BunchView view = new BunchView();
+        view.setBunch(bunch);
+        dialog.add(view);
+        dialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                bunchController.updateBunch(bunch);
+            }
+        });
+        dialog.pack();
+        dialog.setVisible(true);
+    }
+
+    private void showNote(Note note) {
+        // TODO: Note JDialog not popup
+        NoteView noteView = new NoteView();
+        noteView.setNote(note);
+        popup.add(noteView);
+        popup();
     }
 
     /**
@@ -136,8 +189,10 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
             super.mouseReleased(e);
             Set<Note> picked = graphVisualiser.getPickedVertexState().getPicked();
 
-            if (!picked.isEmpty() && picked.hashCode() != pickedBefore && location.distance(e.getLocationOnScreen()) < 10) {
-                selectNotes(picked);
+            if (!picked.isEmpty() && picked.hashCode() != pickedBefore) {
+                if (picked.size() > 1 || location.distance(e.getLocationOnScreen()) < 10) {
+                    selectNotes(picked);
+                }
             }
         }
     }
@@ -148,7 +203,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         Graph<Note, Weight> dummy = new UndirectedSparseGraph<Note, Weight>();
 
         Layout<Note, Weight> delegateLayout = new FRLayout<Note, Weight>(dummy);
-//        Layout<Note, Weight> delegateLayout = new SpringLayout<Note, Weight>(dummy, Weight.TRANSFORMER);
         Layout<Note, Weight> graphLayout = new AggregateLayout<Note, Weight>(delegateLayout);
         graphVisualiser = new VisualizationViewer<Note, Weight>(graphLayout);
         graphVisualiser.setBackground(Color.WHITE);
@@ -170,17 +224,16 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
                 graphVisualiser.setSize(getSize());
                 getGraphLayout().setSize(getSize());
 
-                for (ClusterId cluster : clusterLayouts.keySet()) {
+                for (Layout<Note, Weight> cluster : positions.keySet()) {
                     positionCluster(cluster);
                 }
             }
         });
     }
 
-    public void setGraphController(GraphController graphControl) {
-        Preconditions.checkNotNull(graphControl);
-        this.graphControl = graphControl;
-        getGraphLayout().setGraph(graphControl.getGraph());
+    public void setGraph(ObservableGraph<Note, Weight> graph) {
+        Preconditions.checkNotNull(graph);
+        getGraphLayout().setGraph(graph);
     }
 
     private AggregateLayout<Note, Weight> getGraphLayout() {
@@ -218,22 +271,15 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         popup.removeAll();
 
         // TODO: only go through active bunches
-        for (Bunch bunch : bunchControl.getBunches()) {
-            if (Convenience.isSubset(notes, bunch.getNotes())) {
-                BunchView view = new BunchView();
-                view.setBunch(bunch);
-                popup.add(view);
-                popup();
-                return;
-            }
-        }
+//        for (Bunch bunch : activeBunches.keySet()) {
+//            if (Convenience.isSubset(notes, bunch.getNotes())) {
+//                showBunch(bunch);
+//                return;
+//            }
+//        }
 
         if (notes.size() == 1) {
-            Note note = Iterables.getOnlyElement(notes);
-            NoteView noteView = new NoteView();
-            noteView.setNote(note);
-            popup.add(noteView);
-            popup();
+            showNote(Iterables.getOnlyElement(notes));
             return;
         }
 
@@ -241,17 +287,12 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         newBunch.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                bunchControl.newBunch(notes);
-//                BunchView view = new BunchView();
-//                view.setBunch(bunch);
-//                popup.removeAll();
-//                popup.add(view);
-//                popup();
+                bunchController.newBunch(notes);
             }
         });
         popup.add(newBunch);
 
-        Collection<Bunch> bunches = bunchControl.getBunches();
+        Collection<Bunch> bunches = bunchController.getBunches();
         if (!bunches.isEmpty() && bunches.size() < 10) {
             popup.add(new JSeparator());
             for (Bunch bunch : bunches) {
@@ -279,17 +320,11 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         popup.show(this, mouse.x, mouse.y);
     }
 
-    private final Map<ClusterId, Layout<Note, Weight>> clusterLayouts = Maps.newHashMap();
-
-    // double [0, 1]
-    private final Map<ClusterId, Point2D.Double> clusterPositions = Maps.newHashMap();
-
     // resets the location of the cluster by scaling 'clusterPositions' to the
     // window size, also with some padding on the border.
-    private void positionCluster(ClusterId id) {
+    private void positionCluster(Layout<Note, Weight> layout) {
         AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
-        Point2D position = clusterPositions.get(id);
-        Layout<Note, Weight> layout = clusterLayouts.get(id);
+        Point2D position = positions.get(layout);
         Dimension size = getSize();
         Dimension padding = layout.getSize();
         int x = (int) min(max(padding.width / 2, round(size.width * position.getX())), size.width - padding.width / 2);
@@ -307,23 +342,8 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     public void clusterAdded(ClusterId id, Set<Note> cluster) {
         Preconditions.checkNotNull(id);
 
-        Graph<Note, Weight> subGraph = subGraph(cluster);
-        Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(subGraph);
-        subLayout.setInitializer(getGraphLayout());
-        subLayout.setSize(calculateClusterSize(cluster));
-
-        // TODO: smarter positioning of clusters
-        // https://issues.apache.org/jira/browse/MATH-826
-        Random random = new Random();
-        Point2D.Double position = new Point2D.Double();
-        position.setLocation(random.nextDouble(), random.nextDouble());
-
-        clusterPositions.put(id, position);
-        clusterLayouts.put(id, subLayout);
-
-        positionCluster(id);
-
-        graphVisualiser.repaint();
+        Layout<Note, Weight> layout = createClump(cluster);
+        clusterLayouts.put(id, layout);
     }
 
     @Override
@@ -331,12 +351,8 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         Preconditions.checkNotNull(id);
         Preconditions.checkArgument(clusterLayouts.containsKey(id));
 
-        Layout<Note, Weight> subLayout = clusterLayouts.get(id);
-        AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
-        graphLayout.remove(subLayout);
-
+        removeClump(clusterLayouts.get(id));
         clusterLayouts.remove(id);
-        graphVisualiser.repaint();
     }
 
     @Override
@@ -345,10 +361,39 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         Preconditions.checkArgument(clusterLayouts.containsKey(id));
 
         Layout<Note, Weight> subLayout = clusterLayouts.get(id);
-        subLayout.setSize(calculateClusterSize(cluster));
-        Graph<Note, Weight> subGraph = subGraph(cluster);
-        subLayout.setGraph(subGraph);
+        updateClump(subLayout, cluster);
+    }
 
+    private Layout<Note, Weight> createClump(Set<Note> notes) {
+        Graph<Note, Weight> subGraph = subGraph(notes);
+        Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(subGraph);
+        subLayout.setInitializer(getGraphLayout());
+        subLayout.setSize(calculateClusterSize(notes));
+
+        // TODO: smarter positioning of clumps
+        // https://issues.apache.org/jira/browse/MATH-826
+        Random random = new Random();
+        Point2D.Double position = new Point2D.Double();
+        position.setLocation(random.nextDouble(), random.nextDouble());
+
+        positions.put(subLayout, position);
+        positionCluster(subLayout);
+        graphVisualiser.repaint();
+
+        return subLayout;
+    }
+
+    private void removeClump(Layout<Note, Weight> layout) {
+        AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
+        graphLayout.remove(layout);
+        positions.remove(layout);
+        graphVisualiser.repaint();
+    }
+
+    private void updateClump(Layout<Note, Weight> layout, Set<Note> notes) {
+        layout.setSize(calculateClusterSize(notes));
+        Graph<Note, Weight> subGraph = subGraph(notes);
+        layout.setGraph(subGraph);
         graphVisualiser.repaint();
     }
 }

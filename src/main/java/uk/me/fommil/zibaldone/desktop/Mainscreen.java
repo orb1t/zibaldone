@@ -100,13 +100,13 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         log.fine("Changed " + property);
         if ("graphController".equals(property)) {
             graphController.addClusterListener(jungGraphView);
-            jungGraphView.setGraphController(graphController);
+            jungGraphView.setGraph(graphController.getGraph());
         } else if ("tagController".equals(property)) {
             tagController.addTagListener(tagSelectView);
             tagSelectView.setTagController(tagController);
         } else if ("bunchController".equals(property)) {
             bunchController.addBunchListener(jungGraphView);
-            jungGraphView.setBunchControl(bunchController);
+            jungGraphView.setBunchController(bunchController);
         } else if ("importerController".equals(property)) {
             importerController.addTagListener(tagSelectView);
             importerController.addNoteListener(graphController);

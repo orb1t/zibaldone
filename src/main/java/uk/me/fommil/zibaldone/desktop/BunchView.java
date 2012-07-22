@@ -13,11 +13,13 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Set;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.java.Log;
 import org.jdesktop.swingx.combobox.ListComboBoxModel;
 import uk.me.fommil.zibaldone.Bunch;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Tag;
+import uk.me.fommil.zibaldone.control.BunchController;
 
 /**
  *
@@ -28,6 +30,9 @@ public class BunchView extends javax.swing.JPanel {
 
     @Getter
     private Bunch bunch;
+    
+//    @Setter
+//    private BunchController bunchController;
 
     // TODO: remove button for Notes in the list
     public BunchView() {
