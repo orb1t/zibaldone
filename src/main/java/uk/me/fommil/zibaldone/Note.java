@@ -30,7 +30,6 @@ public class Note implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "NOTE_ID")
     private Long id;
 
     @Column

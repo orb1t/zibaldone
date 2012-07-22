@@ -10,12 +10,15 @@ import com.google.common.collect.Sets;
 import java.io.Serializable;
 import java.util.Set;
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import lombok.Data;
@@ -39,14 +42,14 @@ public class Bunch implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "BUNCH_ID")
     private Long id;
 
     @Column
     private String name;
 
-    // TODO: investigate how to magically delete references to Notes that are removed
-    @ManyToMany
+    // TODO: investigate how to magically delete references
+    // from this JoinTable when Notes are removed elsewhere
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Note> notes = Sets.newHashSet();
 
     @Lob

@@ -45,7 +45,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -115,6 +114,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     public void bunchSelectionChanged(Bunch bunch, TagChoice choice) {
         switch (choice) {
             case SHOW:
+                log.info("CLUMPING " + bunch);
                 Preconditions.checkState(!activeBunches.containsKey(bunch.getId()));
                 Layout<Note, Weight> layout = createClump(bunch.getNotes());
                 activeBunches.put(bunch.getId(), layout);
@@ -127,16 +127,20 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         }
     }
 
-    private void showBunch(final Bunch bunch) {
+    private void showBunch(Long bunchId) {
+        final Bunch bunch = bunchController.getBunch(bunchId);
         JDialog dialog = new JDialog();
         dialog.setTitle("Bunch Editor");
         dialog.setModal(true);
         BunchView view = new BunchView();
         view.setBunch(bunch);
         dialog.add(view);
+        // FIXME: window closed never being called
+//        dialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
         dialog.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
+                log.info("WINDOW CLOSED");
                 bunchController.updateBunch(bunch);
             }
         });
@@ -189,8 +193,9 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
             super.mouseReleased(e);
             Set<Note> picked = graphVisualiser.getPickedVertexState().getPicked();
 
-            if (!picked.isEmpty() && picked.hashCode() != pickedBefore) {
-                if (picked.size() > 1 || location.distance(e.getLocationOnScreen()) < 10) {
+            // TODO: adding an extra node should select, regardess of distance
+            if (!picked.isEmpty() && location.distance(e.getLocationOnScreen()) < 10) {
+                if (picked.hashCode() != pickedBefore || picked.size() > 1) {
                     selectNotes(picked);
                 }
             }
@@ -271,12 +276,13 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         popup.removeAll();
 
         // TODO: only go through active bunches
-//        for (Bunch bunch : activeBunches.keySet()) {
-//            if (Convenience.isSubset(notes, bunch.getNotes())) {
-//                showBunch(bunch);
-//                return;
-//            }
-//        }
+        for (Long bunchId : activeBunches.keySet()) {
+            Set<Note> bunchNotes = Sets.newHashSet(activeBunches.get(bunchId).getGraph().getVertices());
+            if (Convenience.isSubset(notes, bunchNotes)) {
+                showBunch(bunchId);
+                return;
+            }
+        }
 
         if (notes.size() == 1) {
             showNote(Iterables.getOnlyElement(notes));
