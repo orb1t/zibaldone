@@ -161,7 +161,9 @@ public abstract class CrudDao<K, T> {
      * @param key
      * @return the entity with the given key, or null if not found
      * @throws PersistenceException
+     * @deprecated should be @Warning see https://github.com/peichhorn/lombok-pg/issues/114
      */
+    @Deprecated
     public T read(K key) {
         Preconditions.checkNotNull(key);
         @Cleanup("close") EntityManager em = createEntityManager();
@@ -173,6 +175,7 @@ public abstract class CrudDao<K, T> {
      * @return the entities with the given keys, or null if not found
      * @throws PersistenceException
      */
+    @Deprecated
     public List<T> read(Collection<K> keys) {
         Preconditions.checkNotNull(keys);
         List<T> results = Lists.newArrayList();

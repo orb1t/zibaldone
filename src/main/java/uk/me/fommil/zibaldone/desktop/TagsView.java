@@ -9,7 +9,6 @@ package uk.me.fommil.zibaldone.desktop;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import java.awt.Color;
-import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Set;
@@ -27,7 +26,8 @@ import uk.me.fommil.zibaldone.control.TagController.TagChoice;
 
 /**
  * Shows tags and provides programmatic options to enable tag selection,
- * deletion and creation.
+ * deletion and creation. The user sets the width of this and the height
+ * is automatically calculated based on the tags and the inherited font.
  * <p>
  * TODO: implement editable mode
  * 
@@ -69,7 +69,7 @@ public class TagsView extends JPanel implements TagListener {
             }
             tagController.selectTag(tag, nextChoice());
         }
-        
+
         public void setChoice(TagChoice choice) {
             Preconditions.checkNotNull(choice);
             this.choice = choice;
@@ -111,7 +111,7 @@ public class TagsView extends JPanel implements TagListener {
     private boolean selectable;
 
     public TagsView() {
-        super(new FlowLayout());
+        super(new WrapLayout());
     }
 
     private final SortedMap<Tag, TagView> views = Maps.newTreeMap();
@@ -141,7 +141,7 @@ public class TagsView extends JPanel implements TagListener {
     public void tagSelection(Tag tag, TagChoice choice) {
         Preconditions.checkNotNull(tag);
         Preconditions.checkNotNull(choice);
-        
+
         views.get(tag).setChoice(choice);
     }
 
@@ -152,5 +152,12 @@ public class TagsView extends JPanel implements TagListener {
         }
         revalidate();
         repaint();
+    }
+
+    /**
+     * @param width
+     */
+    public void setWidth(int width) {
+        setSize(width, getSize().height);
     }
 }

@@ -7,14 +7,13 @@
 package uk.me.fommil.zibaldone.control;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 import javax.persistence.EntityManagerFactory;
 import lombok.ListenerSupport;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
 import uk.me.fommil.zibaldone.Bunch;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.control.Listeners.BunchListener;
@@ -28,6 +27,7 @@ import uk.me.fommil.zibaldone.persistence.BunchDao;
  * 
  * @author Samuel Halliday
  */
+@Log
 @RequiredArgsConstructor
 @ListenerSupport(BunchListener.class)
 public class BunchController {
@@ -44,15 +44,9 @@ public class BunchController {
     }
 
     public Bunch getBunch(Long bunchId) {
-//        BunchDao dao = new BunchDao(emf);
-//        return dao.read(bunchId);
-        // TODO: http://stackoverflow.com/questions/11604370
-        Map<Long, Bunch> lookup = Maps.newTreeMap();
-        Collection<Bunch> all = getBunches();
-        for (Bunch bunch : all) {
-            lookup.put(bunch.getId(), bunch);
-        }
-        return lookup.get(bunchId);
+        BunchDao dao = new BunchDao(emf);
+        Bunch bunch = dao.read(bunchId);
+        return bunch;
     }
 
     /**

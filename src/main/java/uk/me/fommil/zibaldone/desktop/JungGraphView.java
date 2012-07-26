@@ -128,19 +128,17 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     }
 
     private void showBunch(Long bunchId) {
-        final Bunch bunch = bunchController.getBunch(bunchId);
+        Bunch bunch = bunchController.getBunch(bunchId);
         JDialog dialog = new JDialog();
         dialog.setTitle("Bunch Editor");
         dialog.setModal(true);
-        BunchView view = new BunchView();
+        final BunchView view = new BunchView();
         view.setBunch(bunch);
         dialog.add(view);
-        // FIXME: window closed never being called
-//        dialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
         dialog.addWindowListener(new WindowAdapter() {
             @Override
-            public void windowClosed(WindowEvent e) {
-                log.info("WINDOW CLOSED");
+            public void windowClosing(WindowEvent e) {
+                Bunch bunch = view.getBunch();
                 bunchController.updateBunch(bunch);
             }
         });

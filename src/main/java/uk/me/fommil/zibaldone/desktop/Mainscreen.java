@@ -52,6 +52,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         BunchController bunchController = new BunchController(emf, settings);
         ImporterController importerController = new ImporterController(emf, settings);
         importerController.addTagListener(graphController);
+        importerController.addNoteListener(graphController);
         tagController.addTagListener(graphController);
 
         // TODO: Swing Log capture and view
@@ -109,7 +110,6 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
             jungGraphView.setBunchController(bunchController);
         } else if ("importerController".equals(property)) {
             importerController.addTagListener(tagSelectView);
-            importerController.addNoteListener(graphController);
         } else if ("settings".equals(property)) {
             for (UUID uuid : settings.getImporters().keySet()) {
                 addImporter(uuid, true);

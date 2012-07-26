@@ -66,6 +66,8 @@ public final class JBeanEditor extends JPanel {
      * to access entries by row/column index. If, at a later date, the
      * JXTable backend causes problems, it should be possible to rewrite this
      * as a pure JPanel with an appropriate Layout, e.g. GridBagLayout.
+     * 
+     * Note JDesktop.org BeansBinding might help reduce some boilerplate.
      */
 
     private final JPanel top = new JPanel();

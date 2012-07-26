@@ -9,45 +9,52 @@ package uk.me.fommil.zibaldone.desktop;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.Dimension;
 import java.util.Set;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.java.Log;
 import org.jdesktop.swingx.combobox.ListComboBoxModel;
 import uk.me.fommil.zibaldone.Bunch;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Tag;
-import uk.me.fommil.zibaldone.control.BunchController;
 
 /**
- *
  * @author Samuel Halliday
  */
 @Log
 public class BunchView extends javax.swing.JPanel {
 
-    @Getter
     private Bunch bunch;
-    
-//    @Setter
-//    private BunchController bunchController;
 
-    // TODO: remove button for Notes in the list
     public BunchView() {
         initComponents();
 
-        // for the desired effect we have to use Size, not maximumSize
-        tags.setSize(400, 1);
+        // TODO: a Remove Note button
+        // TODO: Note popups
+
+        tags.setWidth(400);
     }
 
+    /**
+     * @return the bunch with fields updated by the user input
+     */
+    public Bunch getBunch() {
+        Preconditions.checkState(bunch != null);
+
+        bunch.setName(name.getText());
+        bunch.setContents(content.getText());
+
+        return bunch;
+    }
+
+    /**
+     * @param bunch
+     */
     public void setBunch(final Bunch bunch) {
         Preconditions.checkNotNull(bunch);
-        // TODO: allow rebinding of bunch
-        Preconditions.checkState(this.bunch == null, "bunch cannot be rebound");
         this.bunch = bunch;
+
         name.setText(bunch.getName());
+        content.setText(bunch.getContents());
 
         Set<Note> allNotes = bunch.getNotes();
         Set<Tag> allTags = Sets.newTreeSet();
@@ -58,20 +65,6 @@ public class BunchView extends javax.swing.JPanel {
         }
         tags.tagsAdded(allTags);
         notes.setModel(new ListComboBoxModel<String>(Lists.newArrayList(noteTitles)));
-
-        // TODO: ensure changes to the bunch are persisted
-        name.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-                bunch.setName(name.getText());
-            }
-        });
-        content.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-                bunch.setContents(content.getText());
-            }
-        });
     }
 
     @SuppressWarnings("unchecked")
@@ -98,6 +91,10 @@ public class BunchView extends javax.swing.JPanel {
         jPanel1.setMaximumSize(new java.awt.Dimension(800, 2147483647));
         jPanel1.setLayout(new java.awt.BorderLayout());
 
+        jPanel2.setBackground(null);
+
+        tags.setBackground(null);
+        tags.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
         jPanel2.add(tags);
 
         jPanel1.add(jPanel2, java.awt.BorderLayout.NORTH);
