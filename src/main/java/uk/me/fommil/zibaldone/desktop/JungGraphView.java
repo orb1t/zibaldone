@@ -116,7 +116,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
             case SHOW:
                 log.info("CLUMPING " + bunch);
                 Preconditions.checkState(!activeBunches.containsKey(bunch.getId()));
-                Layout<Note, Weight> layout = createClump(bunch.getNotes());
+                Layout<Note, Weight> layout = createClump(bunch.getNotes(), true);
                 activeBunches.put(bunch.getId(), layout);
                 break;
             case HIDE:
@@ -346,7 +346,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     public void clusterAdded(ClusterId id, Set<Note> cluster) {
         Preconditions.checkNotNull(id);
 
-        Layout<Note, Weight> layout = createClump(cluster);
+        Layout<Note, Weight> layout = createClump(cluster, false);
         clusterLayouts.put(id, layout);
     }
 
@@ -368,9 +368,18 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         updateClump(subLayout, cluster);
     }
 
-    private Layout<Note, Weight> createClump(Set<Note> notes) {
+    private Layout<Note, Weight> createClump(Set<Note> notes, final boolean priority) {
         Graph<Note, Weight> subGraph = subGraph(notes);
-        Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(subGraph);
+        
+        Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(subGraph) {
+
+            // HACK: forces ordering when drawing layout
+            @Override
+            public int hashCode() {
+                return priority ? 0 : 1;
+            }
+            
+        };
         subLayout.setInitializer(getGraphLayout());
         subLayout.setSize(calculateClusterSize(notes));
 

@@ -23,7 +23,7 @@ import uk.me.fommil.zibaldone.control.TagController.TagChoice;
  * Keeps all the persistent user settings in one place.
  *
  * TODO: API review to persist across sessions
- * TODO: expose listeners (tricky for Collections)
+ * TODO: expose listeners (tricky for Collections: use GlazedLists or Guava Forwarding)
  * 
  * @author Samuel Halliday
  */

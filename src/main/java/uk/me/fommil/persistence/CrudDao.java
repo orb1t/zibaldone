@@ -161,9 +161,9 @@ public abstract class CrudDao<K, T> {
      * @param key
      * @return the entity with the given key, or null if not found
      * @throws PersistenceException
-     * @deprecated should be @Warning see https://github.com/peichhorn/lombok-pg/issues/114
      */
     @Deprecated
+//    @Warning("Beware of upstream bug https://hibernate.onjira.com/browse/HHH-7476")
     public T read(K key) {
         Preconditions.checkNotNull(key);
         @Cleanup("close") EntityManager em = createEntityManager();
@@ -176,6 +176,7 @@ public abstract class CrudDao<K, T> {
      * @throws PersistenceException
      */
     @Deprecated
+//    @Warning("Beware of upstream bug https://hibernate.onjira.com/browse/HHH-7476")
     public List<T> read(Collection<K> keys) {
         Preconditions.checkNotNull(keys);
         List<T> results = Lists.newArrayList();

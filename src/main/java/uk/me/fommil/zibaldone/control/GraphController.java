@@ -76,7 +76,7 @@ public class GraphController implements TagListener, NoteListener {
 
     // TODO: user choice of Relator
     private final Relator relator = new TagRelator();
-
+    
     @Override
     public void notesAdded(Set<Note> notes) {
         Preconditions.checkNotNull(notes);
