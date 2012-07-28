@@ -42,6 +42,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.round;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -53,6 +54,9 @@ import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 import lombok.Setter;
 import lombok.extern.java.Log;
+import org.apache.commons.collections15.Transformer;
+import org.apache.commons.collections15.map.LazyMap;
+import uk.me.fommil.swing.SwingConvenience;
 import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.utils.Convenience.Loop;
 import uk.me.fommil.zibaldone.Bunch;
@@ -107,23 +111,26 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     @Override
     public void bunchUpdated(Bunch bunch) {
         Layout<Note, Weight> layout = activeBunches.get(bunch.getId());
-        updateClump(layout, bunch.getNotes());
+        updateClump(layout, bunch.getNotes(), true);
     }
 
     @Override
     public void bunchSelectionChanged(Bunch bunch, TagChoice choice) {
+        Long id = bunch.getId();
         switch (choice) {
             case SHOW:
-                log.info("CLUMPING " + bunch);
-                Preconditions.checkState(!activeBunches.containsKey(bunch.getId()));
+                Preconditions.checkState(!activeBunches.containsKey(id));
                 Layout<Note, Weight> layout = createClump(bunch.getNotes(), true);
-                activeBunches.put(bunch.getId(), layout);
+                activeBunches.put(id, layout);
+                if (BunchController.NEW_BUNCH_NAME.equals(bunch.getName())) {
+                    showBunch(id);
+                }
                 break;
             case HIDE:
-                Preconditions.checkState(activeBunches.containsKey(bunch.getId()));
-                layout = activeBunches.get(bunch.getId());
+                Preconditions.checkState(activeBunches.containsKey(id));
+                layout = activeBunches.get(id);
                 removeClump(layout);
-                activeBunches.remove(bunch.getId());
+                activeBunches.remove(id);
         }
     }
 
@@ -151,7 +158,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         NoteView noteView = new NoteView();
         noteView.setNote(note);
         popup.add(noteView);
-        popup();
+        SwingConvenience.popupAtMouse(popup, this);
     }
 
     /**
@@ -209,6 +216,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         Layout<Note, Weight> graphLayout = new AggregateLayout<Note, Weight>(delegateLayout);
         graphVisualiser = new VisualizationViewer<Note, Weight>(graphLayout);
         graphVisualiser.setBackground(Color.WHITE);
+        graphVisualiser.setDoubleBuffered(true);
 
         // TODO: don't draw edges (removes problem of edge selection)
 
@@ -273,7 +281,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
         popup.removeAll();
 
-        // TODO: only go through active bunches
         for (Long bunchId : activeBunches.keySet()) {
             Set<Note> bunchNotes = Sets.newHashSet(activeBunches.get(bunchId).getGraph().getVertices());
             if (Convenience.isSubset(notes, bunchNotes)) {
@@ -287,7 +294,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
             return;
         }
 
-        JMenuItem newBunch = new JMenuItem("New Bunch", KeyEvent.VK_N);
+        JMenuItem newBunch = new JMenuItem(BunchController.NEW_BUNCH_NAME, KeyEvent.VK_N);
         newBunch.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -299,8 +306,16 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         Collection<Bunch> bunches = bunchController.getBunches();
         if (!bunches.isEmpty() && bunches.size() < 10) {
             popup.add(new JSeparator());
-            for (Bunch bunch : bunches) {
-                popup.add(new JMenuItem("Add to \"" + bunch.getName() + "\""));
+            for (final Bunch bunch : bunches) {
+                JMenuItem addToBunch = new JMenuItem("Add to \"" + bunch.getName() + "\"");
+                addToBunch.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        bunch.getNotes().addAll(notes);
+                        bunchController.updateBunch(bunch);
+                    }
+                });
+                popup.add(addToBunch);
             }
         }
 
@@ -313,15 +328,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
                 popup.add(entry);
             }
         }
-        popup();
-    }
-
-    private void popup() {
-        popup.pack();
-        Point mouse = MouseInfo.getPointerInfo().getLocation();
-        SwingUtilities.convertPointFromScreen(mouse, this);
-        // http://stackoverflow.com/questions/766956
-        popup.show(this, mouse.x, mouse.y);
+        SwingConvenience.popupAtMouse(popup, this);
     }
 
     // resets the location of the cluster by scaling 'clusterPositions' to the
@@ -365,20 +372,18 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         Preconditions.checkArgument(clusterLayouts.containsKey(id));
 
         Layout<Note, Weight> subLayout = clusterLayouts.get(id);
-        updateClump(subLayout, cluster);
+        updateClump(subLayout, cluster, false);
     }
 
     private Layout<Note, Weight> createClump(Set<Note> notes, final boolean priority) {
         Graph<Note, Weight> subGraph = subGraph(notes);
-        
-        Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(subGraph) {
 
-            // HACK: forces ordering when drawing layout
+        Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(subGraph) {
+            // HACK: forces ordering when drawing subLayouts
             @Override
             public int hashCode() {
                 return priority ? 0 : 1;
             }
-            
         };
         subLayout.setInitializer(getGraphLayout());
         subLayout.setSize(calculateClusterSize(notes));
@@ -403,10 +408,24 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         graphVisualiser.repaint();
     }
 
-    private void updateClump(Layout<Note, Weight> layout, Set<Note> notes) {
-        layout.setSize(calculateClusterSize(notes));
-        Graph<Note, Weight> subGraph = subGraph(notes);
-        layout.setGraph(subGraph);
-        graphVisualiser.repaint();
+    private void updateClump(Layout<Note, Weight> layout, Set<Note> notes, boolean priority) {
+        // FIXME: register the layout as a bunch or cluster
+        removeClump(layout);
+        layout = createClump(notes, priority);
+
+        // HACK: this is a workaround because the code below results in a bizarre
+        // exception stack which looks like a recursive loop but cannot be localised
+        // or reproduced here.
+        // A StackOverflowError points to
+        // org.hibernate.collection.internal.PersistentSet
+        // but local checking shows that n x n hashcode/contains are all fine
+        // totally bizarre!!!
+        // Is JUNG screwing up with calls to paint when doing the repainting?
+
+//        Graph<Note, Weight> subGraph = subGraph(notes);
+//        layout.setGraph(subGraph);
+//        layout.setSize(calculateClusterSize(notes));
+//        positionCluster(layout);
+//        graphVisualiser.repaint();
     }
 }

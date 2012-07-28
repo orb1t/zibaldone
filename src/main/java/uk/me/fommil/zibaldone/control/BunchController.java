@@ -32,6 +32,8 @@ import uk.me.fommil.zibaldone.persistence.BunchDao;
 @ListenerSupport(BunchListener.class)
 public class BunchController {
 
+    public static final String NEW_BUNCH_NAME = "New Bunch";
+
     @NonNull
     private final EntityManagerFactory emf;
 
@@ -57,13 +59,13 @@ public class BunchController {
         Preconditions.checkArgument(!notes.isEmpty());
 
         Bunch bunch = new Bunch();
-        bunch.setName("New Bunch");
+        bunch.setName(NEW_BUNCH_NAME);
         bunch.setNotes(notes);
         BunchDao dao = new BunchDao(emf);
         dao.create(bunch);
 
         fireBunchAdded(bunch);
-        fireBunchSelectionChanged(bunch, TagChoice.SHOW);
+        selectBunch(bunch, TagChoice.SHOW);
     }
 
     public void removeBunch(Bunch bunch) {
@@ -83,7 +85,7 @@ public class BunchController {
 
         BunchDao dao = new BunchDao(emf);
         Bunch update = dao.update(bunch);
-
+        
         fireBunchUpdated(update);
     }
 

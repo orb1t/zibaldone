@@ -20,13 +20,20 @@ import java.util.UUID;
 import java.util.logging.Level;
 import javax.persistence.EntityManagerFactory;
 import javax.swing.ComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JPopupMenu;
+import javax.swing.ListCellRenderer;
 import lombok.BoundSetter;
 import lombok.extern.java.Log;
 import org.jdesktop.swingx.combobox.MapComboBoxModel;
 import uk.me.fommil.beans.editors.DatePropertyEditor;
 import uk.me.fommil.beans.editors.FilePropertyEditor;
 import uk.me.fommil.persistence.CrudDao;
+import uk.me.fommil.swing.SwingConvenience;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.control.BunchController;
 import uk.me.fommil.zibaldone.control.ImporterController;
@@ -99,6 +106,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         Preconditions.checkNotNull(evt);
         String property = evt.getPropertyName();
         log.fine("Changed " + property);
+        // TODO: remove older listeners
         if ("graphController".equals(property)) {
             graphController.addClusterListener(jungGraphView);
             jungGraphView.setGraph(graphController.getGraph());
@@ -107,7 +115,9 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
             tagSelectView.setTagController(tagController);
         } else if ("bunchController".equals(property)) {
             bunchController.addBunchListener(jungGraphView);
+            bunchController.addBunchListener(bunchMenu);
             jungGraphView.setBunchController(bunchController);
+            bunchMenu.setBunchController(bunchController);            
         } else if ("importerController".equals(property)) {
             importerController.addTagListener(tagSelectView);
         } else if ("settings".equals(property)) {
@@ -128,7 +138,10 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         Map<String, Class<Importer>> importers = ImporterController.getImporterImplementations();
         ComboBoxModel importerChoices = new MapComboBoxModel<String, Class<Importer>>(importers);
         importerSelector.setModel(importerChoices);
-
+        
+        
+        
+        
         // TODO: add the 'null' importer        
         // TODO: animated settings panel
         // TODO: icons for the toolbar buttons
@@ -151,10 +164,11 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
 
         tagDialog = new javax.swing.JDialog();
         tagSelectView = new uk.me.fommil.zibaldone.desktop.TagsView();
+        bunchMenu = new uk.me.fommil.zibaldone.desktop.BunchMenu();
         javax.swing.JToolBar jToolBar = new javax.swing.JToolBar();
         org.jdesktop.swingx.JXSearchField jSearch = new org.jdesktop.swingx.JXSearchField();
         javax.swing.JButton tagsButton = new javax.swing.JButton();
-        javax.swing.JButton jButtonClusters = new javax.swing.JButton();
+        bunchesButton = new javax.swing.JButton();
         javax.swing.JToggleButton jButtonLayout = new javax.swing.JToggleButton();
         javax.swing.Box.Filler filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(50, 0), new java.awt.Dimension(1000, 0));
         settingsButton = new javax.swing.JToggleButton();
@@ -200,13 +214,16 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         });
         jToolBar.add(tagsButton);
 
-        jButtonClusters.setText("Bunches");
-        jButtonClusters.addActionListener(new java.awt.event.ActionListener() {
+        bunchesButton.setText("Bunches");
+        bunchesButton.setFocusable(false);
+        bunchesButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        bunchesButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        bunchesButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonClustersActionPerformed(evt);
+                bunchesButtonActionPerformed(evt);
             }
         });
-        jToolBar.add(jButtonClusters);
+        jToolBar.add(bunchesButton);
 
         jButtonLayout.setText("Relators");
         jButtonLayout.setFocusable(false);
@@ -290,10 +307,13 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         tagDialog.setVisible(true);
     }//GEN-LAST:event_tagsButtonActionPerformed
 
-    private void jButtonClustersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonClustersActionPerformed
-    }//GEN-LAST:event_jButtonClustersActionPerformed
+    private void bunchesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bunchesButtonActionPerformed
+        SwingConvenience.popupAtMouse(bunchMenu, this);
+    }//GEN-LAST:event_bunchesButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private uk.me.fommil.zibaldone.desktop.BunchMenu bunchMenu;
+    javax.swing.JButton bunchesButton;
     javax.swing.JComboBox importerSelector;
     org.jdesktop.swingx.JXTaskPaneContainer importersPanel;
     uk.me.fommil.zibaldone.desktop.JungGraphView jungGraphView;
