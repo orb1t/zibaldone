@@ -27,7 +27,6 @@ import edu.uci.ics.jung.visualization.layout.ObservableCachingLayout;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -42,7 +41,6 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.round;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -51,11 +49,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
-import javax.swing.SwingUtilities;
 import lombok.Setter;
 import lombok.extern.java.Log;
-import org.apache.commons.collections15.Transformer;
-import org.apache.commons.collections15.map.LazyMap;
 import uk.me.fommil.swing.SwingConvenience;
 import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.utils.Convenience.Loop;
@@ -111,7 +106,8 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     @Override
     public void bunchUpdated(Bunch bunch) {
         Layout<Note, Weight> layout = activeBunches.get(bunch.getId());
-        updateClump(layout, bunch.getNotes(), true);
+        layout = updateClump(layout, bunch.getNotes(), true);
+        activeBunches.put(bunch.getId(), layout);
     }
 
     @Override
@@ -342,6 +338,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         int y = (int) min(max(padding.height / 2, round(size.height * position.getY())), size.height - padding.height / 2);
         Point location = new Point(x, y);
         graphLayout.put(layout, location);
+//        graphVisualiser.repaint();
     }
 
     private Dimension calculateClusterSize(Set<Note> cluster) {
@@ -372,7 +369,8 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         Preconditions.checkArgument(clusterLayouts.containsKey(id));
 
         Layout<Note, Weight> subLayout = clusterLayouts.get(id);
-        updateClump(subLayout, cluster, false);
+        subLayout = updateClump(subLayout, cluster, false);
+        clusterLayouts.put(id, subLayout);
     }
 
     private Layout<Note, Weight> createClump(Set<Note> notes, final boolean priority) {
@@ -408,10 +406,16 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         graphVisualiser.repaint();
     }
 
-    private void updateClump(Layout<Note, Weight> layout, Set<Note> notes, boolean priority) {
-        // FIXME: register the layout as a bunch or cluster
+    // NOTE: this API is a bit bizarre in order to workaround Hibernate/JUNG weirdness
+    private Layout<Note, Weight> updateClump(Layout<Note, Weight> layout, Set<Note> notes, boolean priority) {
+        Point2D.Double position = positions.get(layout);
+        // TODO: fix side effect, user offsets are ignored when a bunch is updated
         removeClump(layout);
         layout = createClump(notes, priority);
+        positions.put(layout, position);
+        positionCluster(layout);
+        graphVisualiser.repaint();
+        return layout;
 
         // HACK: this is a workaround because the code below results in a bizarre
         // exception stack which looks like a recursive loop but cannot be localised
