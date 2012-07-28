@@ -8,11 +8,19 @@ package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.awt.Dimension;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import lombok.extern.java.Log;
+import org.jdesktop.swingx.autocomplete.ListAdaptor;
 import org.jdesktop.swingx.combobox.ListComboBoxModel;
+import org.jdesktop.swingx.combobox.MapComboBoxModel;
+import uk.me.fommil.swing.SwingConvenience;
 import uk.me.fommil.zibaldone.Bunch;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Tag;
@@ -56,21 +64,21 @@ public class BunchView extends javax.swing.JPanel {
         name.setText(bunch.getName());
         content.setText(bunch.getContents());
 
-        Set<Note> allNotes = bunch.getNotes();
+        Map<String, Note> noteMap = Maps.newTreeMap();
         Set<Tag> allTags = Sets.newTreeSet();
-        Set<String> noteTitles = Sets.newTreeSet();
-        for (Note note : allNotes) {
+        for (Note note : bunch.getNotes()) {
+            noteMap.put(note.getTitle(), note);
             allTags.addAll(note.getTags());
-            noteTitles.add(note.getTitle());
         }
         tags.tagsAdded(allTags);
-        notes.setModel(new ListComboBoxModel<String>(Lists.newArrayList(noteTitles)));
+        notes.setModel(new MapComboBoxModel<String, Note>(noteMap));
     }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        popup = new javax.swing.JPopupMenu();
         name = new javax.swing.JTextField();
         javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
         javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
@@ -91,9 +99,6 @@ public class BunchView extends javax.swing.JPanel {
         jPanel1.setMaximumSize(new java.awt.Dimension(800, 2147483647));
         jPanel1.setLayout(new java.awt.BorderLayout());
 
-        jPanel2.setBackground(null);
-
-        tags.setBackground(null);
         tags.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
         jPanel2.add(tags);
 
@@ -115,16 +120,40 @@ public class BunchView extends javax.swing.JPanel {
         jScrollPane2.setPreferredSize(new java.awt.Dimension(250, 200));
 
         notes.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
+        notes.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                notesMouseClicked(evt);
+            }
+        });
         jScrollPane2.setViewportView(notes);
 
         jPanel1.add(jScrollPane2, java.awt.BorderLayout.EAST);
 
         add(jPanel1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void notesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_notesMouseClicked
+        // TODO: is there a better way that mouseClick to register this?
+        @SuppressWarnings("unchecked")
+        MapComboBoxModel<String, Note> model = (MapComboBoxModel<String, Note>) notes.getModel();
+        Object[] selected = notes.getSelectedValues();
+        popup.removeAll();
+        for (Object object : selected) {
+            Note note = model.getValue(object);
+            NoteView view = new NoteView();
+            view.setNote(note);
+            popup.add(view);
+        }
+        if (selected.length > 0) {
+            SwingConvenience.popupAtMouse(popup, this);
+        }
+    }//GEN-LAST:event_notesMouseClicked
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     javax.swing.JEditorPane content;
     javax.swing.JTextField name;
     javax.swing.JList notes;
+    private javax.swing.JPopupMenu popup;
     uk.me.fommil.zibaldone.desktop.TagsView tags;
     // End of variables declaration//GEN-END:variables
 }

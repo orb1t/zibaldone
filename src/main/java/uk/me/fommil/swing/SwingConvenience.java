@@ -10,10 +10,13 @@ import com.google.common.base.Preconditions;
 import java.awt.Component;
 import java.awt.MouseInfo;
 import java.awt.Point;
+import java.awt.event.WindowListener;
 import javax.annotation.Nullable;
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
+import uk.me.fommil.zibaldone.desktop.NoteView;
 
 /**
  * Convenience methods for Swing UIs.
@@ -53,5 +56,25 @@ public final class SwingConvenience {
         SwingUtilities.convertPointFromScreen(mouse, owner);
         // http://stackoverflow.com/questions/766956
         popup.show(owner, mouse.x, mouse.y);
+    }
+
+    /**
+     * @param title
+     * @param component
+     * @param modal
+     * @param listener 
+     */
+    public static void showAsDialog(String title, Component component, boolean modal, @Nullable WindowListener listener) {
+        Preconditions.checkNotNull(title);
+        Preconditions.checkNotNull(component);
+        JDialog dialog = new JDialog();
+        dialog.setTitle(title);
+        dialog.setModal(modal);
+        dialog.add(component);
+        if (listener != null) {
+            dialog.addWindowListener(listener);
+        }
+        dialog.pack();
+        dialog.setVisible(true);
     }
 }

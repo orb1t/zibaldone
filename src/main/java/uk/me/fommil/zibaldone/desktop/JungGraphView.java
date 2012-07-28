@@ -6,7 +6,6 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
-import uk.me.fommil.zibaldone.control.GraphController;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
@@ -36,6 +35,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -44,7 +44,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import javax.swing.JDialog;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -88,33 +87,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     // TODO: a better way to store layout positions
     // double [0, 1]
     private final Map<Layout<Note, Weight>, Point2D> positions = Maps.newHashMap();
-
-    private void showBunch(Long bunchId) {
-        Bunch bunch = bunchController.getBunch(bunchId);
-        JDialog dialog = new JDialog();
-        dialog.setTitle("Bunch Editor");
-        dialog.setModal(true);
-        final BunchView view = new BunchView();
-        view.setBunch(bunch);
-        dialog.add(view);
-        dialog.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                Bunch bunch = view.getBunch();
-                bunchController.updateBunch(bunch);
-            }
-        });
-        dialog.pack();
-        dialog.setVisible(true);
-    }
-
-    private void showNote(Note note) {
-        // TODO: Note JDialog not popup
-        NoteView noteView = new NoteView();
-        noteView.setNote(note);
-        popup.add(noteView);
-        SwingConvenience.popupAtMouse(popup, this);
-    }
 
     /**
      * The JUNG mouse handling framework was developed
@@ -164,7 +136,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
     public JungGraphView() {
         super(new BorderLayout());
-        // the JUNG API needs a Graph instance to instantiate many visual objects
+        // https://sourceforge.net/tracker/?func=detail&aid=3542000&group_id=73840&atid=539119
         Graph<Note, Weight> dummy = new UndirectedSparseGraph<Note, Weight>();
 
         Layout<Note, Weight> delegateLayout = new FRLayout<Note, Weight>(dummy);
@@ -195,7 +167,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
                 }
             }
         });
-    }
+    }    
 
     public void setGraph(ObservableGraph<Note, Weight> graph) {
         Preconditions.checkNotNull(graph);
@@ -209,7 +181,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
     private void selectNotes(final Set<Note> notes) {
         // FIXME: cleanup this code, move some logic into mouse
-        
+
         popup.removeAll();
 
         for (Long bunchId : activeBunches.keySet()) {
@@ -260,6 +232,26 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
             }
         }
         SwingConvenience.popupAtMouse(popup, this);
+    }
+
+    private void showNote(Note note) {
+        NoteView noteView = new NoteView();
+        noteView.setNote(note);
+        SwingConvenience.showAsDialog("Note Viewer", noteView, true, null);
+    }
+
+    private void showBunch(Long bunchId) {
+        Bunch bunch = bunchController.getBunch(bunchId);
+        final BunchView view = new BunchView();
+        view.setBunch(bunch);
+        WindowListener listener = new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                Bunch bunch = view.getBunch();
+                bunchController.updateBunch(bunch);
+            }
+        };
+        SwingConvenience.showAsDialog("Bunch Editor", view, true, listener);
     }
 
     @Override
