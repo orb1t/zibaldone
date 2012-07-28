@@ -53,10 +53,10 @@ import lombok.Setter;
 import lombok.extern.java.Log;
 import uk.me.fommil.swing.SwingConvenience;
 import uk.me.fommil.utils.Convenience;
-import uk.me.fommil.utils.Convenience.Loop;
 import uk.me.fommil.zibaldone.Bunch;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.control.BunchController;
+import uk.me.fommil.zibaldone.control.JungGraphs;
 import uk.me.fommil.zibaldone.control.Listeners.BunchListener;
 import uk.me.fommil.zibaldone.control.Listeners.ClusterId;
 import uk.me.fommil.zibaldone.control.Listeners.ClusterListener;
@@ -67,7 +67,6 @@ import uk.me.fommil.zibaldone.control.Weight;
  * Draws the network graph of the {@link Note}s and {@link Bunch}s
  * using JUNG.
  * 
- * @see GraphController
  * @author Samuel Halliday
  */
 @Log
@@ -84,51 +83,11 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     // use the immutable BunchId as the key
     private Map<Long, Layout<Note, Weight>> activeBunches = Maps.newHashMap();
 
-    // FIXME: ensure clusterLayouts do not override bunches
     private final Map<ClusterId, Layout<Note, Weight>> clusterLayouts = Maps.newHashMap();
 
     // TODO: a better way to store layout positions
     // double [0, 1]
-    private final Map<Layout<Note, Weight>, Point2D.Double> positions = Maps.newHashMap();
-
-    @Override
-    public void bunchAdded(Bunch bunch) {
-    }
-
-    @Override
-    public void bunchRemoved(Bunch bunch) {
-        if (activeBunches.containsKey(bunch.getId())) {
-            removeClump(activeBunches.get(bunch.getId()));
-            activeBunches.remove(bunch.getId());
-        }
-    }
-
-    @Override
-    public void bunchUpdated(Bunch bunch) {
-        Layout<Note, Weight> layout = activeBunches.get(bunch.getId());
-        layout = updateClump(layout, bunch.getNotes(), true);
-        activeBunches.put(bunch.getId(), layout);
-    }
-
-    @Override
-    public void bunchSelectionChanged(Bunch bunch, TagChoice choice) {
-        Long id = bunch.getId();
-        switch (choice) {
-            case SHOW:
-                Preconditions.checkState(!activeBunches.containsKey(id));
-                Layout<Note, Weight> layout = createClump(bunch.getNotes(), true);
-                activeBunches.put(id, layout);
-                if (BunchController.NEW_BUNCH_NAME.equals(bunch.getName())) {
-                    showBunch(id);
-                }
-                break;
-            case HIDE:
-                Preconditions.checkState(activeBunches.containsKey(id));
-                layout = activeBunches.get(id);
-                removeClump(layout);
-                activeBunches.remove(id);
-        }
-    }
+    private final Map<Layout<Note, Weight>, Point2D> positions = Maps.newHashMap();
 
     private void showBunch(Long bunchId) {
         Bunch bunch = bunchController.getBunch(bunchId);
@@ -232,7 +191,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
                 getGraphLayout().setSize(getSize());
 
                 for (Layout<Note, Weight> cluster : positions.keySet()) {
-                    positionCluster(cluster);
+                    repositionClump(cluster);
                 }
             }
         });
@@ -248,33 +207,9 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         return (AggregateLayout<Note, Weight>) layout.getDelegate();
     }
 
-    private Graph<Note, Weight> subGraph(Set<Note> cluster) {
-        // the GraphCollapser supposedly provides this functionality, but is unreliable
-        // Graph<Note, Weight> graph = graphVisualiser.getGraphLayout().getGraph();
-        // GraphCollapser collapser = new GraphCollapser(graph);
-        // return collapser.getClusterGraph(graph, cluster);
-        final Graph<Note, Weight> graph = graphVisualiser.getGraphLayout().getGraph();
-        final UndirectedSparseGraph<Note, Weight> subGraph = new UndirectedSparseGraph<Note, Weight>();
-        for (Note note : cluster) {
-            Preconditions.checkState(graph.containsVertex(note), note);
-            subGraph.addVertex(note);
-        }
-        Convenience.upperOuter(cluster, new Loop<Note>() {
-            @Override
-            public void action(Note first, Note second) {
-                Weight weight = graph.findEdge(first, second);
-                if (weight != null) {
-                    subGraph.addEdge(weight, first, second);
-                }
-            }
-        });
-        return subGraph;
-    }
-
     private void selectNotes(final Set<Note> notes) {
-        assert notes != null;
-        assert notes.size() > 0;
-
+        // FIXME: cleanup this code, move some logic into mouse
+        
         popup.removeAll();
 
         for (Long bunchId : activeBunches.keySet()) {
@@ -327,76 +262,94 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         SwingConvenience.popupAtMouse(popup, this);
     }
 
-    // resets the location of the cluster by scaling 'clusterPositions' to the
-    // window size, also with some padding on the border.
-    private void positionCluster(Layout<Note, Weight> layout) {
-        AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
-        Point2D position = positions.get(layout);
-        Dimension size = getSize();
-        Dimension padding = layout.getSize();
-        int x = (int) min(max(padding.width / 2, round(size.width * position.getX())), size.width - padding.width / 2);
-        int y = (int) min(max(padding.height / 2, round(size.height * position.getY())), size.height - padding.height / 2);
-        Point location = new Point(x, y);
-        graphLayout.put(layout, location);
-//        graphVisualiser.repaint();
-    }
-
-    private Dimension calculateClusterSize(Set<Note> cluster) {
-        int size = Math.min(75, cluster.size() * 10);
-        return new Dimension(size, size);
-    }
-
     @Override
     public void clusterAdded(ClusterId id, Set<Note> cluster) {
-        Preconditions.checkNotNull(id);
-
         Layout<Note, Weight> layout = createClump(cluster, false);
         clusterLayouts.put(id, layout);
     }
 
     @Override
     public void clusterRemoved(ClusterId id) {
-        Preconditions.checkNotNull(id);
-        Preconditions.checkArgument(clusterLayouts.containsKey(id));
-
         removeClump(clusterLayouts.get(id));
         clusterLayouts.remove(id);
     }
 
     @Override
     public void clusterUpdated(ClusterId id, Set<Note> cluster) {
-        Preconditions.checkNotNull(id);
-        Preconditions.checkArgument(clusterLayouts.containsKey(id));
-
         Layout<Note, Weight> subLayout = clusterLayouts.get(id);
-        subLayout = updateClump(subLayout, cluster, false);
-        clusterLayouts.put(id, subLayout);
+        updateClump(subLayout, cluster);
     }
 
-    private Layout<Note, Weight> createClump(Set<Note> notes, final boolean priority) {
-        Graph<Note, Weight> subGraph = subGraph(notes);
+    @Override
+    public void bunchAdded(Bunch bunch) {
+    }
 
-        Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(subGraph) {
-            // HACK: forces ordering when drawing subLayouts
+    @Override
+    public void bunchRemoved(Bunch bunch) {
+        if (activeBunches.containsKey(bunch.getId())) {
+            removeClump(activeBunches.get(bunch.getId()));
+            activeBunches.remove(bunch.getId());
+        }
+    }
+
+    @Override
+    public void bunchUpdated(Bunch bunch) {
+        Layout<Note, Weight> layout = activeBunches.get(bunch.getId());
+        updateClump(layout, bunch.getNotes());
+    }
+
+    @Override
+    public void bunchSelectionChanged(Bunch bunch, TagChoice choice) {
+        Long id = bunch.getId();
+        switch (choice) {
+            case SHOW:
+                Preconditions.checkState(!activeBunches.containsKey(id));
+                Layout<Note, Weight> layout = createClump(bunch.getNotes(), true);
+                activeBunches.put(id, layout);
+                if (BunchController.NEW_BUNCH_NAME.equals(bunch.getName())) {
+                    showBunch(id);
+                }
+                break;
+            case HIDE:
+                Preconditions.checkState(activeBunches.containsKey(id));
+                layout = activeBunches.get(id);
+                removeClump(layout);
+                activeBunches.remove(id);
+        }
+    }
+
+    // a 'clump' is the super of both cluster and bunch
+    private Layout<Note, Weight> createClump(Set<Note> notes, final boolean priority) {
+        Graph<Note, Weight> dummy = new UndirectedSparseGraph<Note, Weight>();
+        Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(dummy) {
+            // HACK: https://sourceforge.net/tracker/?func=detail&aid=3550871&group_id=73840&atid=539119
             @Override
             public int hashCode() {
                 return priority ? 0 : 1;
             }
         };
-        subLayout.setInitializer(getGraphLayout());
-        subLayout.setSize(calculateClusterSize(notes));
+        subLayout.setInitializer(getGraphLayout().getDelegate());
 
-        // TODO: smarter positioning of clumps
+        Point2D position = calculateClumpPosition(notes, priority);
+        positions.put(subLayout, position);
+
+        updateClump(subLayout, notes);
+
+        return subLayout;
+    }
+
+    private Point2D calculateClumpPosition(Set<Note> notes, boolean priority) {
+        // TODO: smarter positioning of clumps, e.g. find free space
         // https://issues.apache.org/jira/browse/MATH-826
         Random random = new Random();
         Point2D.Double position = new Point2D.Double();
         position.setLocation(random.nextDouble(), random.nextDouble());
+        return position;
+    }
 
-        positions.put(subLayout, position);
-        positionCluster(subLayout);
-        graphVisualiser.repaint();
-
-        return subLayout;
+    private Dimension calculateClumpSize(Set<Note> notes) {
+        int size = Math.min(75, notes.size() * 10);
+        return new Dimension(size, size);
     }
 
     private void removeClump(Layout<Note, Weight> layout) {
@@ -406,30 +359,28 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         graphVisualiser.repaint();
     }
 
-    // NOTE: this API is a bit bizarre in order to workaround Hibernate/JUNG weirdness
-    private Layout<Note, Weight> updateClump(Layout<Note, Weight> layout, Set<Note> notes, boolean priority) {
-        Point2D.Double position = positions.get(layout);
-        // TODO: fix side effect, user offsets are ignored when a bunch is updated
-        removeClump(layout);
-        layout = createClump(notes, priority);
-        positions.put(layout, position);
-        positionCluster(layout);
+    private void updateClump(Layout<Note, Weight> layout, Set<Note> notes) {
+        Graph<Note, Weight> graph = graphVisualiser.getGraphLayout().getGraph();
+        Graph<Note, Weight> subGraph = JungGraphs.subGraph(graph, notes);
+        layout.setSize(null); // optimisation
+        layout.setGraph(subGraph);
+        layout.setSize(calculateClumpSize(notes));
+
+        repositionClump(layout);
         graphVisualiser.repaint();
-        return layout;
+    }
 
-        // HACK: this is a workaround because the code below results in a bizarre
-        // exception stack which looks like a recursive loop but cannot be localised
-        // or reproduced here.
-        // A StackOverflowError points to
-        // org.hibernate.collection.internal.PersistentSet
-        // but local checking shows that n x n hashcode/contains are all fine
-        // totally bizarre!!!
-        // Is JUNG screwing up with calls to paint when doing the repainting?
-
-//        Graph<Note, Weight> subGraph = subGraph(notes);
-//        layout.setGraph(subGraph);
-//        layout.setSize(calculateClusterSize(notes));
-//        positionCluster(layout);
-//        graphVisualiser.repaint();
+    // resets the location of the cluster by scaling 'clusterPositions' to the
+    // window size, also with some padding on the border.
+    private void repositionClump(Layout<Note, Weight> layout) {
+        // TODO: respect user translations when bunches are updated (why is resizing ok?)
+        AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
+        Point2D position = positions.get(layout);
+        Dimension size = getSize();
+        Dimension padding = layout.getSize();
+        int x = (int) min(max(padding.width / 2, round(size.width * position.getX())), size.width - padding.width / 2);
+        int y = (int) min(max(padding.height / 2, round(size.height * position.getY())), size.height - padding.height / 2);
+        Point location = new Point(x, y);
+        graphLayout.put(layout, location);
     }
 }
