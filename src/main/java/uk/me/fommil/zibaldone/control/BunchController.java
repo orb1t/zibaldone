@@ -45,6 +45,11 @@ public class BunchController {
         return dao.readAll();
     }
 
+    public Collection<Bunch> getBunches(Collection<Long> ids) {
+        BunchDao dao = new BunchDao(emf);
+        return dao.read(ids);
+    }
+
     public Bunch getBunch(Long bunchId) {
         BunchDao dao = new BunchDao(emf);
         Bunch bunch = dao.read(bunchId);
@@ -85,7 +90,7 @@ public class BunchController {
 
         BunchDao dao = new BunchDao(emf);
         Bunch update = dao.update(bunch);
-        
+
         fireBunchUpdated(update);
     }
 

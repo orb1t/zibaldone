@@ -8,6 +8,7 @@ package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
@@ -44,10 +45,13 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import lombok.Setter;
 import lombok.extern.java.Log;
 import uk.me.fommil.swing.SwingConvenience;
@@ -76,7 +80,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     @Setter
     private BunchController bunchController;
 
-    // TODO: make a JDialog which can be resized
     private final JPopupMenu popup = new JPopupMenu();
 
     // use the immutable BunchId as the key
@@ -87,52 +90,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     // TODO: a better way to store layout positions
     // double [0, 1]
     private final Map<Layout<Note, Weight>, Point2D> positions = Maps.newHashMap();
-
-    /**
-     * The JUNG mouse handling framework was developed
-     * to allow different plugins to function under different user-selected
-     * "modes", which is detrimental to the Zibaldone user experience.
-     * <p>
-     * Here we go back to the highest abstraction in the JUNG mouse handling
-     * logic and provide a lightweight "modeless" experience that should be
-     * feasible to extend to provide multi-touch support.
-     * <p>
-     * http://stackoverflow.com/questions/369301
-     * TODO: touchpad swipe gestures = scrolling up/down/left/right
-     * TODO: touchpad pinching = zoom
-     */
-    private class ModelessGraphMouse extends PluggableGraphMouse {
-
-        private final GraphMousePlugin picker = new PickingGraphMousePlugin<Note, Weight>();
-
-        private int pickedBefore;
-
-        private Point location;
-
-        public ModelessGraphMouse() {
-            add(picker);
-        }
-
-        @Override
-        public void mousePressed(MouseEvent e) {
-            location = e.getLocationOnScreen();
-            pickedBefore = graphVisualiser.getPickedVertexState().getPicked().hashCode();
-            super.mousePressed(e);
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            super.mouseReleased(e);
-            Set<Note> picked = graphVisualiser.getPickedVertexState().getPicked();
-
-            // TODO: adding an extra node should select, regardess of distance
-            if (!picked.isEmpty() && location.distance(e.getLocationOnScreen()) < 10) {
-                if (picked.hashCode() != pickedBefore || picked.size() > 1) {
-                    selectNotes(picked);
-                }
-            }
-        }
-    }
 
     public JungGraphView() {
         super(new BorderLayout());
@@ -167,7 +124,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
                 }
             }
         });
-    }    
+    }
 
     public void setGraph(ObservableGraph<Note, Weight> graph) {
         Preconditions.checkNotNull(graph);
@@ -179,47 +136,95 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         return (AggregateLayout<Note, Weight>) layout.getDelegate();
     }
 
-    private void selectNotes(final Set<Note> notes) {
-        // FIXME: cleanup this code, move some logic into mouse
+    /**
+     * The JUNG mouse handling framework was developed
+     * to allow different plugins to function under different user-selected
+     * "modes", which is detrimental to the Zibaldone user experience.
+     * <p>
+     * Here we go back to the highest abstraction in the JUNG mouse handling
+     * logic and provide a lightweight "modeless" experience that should be
+     * feasible to extend to provide multi-touch support.
+     * <p>
+     * http://stackoverflow.com/questions/369301
+     * TODO: touchpad swipe gestures = scrolling up/down/left/right
+     * TODO: touchpad pinching = zoom
+     */
+    private class ModelessGraphMouse extends PluggableGraphMouse {
 
-        popup.removeAll();
+        private final GraphMousePlugin picker = new PickingGraphMousePlugin<Note, Weight>();
 
-        for (Long bunchId : activeBunches.keySet()) {
-            Set<Note> bunchNotes = Sets.newHashSet(activeBunches.get(bunchId).getGraph().getVertices());
-            if (Convenience.isSubset(notes, bunchNotes)) {
-                showBunch(bunchId);
-                return;
-            }
+        private int pickedBefore;
+
+        private Point location;
+
+        public ModelessGraphMouse() {
+            add(picker);
         }
 
+        @Override
+        public void mousePressed(MouseEvent e) {
+            super.mousePressed(e);
+            location = e.getLocationOnScreen();
+            pickedBefore = graphVisualiser.getPickedVertexState().getPicked().hashCode();
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            super.mouseReleased(e);
+            Set<Note> picked = graphVisualiser.getPickedVertexState().getPicked();
+
+            if (!picked.isEmpty()) {
+                // TODO: detect if dragged into a Bunch
+
+                if (location.distance(e.getLocationOnScreen()) < 10
+                        || picked.hashCode() != pickedBefore
+                        || picked.size() > 1) {
+                    selectNotes(picked);
+                }
+            }
+        }
+    }
+
+    private void selectNotes(final Set<Note> notes) {
         if (notes.size() == 1) {
             showNote(Iterables.getOnlyElement(notes));
             return;
         }
 
-        JMenuItem newBunch = new JMenuItem(BunchController.NEW_BUNCH_NAME, KeyEvent.VK_N);
-        newBunch.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                bunchController.newBunch(notes);
-            }
-        });
-        popup.add(newBunch);
+        popup.removeAll();
 
-        Collection<Bunch> bunches = bunchController.getBunches();
-        if (!bunches.isEmpty() && bunches.size() < 10) {
-            popup.add(new JSeparator());
-            for (final Bunch bunch : bunches) {
-                JMenuItem addToBunch = new JMenuItem("Add to \"" + bunch.getName() + "\"");
-                addToBunch.addActionListener(new ActionListener() {
+        popup.add(newBunchItem(notes));
+
+        Set<Bunch> memberOf = membersOfActiveBunches(notes);
+        if (!memberOf.isEmpty()) {
+            if (notes.size() == 1) {
+                popup.add(new JSeparator());
+                final Note note = Iterables.getOnlyElement(notes);
+                JMenuItem item = new JMenuItem("Show \"" + note.getTitle() + "\"");
+                item.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        bunch.getNotes().addAll(notes);
-                        bunchController.updateBunch(bunch);
+                        showNote(note);
                     }
                 });
-                popup.add(addToBunch);
             }
+            popup.add(new JSeparator());
+            for (final Bunch bunch : memberOf) {
+                JMenuItem item = new JMenuItem("Show \"" + bunch.getName() + "\"");
+                item.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        showBunch(bunch);
+                    }
+                });
+                popup.add(item);
+            }
+            // TODO: select bunch members
+        }
+
+        if (!activeBunches.isEmpty()) {
+            popup.add(new JSeparator());
+            popup.add(addToActiveBunchesItem(notes));
         }
 
         if (notes.size() < 10) {
@@ -231,17 +236,68 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
                 popup.add(entry);
             }
         }
+
         SwingConvenience.popupAtMouse(popup, this);
     }
 
+    private JMenuItem newBunchItem(final Set<Note> notes) {
+        JMenuItem newBunchItem = new JMenuItem(BunchController.NEW_BUNCH_NAME, KeyEvent.VK_N);
+        newBunchItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                bunchController.newBunch(notes);
+            }
+        });
+        return newBunchItem;
+    }
+
+    private JMenuItem addToActiveBunchesItem(final Set<Note> notes) {
+        final JMenu menu = new JMenu("Add to Bunch");
+        // lazy loading of bunches, which is a DB hit
+        menu.addMenuListener(new MenuListener() {
+            volatile boolean loaded;
+
+            @Override
+            public void menuSelected(MenuEvent e) {
+                if (loaded) {
+                    return;
+                }
+                loaded = true;
+                Collection<Bunch> active = bunchController.getBunches(activeBunches.keySet());
+                for (final Bunch bunch : active) {
+                    JMenuItem addToBunch = new JMenuItem(bunch.getName());
+                    addToBunch.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            bunch.getNotes().addAll(notes);
+                            bunchController.updateBunch(bunch);
+                        }
+                    });
+                    menu.add(addToBunch);
+                }
+            }
+
+            @Override
+            public void menuDeselected(MenuEvent e) {
+            }
+
+            @Override
+            public void menuCanceled(MenuEvent e) {
+            }
+        });
+
+        return menu;
+    }
+
+    // TODO: should have add/view Bunch buttons OR drag & drop add to Bunch
+    @Deprecated
     private void showNote(Note note) {
         NoteView noteView = new NoteView();
         noteView.setNote(note);
         SwingConvenience.showAsDialog("Note Viewer", noteView, true, null);
     }
 
-    private void showBunch(Long bunchId) {
-        Bunch bunch = bunchController.getBunch(bunchId);
+    private void showBunch(Bunch bunch) {
         final BunchView view = new BunchView();
         view.setBunch(bunch);
         WindowListener listener = new WindowAdapter() {
@@ -252,6 +308,18 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
             }
         };
         SwingConvenience.showAsDialog("Bunch Editor", view, true, listener);
+    }
+
+    private Set<Bunch> membersOfActiveBunches(Set<Note> notes) {
+        Set<Bunch> bunches = Sets.newHashSet();
+        for (Long bunchId : activeBunches.keySet()) {
+            Set<Note> bunchNotes = Sets.newHashSet(activeBunches.get(bunchId).getGraph().getVertices());
+            if (Convenience.isSubset(notes, bunchNotes)) {
+                Bunch bunch = bunchController.getBunch(bunchId);
+                bunches.add(bunch);
+            }
+        }
+        return bunches;
     }
 
     @Override
@@ -299,7 +367,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
                 Layout<Note, Weight> layout = createClump(bunch.getNotes(), true);
                 activeBunches.put(id, layout);
                 if (BunchController.NEW_BUNCH_NAME.equals(bunch.getName())) {
-                    showBunch(id);
+                    showBunch(bunch);
                 }
                 break;
             case HIDE:
@@ -319,6 +387,21 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
             public int hashCode() {
                 return priority ? 0 : 1;
             }
+
+            // https://sourceforge.net/tracker/?func=detail&aid=3551320&group_id=73840&atid=539119
+            @Override
+            public void setSize(Dimension size) {
+                super.setSize(size);
+                if (getSize() != null) {
+                    setRadius(0.45 * (getSize().height < getSize().width ? getSize().height : getSize().width));
+                }
+            }
+
+            @Override
+            public void setGraph(Graph<Note, Weight> graph) {
+                super.setGraph(graph);
+                setVertexOrder(Lists.newArrayList(getGraph().getVertices()));
+            }
         };
         subLayout.setInitializer(getGraphLayout().getDelegate());
 
@@ -331,8 +414,8 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     }
 
     private Point2D calculateClumpPosition(Set<Note> notes, boolean priority) {
-        // TODO: smarter positioning of clumps, e.g. find free space
-        // https://issues.apache.org/jira/browse/MATH-826
+        // TODO: smarter positioning of clumps, e.g. average, find free space near mouse,
+        // also quasirandom might help https://issues.apache.org/jira/browse/MATH-826
         Random random = new Random();
         Point2D.Double position = new Point2D.Double();
         position.setLocation(random.nextDouble(), random.nextDouble());
@@ -354,7 +437,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     private void updateClump(Layout<Note, Weight> layout, Set<Note> notes) {
         Graph<Note, Weight> graph = graphVisualiser.getGraphLayout().getGraph();
         Graph<Note, Weight> subGraph = JungGraphs.subGraph(graph, notes);
-        layout.setSize(null); // optimisation
+
         layout.setGraph(subGraph);
         layout.setSize(calculateClumpSize(notes));
 
@@ -365,7 +448,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     // resets the location of the cluster by scaling 'clusterPositions' to the
     // window size, also with some padding on the border.
     private void repositionClump(Layout<Note, Weight> layout) {
-        // TODO: respect user translations when bunches are updated (why is resizing ok?)
+        // FIXME: respect user translations when bunches are updated (why is resizing ok?)
         AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
         Point2D position = positions.get(layout);
         Dimension size = getSize();
