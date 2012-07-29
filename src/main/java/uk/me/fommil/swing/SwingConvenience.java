@@ -7,16 +7,22 @@
 package uk.me.fommil.swing;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Doubles;
 import java.awt.Component;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.event.WindowListener;
+import java.awt.geom.Point2D;
+import java.util.Collection;
+import java.util.List;
 import javax.annotation.Nullable;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
-import uk.me.fommil.zibaldone.desktop.NoteView;
+import org.apache.commons.math3.stat.StatUtils;
+import uk.me.fommil.zibaldone.Note;
 
 /**
  * Convenience methods for Swing UIs.
@@ -76,5 +82,25 @@ public final class SwingConvenience {
         }
         dialog.pack();
         dialog.setVisible(true);
+    }
+
+    /**
+     * @param points
+     * @return the average of the given points
+     */
+    public static Point2D average(Collection<Point2D> points) {
+        Preconditions.checkNotNull(points);
+        Preconditions.checkArgument(!points.isEmpty());
+
+        List<Double> xs = Lists.newArrayList();
+        List<Double> ys = Lists.newArrayList();
+
+        for (Point2D point : points) {
+            xs.add(point.getX());
+            ys.add(point.getY());
+        }
+        double x = StatUtils.mean(Doubles.toArray(xs));
+        double y = StatUtils.mean(Doubles.toArray(ys));
+        return new Point2D.Double(x, y);
     }
 }

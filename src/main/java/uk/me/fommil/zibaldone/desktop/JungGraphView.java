@@ -8,11 +8,9 @@ package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
-import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.algorithms.layout.FRLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.graph.Graph;
@@ -38,9 +36,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-import static java.lang.Math.round;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Random;
@@ -85,11 +80,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     // use the immutable BunchId as the key
     private Map<Long, Layout<Note, Weight>> activeBunches = Maps.newHashMap();
 
-    private final Map<ClusterId, Layout<Note, Weight>> clusterLayouts = Maps.newHashMap();
-
-    // TODO: a better way to store layout positions
-    // double [0, 1]
-    private final Map<Layout<Note, Weight>, Point2D> positions = Maps.newHashMap();
+    private final Map<ClusterId, Layout<Note, Weight>> clusters = Maps.newHashMap();
 
     public JungGraphView() {
         super(new BorderLayout());
@@ -97,7 +88,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         Graph<Note, Weight> dummy = new UndirectedSparseGraph<Note, Weight>();
 
         Layout<Note, Weight> delegateLayout = new FRLayout<Note, Weight>(dummy);
-        Layout<Note, Weight> graphLayout = new AggregateLayout<Note, Weight>(delegateLayout);
+        Layout<Note, Weight> graphLayout = new AggregateLayoutFixed<Note, Weight>(delegateLayout);
         graphVisualiser = new VisualizationViewer<Note, Weight>(graphLayout);
         graphVisualiser.setBackground(Color.WHITE);
         graphVisualiser.setDoubleBuffered(true);
@@ -116,12 +107,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent ce) {
-                graphVisualiser.setSize(getSize());
                 getGraphLayout().setSize(getSize());
-
-                for (Layout<Note, Weight> cluster : positions.keySet()) {
-                    repositionClump(cluster);
-                }
             }
         });
     }
@@ -325,18 +311,18 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     @Override
     public void clusterAdded(ClusterId id, Set<Note> cluster) {
         Layout<Note, Weight> layout = createClump(cluster, false);
-        clusterLayouts.put(id, layout);
+        clusters.put(id, layout);
     }
 
     @Override
     public void clusterRemoved(ClusterId id) {
-        removeClump(clusterLayouts.get(id));
-        clusterLayouts.remove(id);
+        removeClump(clusters.get(id));
+        clusters.remove(id);
     }
 
     @Override
     public void clusterUpdated(ClusterId id, Set<Note> cluster) {
-        Layout<Note, Weight> subLayout = clusterLayouts.get(id);
+        Layout<Note, Weight> subLayout = clusters.get(id);
         updateClump(subLayout, cluster);
     }
 
@@ -381,32 +367,11 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     // a 'clump' is the super of both cluster and bunch
     private Layout<Note, Weight> createClump(Set<Note> notes, final boolean priority) {
         Graph<Note, Weight> dummy = new UndirectedSparseGraph<Note, Weight>();
-        Layout<Note, Weight> subLayout = new CircleLayout<Note, Weight>(dummy) {
-            // HACK: https://sourceforge.net/tracker/?func=detail&aid=3550871&group_id=73840&atid=539119
-            @Override
-            public int hashCode() {
-                return priority ? 0 : 1;
-            }
-
-            // https://sourceforge.net/tracker/?func=detail&aid=3551320&group_id=73840&atid=539119
-            @Override
-            public void setSize(Dimension size) {
-                super.setSize(size);
-                if (getSize() != null) {
-                    setRadius(0.45 * (getSize().height < getSize().width ? getSize().height : getSize().width));
-                }
-            }
-
-            @Override
-            public void setGraph(Graph<Note, Weight> graph) {
-                super.setGraph(graph);
-                setVertexOrder(Lists.newArrayList(getGraph().getVertices()));
-            }
-        };
-        subLayout.setInitializer(getGraphLayout().getDelegate());
+        CircleLayoutFixed<Note, Weight> subLayout = new CircleLayoutFixed<Note, Weight>(dummy, priority);
+        subLayout.setAggregate(getGraphLayout());
 
         Point2D position = calculateClumpPosition(notes, priority);
-        positions.put(subLayout, position);
+        getGraphLayout().put(subLayout, position);
 
         updateClump(subLayout, notes);
 
@@ -414,12 +379,21 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     }
 
     private Point2D calculateClumpPosition(Set<Note> notes, boolean priority) {
-        // TODO: smarter positioning of clumps, e.g. average, find free space near mouse,
-        // also quasirandom might help https://issues.apache.org/jira/browse/MATH-826
-        Random random = new Random();
-        Point2D.Double position = new Point2D.Double();
-        position.setLocation(random.nextDouble(), random.nextDouble());
-        return position;
+        if (!priority) {
+            // TODO: quasirandom https://issues.apache.org/jira/browse/MATH-826
+            Random random = new Random();
+            double unitX = random.nextDouble();
+            double unitY = random.nextDouble();
+            Dimension size = getSize();
+            Dimension padding = calculateClumpSize(notes);
+            int x = (int) Math.min(Math.max(padding.width / 2, Math.round(size.width * unitX)), size.width - padding.width / 2);
+            int y = (int) Math.min(Math.max(padding.height / 2, Math.round(size.height * unitY)), size.height - padding.height / 2);
+            return new Point(x, y);
+        }
+
+        // TODO: could be smarter about where to put bunches (this fails when not new)
+        Collection<Point2D> positions = JungGraphs.getPositions(getGraphLayout(), notes);
+        return SwingConvenience.average(positions);
     }
 
     private Dimension calculateClumpSize(Set<Note> notes) {
@@ -430,7 +404,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     private void removeClump(Layout<Note, Weight> layout) {
         AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
         graphLayout.remove(layout);
-        positions.remove(layout);
         graphVisualiser.repaint();
     }
 
@@ -441,21 +414,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         layout.setGraph(subGraph);
         layout.setSize(calculateClumpSize(notes));
 
-        repositionClump(layout);
         graphVisualiser.repaint();
-    }
-
-    // resets the location of the cluster by scaling 'clusterPositions' to the
-    // window size, also with some padding on the border.
-    private void repositionClump(Layout<Note, Weight> layout) {
-        // FIXME: respect user translations when bunches are updated (why is resizing ok?)
-        AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
-        Point2D position = positions.get(layout);
-        Dimension size = getSize();
-        Dimension padding = layout.getSize();
-        int x = (int) min(max(padding.width / 2, round(size.width * position.getX())), size.width - padding.width / 2);
-        int y = (int) min(max(padding.height / 2, round(size.height * position.getY())), size.height - padding.height / 2);
-        Point location = new Point(x, y);
-        graphLayout.put(layout, location);
     }
 }

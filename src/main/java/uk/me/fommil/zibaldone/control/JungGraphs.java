@@ -7,17 +7,22 @@
 package uk.me.fommil.zibaldone.control;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.GraphDecorator;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
+import java.awt.geom.Point2D;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import uk.me.fommil.utils.Convenience;
+import uk.me.fommil.zibaldone.Note;
 
 /**
  * Utility methods for working with JUNG {@link Graph} objects.
@@ -127,5 +132,20 @@ public final class JungGraphs {
             }
         }
         return false;
+    }
+
+    /**
+     * @param <V>
+     * @param <E>
+     * @param layout
+     * @param vertices
+     * @return
+     */
+    public static <V, E> Collection<Point2D> getPositions(Layout<V, E> layout, Collection<V> vertices) {
+        List<Point2D> points = Lists.newArrayList();
+        for (V note : vertices) {
+            points.add(layout.transform(note));
+        }
+        return points;
     }
 }
