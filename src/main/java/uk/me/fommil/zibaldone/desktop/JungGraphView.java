@@ -22,6 +22,7 @@ import edu.uci.ics.jung.visualization.control.PickingGraphMousePlugin;
 import edu.uci.ics.jung.visualization.control.PluggableGraphMouse;
 import edu.uci.ics.jung.visualization.decorators.PickableVertexPaintTransformer;
 import edu.uci.ics.jung.visualization.layout.ObservableCachingLayout;
+import edu.uci.ics.jung.visualization.picking.PickedState;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -177,14 +178,13 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
             return;
         }
 
-        popup.removeAll();
+        // TODO: reconsider the user interaction of what menus show up when
 
-        popup.add(newBunchItem(notes));
+        popup.removeAll();
 
         Set<Bunch> memberOf = membersOfActiveBunches(notes);
         if (!memberOf.isEmpty()) {
             if (notes.size() == 1) {
-                popup.add(new JSeparator());
                 final Note note = Iterables.getOnlyElement(notes);
                 JMenuItem item = new JMenuItem("Show \"" + note.getTitle() + "\"");
                 item.addActionListener(new ActionListener() {
@@ -193,8 +193,8 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
                         showNote(note);
                     }
                 });
+                popup.add(new JSeparator());
             }
-            popup.add(new JSeparator());
             for (final Bunch bunch : memberOf) {
                 JMenuItem item = new JMenuItem("Show \"" + bunch.getName() + "\"");
                 item.addActionListener(new ActionListener() {
@@ -205,8 +205,25 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
                 });
                 popup.add(item);
             }
-            // TODO: select bunch members
+            popup.add(new JSeparator());
+            for (final Bunch bunch : memberOf) {
+                JMenuItem item = new JMenuItem("Select all in \"" + bunch.getName() + "\"");
+                item.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        PickedState<Note> picker = graphVisualiser.getPickedVertexState();
+                        picker.clear();
+                        for (Note note : bunch.getNotes()) {
+                            picker.pick(note, true);
+                        }
+                    }
+                });
+                popup.add(item);
+            }
+            popup.add(new JSeparator());
         }
+
+        popup.add(newBunchItem(notes));
 
         if (!activeBunches.isEmpty()) {
             popup.add(new JSeparator());
@@ -239,7 +256,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
     private JMenuItem addToActiveBunchesItem(final Set<Note> notes) {
         final JMenu menu = new JMenu("Add to Bunch");
-        // lazy loading of bunches, which is a DB hit
+        // lazy loading of bunches, a DB hit
         menu.addMenuListener(new MenuListener() {
             volatile boolean loaded;
 
