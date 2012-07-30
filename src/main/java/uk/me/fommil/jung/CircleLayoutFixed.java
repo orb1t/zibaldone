@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.graph.Graph;
+import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.util.Collection;
@@ -21,24 +22,23 @@ import uk.me.fommil.utils.JungGraphs;
 /**
  * Overrides {@link CircleLayout} to fix a few bugs in JUNG.
  * 
+ * @param <V> 
+ * @param <E> 
  * @author Samuel Halliday
  * @deprecated in the hope that JUNG will fix these issues
  */
 @Deprecated
 public class CircleLayoutFixed<V, E> extends CircleLayout<V, E> {
 
-    private final boolean priority;
-    
+    @Getter @Setter
+    private boolean priority;
+
     @Getter @Setter
     private AggregateLayout<V, E> aggregate;
 
-    /**
-     * @param graph
-     * @param priority
-     */
-    public CircleLayoutFixed(Graph<V, E> graph, boolean priority) {
-        super(graph);
-        this.priority = priority;
+    public CircleLayoutFixed() {
+        // https://sourceforge.net/tracker/?func=detail&aid=3542000&group_id=73840&atid=539119
+        super(new UndirectedSparseGraph<V, E>());
     }
 
     @Override
@@ -55,7 +55,7 @@ public class CircleLayoutFixed<V, E> extends CircleLayout<V, E> {
         }
         super.setSize(size);
     }
-    
+
     @Override
     public void setGraph(Graph<V, E> graph) {
         // https://sourceforge.net/tracker/?func=detail&aid=3551554&group_id=73840&atid=539119

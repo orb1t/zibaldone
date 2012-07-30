@@ -6,7 +6,6 @@
  */
 package uk.me.fommil.jung;
 
-import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -20,8 +19,9 @@ import java.awt.event.ComponentEvent;
 @Deprecated
 public class VisualizationViewerFixed<V, E> extends VisualizationViewer<V, E> {
 
-    public VisualizationViewerFixed(Layout<V, E> layout) {
-        super(layout);
+    public VisualizationViewerFixed() {
+        // https://sourceforge.net/tracker/?func=detail&aid=3542000&group_id=73840&atid=539119
+        super(new FRLayoutFixed<V, E>());
 
         // https://sourceforge.net/tracker/?func=detail&aid=3551453&group_id=73840&atid=539119
         this.addComponentListener(new ComponentAdapter() {

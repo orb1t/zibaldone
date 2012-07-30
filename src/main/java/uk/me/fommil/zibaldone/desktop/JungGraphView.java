@@ -10,16 +10,15 @@ import uk.me.fommil.jung.VertexIconShapeTransformerFixed;
 import uk.me.fommil.jung.VisualizationViewerFixed;
 import uk.me.fommil.jung.CircleLayoutFixed;
 import uk.me.fommil.jung.AggregateLayoutFixed;
+import uk.me.fommil.jung.FRLayoutFixed;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
-import edu.uci.ics.jung.algorithms.layout.FRLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.ObservableGraph;
-import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.Context;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.GraphMousePlugin;
@@ -80,7 +79,7 @@ import uk.me.fommil.zibaldone.control.Weight;
 @Log
 public class JungGraphView extends JPanel implements ClusterListener, BunchListener {
 
-    private final VisualizationViewer<Note, Weight> graphVisualiser;
+    private final VisualizationViewer<Note, Weight> graphVisualiser = new VisualizationViewerFixed<Note, Weight>();
 
     @Setter
     private BunchController bunchController;
@@ -92,6 +91,8 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
     private final Map<ClusterId, Layout<Note, Weight>> clusters = Maps.newHashMap();
 
+    // TODO: shouldn't there be a stock field for this?
+    @Deprecated
     private static final Predicate<Context<Graph<Note, Weight>, Weight>> NO_EDGES =
             new Predicate<Context<Graph<Note, Weight>, Weight>>() {
                 @Override
@@ -103,19 +104,15 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     public JungGraphView() {
         super(new BorderLayout());
 
-        // https://sourceforge.net/tracker/?func=detail&aid=3542000&group_id=73840&atid=539119
-        Graph<Note, Weight> dummy = new UndirectedSparseGraph<Note, Weight>();
-
         // TODO: set an initializer which uses a QuasiRandom sequence (check setSize support)
-        Layout<Note, Weight> delegateLayout = new FRLayout<Note, Weight>(dummy);
+        Layout<Note, Weight> delegateLayout = new FRLayoutFixed<Note, Weight>();
         Layout<Note, Weight> graphLayout = new AggregateLayoutFixed<Note, Weight>(delegateLayout);
-        graphVisualiser = new VisualizationViewerFixed<Note, Weight>(graphLayout);
+        graphVisualiser.setGraphLayout(graphLayout);
         graphVisualiser.setBackground(Color.WHITE);
         graphVisualiser.setDoubleBuffered(true);
         graphVisualiser.getRenderContext().setEdgeIncludePredicate(NO_EDGES);
         graphVisualiser.getRenderContext().setVertexIconTransformer(noteIcon);
         graphVisualiser.getRenderContext().setVertexShapeTransformer(new VertexIconShapeTransformerFixed<Note>(noteIcon));
-
         graphVisualiser.getRenderContext().setPickSupport(new ShapePickSupport<Note, Weight>(graphVisualiser));
 
         graphVisualiser.setGraphMouse(new ModelessGraphMouse());
@@ -133,6 +130,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         return (AggregateLayout<Note, Weight>) layout.getDelegate();
     }
 
+    // TODO: pettier icon for the Notes
     private final Transformer<Note, Icon> noteIcon = new Transformer<Note, Icon>() {
         @Override
         public Icon transform(final Note note) {
@@ -426,8 +424,8 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
     // a 'clump' is the super of both cluster and bunch
     private Layout<Note, Weight> createClump(Set<Note> notes, final boolean priority) {
-        Graph<Note, Weight> dummy = new UndirectedSparseGraph<Note, Weight>();
-        CircleLayoutFixed<Note, Weight> subLayout = new CircleLayoutFixed<Note, Weight>(dummy, priority);
+        CircleLayoutFixed<Note, Weight> subLayout = new CircleLayoutFixed<Note, Weight>();
+        subLayout.setPriority(priority);
         subLayout.setAggregate(getGraphLayout());
 
         Point2D position = calculateClumpPosition(notes, priority);
