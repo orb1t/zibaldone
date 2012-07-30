@@ -4,7 +4,7 @@
  * Copyright Samuel Halliday 2012
  * PROPRIETARY/CONFIDENTIAL. Use is subject to licence terms.
  */
-package uk.me.fommil.zibaldone.desktop;
+package uk.me.fommil.jung;
 
 import com.google.common.collect.Lists;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
@@ -16,7 +16,7 @@ import java.util.Collection;
 import lombok.Getter;
 import lombok.Setter;
 import uk.me.fommil.swing.SwingConvenience;
-import uk.me.fommil.zibaldone.control.JungGraphs;
+import uk.me.fommil.utils.JungGraphs;
 
 /**
  * Overrides {@link CircleLayout} to fix a few bugs in JUNG.

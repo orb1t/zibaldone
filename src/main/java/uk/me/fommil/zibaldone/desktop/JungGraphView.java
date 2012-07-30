@@ -6,6 +6,10 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
+import uk.me.fommil.jung.VertexIconShapeTransformerFixed;
+import uk.me.fommil.jung.VisualizationViewerFixed;
+import uk.me.fommil.jung.CircleLayoutFixed;
+import uk.me.fommil.jung.AggregateLayoutFixed;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
@@ -60,7 +64,7 @@ import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.zibaldone.Bunch;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.control.BunchController;
-import uk.me.fommil.zibaldone.control.JungGraphs;
+import uk.me.fommil.utils.JungGraphs;
 import uk.me.fommil.zibaldone.control.Listeners.BunchListener;
 import uk.me.fommil.zibaldone.control.Listeners.ClusterId;
 import uk.me.fommil.zibaldone.control.Listeners.ClusterListener;
@@ -110,7 +114,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         graphVisualiser.setDoubleBuffered(true);
         graphVisualiser.getRenderContext().setEdgeIncludePredicate(NO_EDGES);
         graphVisualiser.getRenderContext().setVertexIconTransformer(noteIcon);
-        log.info(graphVisualiser.getRenderContext().getVertexShapeTransformer().getClass().toString());
         graphVisualiser.getRenderContext().setVertexShapeTransformer(new VertexIconShapeTransformerFixed<Note>(noteIcon));
 
         graphVisualiser.getRenderContext().setPickSupport(new ShapePickSupport<Note, Weight>(graphVisualiser));

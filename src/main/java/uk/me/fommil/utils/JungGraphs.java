@@ -4,7 +4,7 @@
  * Copyright Samuel Halliday 2012
  * PROPRIETARY/CONFIDENTIAL. Use is subject to licence terms.
  */
-package uk.me.fommil.zibaldone.control;
+package uk.me.fommil.utils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -22,7 +22,6 @@ import java.util.Set;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import uk.me.fommil.utils.Convenience;
-import uk.me.fommil.zibaldone.Note;
 
 /**
  * Utility methods for working with JUNG {@link Graph} objects.
