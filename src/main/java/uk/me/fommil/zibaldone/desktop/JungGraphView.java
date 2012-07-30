@@ -16,31 +16,34 @@ import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
+import edu.uci.ics.jung.graph.util.Context;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.GraphMousePlugin;
 import edu.uci.ics.jung.visualization.control.PickingGraphMousePlugin;
 import edu.uci.ics.jung.visualization.control.PluggableGraphMouse;
-import edu.uci.ics.jung.visualization.decorators.PickableVertexPaintTransformer;
 import edu.uci.ics.jung.visualization.layout.ObservableCachingLayout;
 import edu.uci.ics.jung.visualization.picking.PickedState;
+import edu.uci.ics.jung.visualization.picking.ShapePickSupport;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -50,6 +53,8 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import lombok.Setter;
 import lombok.extern.java.Log;
+import org.apache.commons.collections15.Predicate;
+import org.apache.commons.collections15.Transformer;
 import uk.me.fommil.swing.SwingConvenience;
 import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.zibaldone.Bunch;
@@ -83,34 +88,36 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
     private final Map<ClusterId, Layout<Note, Weight>> clusters = Maps.newHashMap();
 
+    private static final Predicate<Context<Graph<Note, Weight>, Weight>> NO_EDGES =
+            new Predicate<Context<Graph<Note, Weight>, Weight>>() {
+                @Override
+                public boolean evaluate(Context<Graph<Note, Weight>, Weight> context) {
+                    return false;
+                }
+            };
+
     public JungGraphView() {
         super(new BorderLayout());
+
         // https://sourceforge.net/tracker/?func=detail&aid=3542000&group_id=73840&atid=539119
         Graph<Note, Weight> dummy = new UndirectedSparseGraph<Note, Weight>();
 
+        // TODO: set an initializer which uses a QuasiRandom sequence (check setSize support)
         Layout<Note, Weight> delegateLayout = new FRLayout<Note, Weight>(dummy);
         Layout<Note, Weight> graphLayout = new AggregateLayoutFixed<Note, Weight>(delegateLayout);
-        graphVisualiser = new VisualizationViewer<Note, Weight>(graphLayout);
+        graphVisualiser = new VisualizationViewerFixed<Note, Weight>(graphLayout);
         graphVisualiser.setBackground(Color.WHITE);
         graphVisualiser.setDoubleBuffered(true);
+        graphVisualiser.getRenderContext().setEdgeIncludePredicate(NO_EDGES);
+        graphVisualiser.getRenderContext().setVertexIconTransformer(noteIcon);
+        log.info(graphVisualiser.getRenderContext().getVertexShapeTransformer().getClass().toString());
+        graphVisualiser.getRenderContext().setVertexShapeTransformer(new VertexIconShapeTransformerFixed<Note>(noteIcon));
 
-        // TODO: don't draw edges (removes problem of edge selection)
-
-        // TODO: custom vertex icon, not painted circle
-        graphVisualiser.getRenderContext().setVertexFillPaintTransformer(
-                new PickableVertexPaintTransformer<Note>(
-                graphVisualiser.getPickedVertexState(),
-                Color.red, Color.yellow));
+        graphVisualiser.getRenderContext().setPickSupport(new ShapePickSupport<Note, Weight>(graphVisualiser));
 
         graphVisualiser.setGraphMouse(new ModelessGraphMouse());
 
         add(graphVisualiser, BorderLayout.CENTER);
-        addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent ce) {
-                getGraphLayout().setSize(getSize());
-            }
-        });
     }
 
     public void setGraph(ObservableGraph<Note, Weight> graph) {
@@ -122,6 +129,39 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         ObservableCachingLayout<Note, Weight> layout = (ObservableCachingLayout<Note, Weight>) graphVisualiser.getGraphLayout();
         return (AggregateLayout<Note, Weight>) layout.getDelegate();
     }
+
+    private final Transformer<Note, Icon> noteIcon = new Transformer<Note, Icon>() {
+        @Override
+        public Icon transform(final Note note) {
+            String title = note.getTitle();
+            final Rectangle2D size = getGraphics().getFontMetrics().getStringBounds(title, getGraphics());
+
+            return new Icon() {
+                @Override
+                public int getIconHeight() {
+                    return Math.round((float) size.getHeight());
+                }
+
+                @Override
+                public int getIconWidth() {
+                    return Math.round((float) size.getWidth());
+                }
+
+                @Override
+                public void paintIcon(Component c, Graphics g, int x, int y) {
+                    if (graphVisualiser.getPickedVertexState().isPicked(note)) {
+                        g.setColor(Color.RED);
+                    } else {
+                        g.setColor(Color.YELLOW);
+                    }
+                    g.fillRect(x, y, getIconWidth(), getIconHeight());
+                    g.setColor(Color.BLACK);
+                    int descent = getGraphics().getFontMetrics().getMaxDescent();
+                    g.drawString(note.getTitle(), x, y + getIconHeight() - descent);
+                }
+            };
+        }
+    };
 
     /**
      * The JUNG mouse handling framework was developed
@@ -178,7 +218,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
             return;
         }
 
-        // TODO: reconsider the user interaction of what menus show up when
+        // TODO: reconsider the user interaction of what menus show up and when
 
         popup.removeAll();
 
