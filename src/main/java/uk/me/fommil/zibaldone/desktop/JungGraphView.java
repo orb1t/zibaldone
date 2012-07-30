@@ -43,6 +43,7 @@ import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -152,6 +153,8 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
                 public void paintIcon(Component c, Graphics g, int x, int y) {
                     if (graphVisualiser.getPickedVertexState().isPicked(note)) {
                         g.setColor(Color.RED);
+                    } else if (!membersOfActiveBunches(Collections.singleton(note)).isEmpty()) {
+                        g.setColor(Color.GREEN);
                     } else {
                         g.setColor(Color.YELLOW);
                     }
@@ -455,7 +458,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     }
 
     private Dimension calculateClumpSize(Set<Note> notes) {
-        int size = Math.min(75, notes.size() * 10);
+        int size = Math.min(200, notes.size() * 10);
         return new Dimension(size, size);
     }
 
@@ -471,6 +474,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
         layout.setGraph(subGraph);
         layout.setSize(calculateClumpSize(notes));
+//        layout.setSize(new Dimension());
 
         graphVisualiser.repaint();
     }
