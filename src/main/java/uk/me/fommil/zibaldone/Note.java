@@ -4,6 +4,8 @@
  */
 package uk.me.fommil.zibaldone;
 
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import java.io.Serializable;
 import java.util.Set;
@@ -29,8 +31,7 @@ public class Note implements Serializable {
     private UUID source;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private UUID id = UUID.randomUUID();
 
     @Column
     private String title;
@@ -52,53 +53,36 @@ public class Note implements Serializable {
         }
     }
 
-    // http://stackoverflow.com/questions/11604370
-    @java.lang.Override
-    @java.lang.SuppressWarnings("all")
-    public boolean equals(final java.lang.Object o) {
-        if (o == this) {
+    /**
+     * @param other
+     * @return true if all the properties are the same as this
+     */
+    public boolean propertiesEquals(Note other) {
+        Preconditions.checkNotNull(other);
+        if (this == other) {
             return true;
         }
-        if (!(o instanceof Note)) {
-            return false;
-        }
-        final Note other = (Note) o;
-        if (!other.canEqual((java.lang.Object) this)) {
-            return false;
-        }
-        if (this.getSource() == null ? other.getSource() != null : !this.getSource().equals((java.lang.Object) other.getSource())) {
-            return false;
-        }
-        if (this.getId() == null ? other.getId() != null : !this.getId().equals((java.lang.Object) other.getId())) {
-            return false;
-        }
-        if (this.getTitle() == null ? other.getTitle() != null : !this.getTitle().equals((java.lang.Object) other.getTitle())) {
-            return false;
-        }
-        if (this.getTags() == null ? other.getTags() != null : !this.getTags().equals((java.lang.Object) other.getTags())) {
-            return false;
-        }
-        if (this.getContents() == null ? other.getContents() != null : !this.getContents().equals((java.lang.Object) other.getContents())) {
-            return false;
-        }
-        return true;
+        return Objects.equal(source, other.source)
+                && Objects.equal(title, other.title)
+                && Objects.equal(tags, other.tags)
+                && Objects.equal(contents, other.contents);
     }
 
-    @java.lang.SuppressWarnings("all")
-    public boolean canEqual(final java.lang.Object other) {
-        return other instanceof Note;
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Note) || id == null) {
+            return false;
+        }
+        Note other = (Note) obj;
+        return id.equals(other.id);
     }
 
-    @java.lang.Override
-    @java.lang.SuppressWarnings("all")
+    @Override
     public int hashCode() {
-        final int PRIME = 31;
-        int result = 1;
-        result = result * PRIME + (this.getSource() == null ? 0 : this.getSource().hashCode());
-        result = result * PRIME + (this.getId() == null ? 0 : this.getId().hashCode());
-        result = result * PRIME + (this.getTitle() == null ? 0 : this.getTitle().hashCode());
-//        result = result * PRIME + (this.getTags() == null ? 0 : this.getTags().hashCode());
-        result = result * PRIME + (this.getContents() == null ? 0 : this.getContents().hashCode());
-        return result;
+        Preconditions.checkNotNull(id, "id must be set before @Entity.hashCode can be called");
+        return id.hashCode();
     }
 }

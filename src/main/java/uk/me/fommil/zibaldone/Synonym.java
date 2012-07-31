@@ -6,9 +6,11 @@
  */
 package uk.me.fommil.zibaldone;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import java.io.Serializable;
 import java.util.Set;
+import java.util.UUID;
 import javax.persistence.*;
 import lombok.Data;
 
@@ -29,8 +31,7 @@ import lombok.Data;
 public class Synonym implements Serializable {
 
     @Id
-    @GeneratedValue
-    private Long id;
+    private UUID id = UUID.randomUUID();
 
     @Column
     @Enumerated(EnumType.STRING)
@@ -56,5 +57,23 @@ public class Synonym implements Serializable {
         /** The instance was automatically created but the user has chosen to ignore it */
         AUTOMATIC_IGNORED
 
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Synonym) || id == null) {
+            return false;
+        }
+        Synonym other = (Synonym) obj;
+        return id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        Preconditions.checkNotNull(id, "id must be set before @Entity.hashCode can be called");
+        return id.hashCode();
     }
 }

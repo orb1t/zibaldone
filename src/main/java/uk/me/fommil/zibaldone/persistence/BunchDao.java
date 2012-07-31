@@ -6,6 +6,7 @@
  */
 package uk.me.fommil.zibaldone.persistence;
 
+import java.util.UUID;
 import javax.persistence.EntityManagerFactory;
 import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Bunch;
@@ -15,7 +16,7 @@ import uk.me.fommil.zibaldone.Bunch;
  *
  * @author Samuel Halliday
  */
-public class BunchDao extends CrudDao<Long, Bunch> {
+public class BunchDao extends CrudDao<UUID, Bunch> {
 
     public BunchDao(EntityManagerFactory emf) {
         super(Bunch.class, emf);

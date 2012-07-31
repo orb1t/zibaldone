@@ -21,7 +21,7 @@ import uk.me.fommil.zibaldone.Tag;
  *
  * @author Samuel Halliday
  */
-public class NoteDao extends CrudDao<Long, Note> {
+public class NoteDao extends CrudDao<UUID, Note> {
 
     /**
      * @param emf
@@ -60,7 +60,7 @@ public class NoteDao extends CrudDao<Long, Note> {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteById(UUID id) {
         // TODO: delete and remove references from Bunches
         throw new UnsupportedOperationException("not implemented yet: ");
     }

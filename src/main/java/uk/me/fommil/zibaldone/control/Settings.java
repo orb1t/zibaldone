@@ -37,7 +37,7 @@ public class Settings {
 
     private final Map<Tag, TagChoice> selectedTags = Maps.newTreeMap();
 
-    private final Set<Long> selectedBunches = Sets.newLinkedHashSet();
+    private final Set<UUID> selectedBunches = Sets.newLinkedHashSet();
 
     private final Map<UUID, Importer> importers = Maps.newHashMap();
 

@@ -9,6 +9,7 @@ package uk.me.fommil.zibaldone.control;
 import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.Set;
+import java.util.UUID;
 import javax.persistence.EntityManagerFactory;
 import lombok.ListenerSupport;
 import lombok.NonNull;
@@ -45,12 +46,12 @@ public class BunchController {
         return dao.readAll();
     }
 
-    public Collection<Bunch> getBunches(Collection<Long> ids) {
+    public Collection<Bunch> getBunches(Collection<UUID> ids) {
         BunchDao dao = new BunchDao(emf);
         return dao.read(ids);
     }
 
-    public Bunch getBunch(Long bunchId) {
+    public Bunch getBunch(UUID bunchId) {
         BunchDao dao = new BunchDao(emf);
         Bunch bunch = dao.read(bunchId);
         return bunch;

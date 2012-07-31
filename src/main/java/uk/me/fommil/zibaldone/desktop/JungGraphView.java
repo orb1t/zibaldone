@@ -47,6 +47,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -88,7 +89,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     private final JPopupMenu popup = new JPopupMenu();
 
     // use the immutable BunchId as the key
-    private Map<Long, Layout<Note, Weight>> activeBunches = Maps.newHashMap();
+    private Map<UUID, Layout<Note, Weight>> activeBunches = Maps.newHashMap();
 
     private final Map<ClusterId, Layout<Note, Weight>> clusters = Maps.newHashMap();
 
@@ -359,7 +360,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
     private Set<Bunch> membersOfActiveBunches(Set<Note> notes) {
         Set<Bunch> bunches = Sets.newHashSet();
-        for (Long bunchId : activeBunches.keySet()) {
+        for (UUID bunchId : activeBunches.keySet()) {
             Set<Note> bunchNotes = Sets.newHashSet(activeBunches.get(bunchId).getGraph().getVertices());
             if (Convenience.isSubset(notes, bunchNotes)) {
                 Bunch bunch = bunchController.getBunch(bunchId);
@@ -407,7 +408,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
     @Override
     public void bunchSelectionChanged(Bunch bunch, TagChoice choice) {
-        Long id = bunch.getId();
+        UUID id = bunch.getId();
         switch (choice) {
             case SHOW:
                 Preconditions.checkState(!activeBunches.containsKey(id));

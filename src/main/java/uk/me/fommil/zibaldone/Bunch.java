@@ -6,21 +6,19 @@
  */
 package uk.me.fommil.zibaldone;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import java.io.Serializable;
 import java.util.Set;
+import java.util.UUID;
 import javax.persistence.Basic;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.java.Log;
 
@@ -40,8 +38,7 @@ public class Bunch implements Serializable {
     private static final int CONTENTS_MAX = 8192;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private UUID id = UUID.randomUUID();
 
     @Column
     private String name;
@@ -63,5 +60,23 @@ public class Bunch implements Serializable {
         } else {
             this.contents = contents;
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Bunch) || id == null) {
+            return false;
+        }
+        Bunch other = (Bunch) obj;
+        return id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        Preconditions.checkNotNull(id, "id must be set before @Entity.hashCode can be called");
+        return id.hashCode();
     }
 }

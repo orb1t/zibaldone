@@ -10,6 +10,7 @@ import com.google.common.collect.Maps;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Map;
+import java.util.UUID;
 import javax.swing.JCheckBox;
 import javax.swing.JPopupMenu;
 import lombok.Getter;
@@ -30,7 +31,7 @@ public class BunchMenu extends JPopupMenu implements Listeners.BunchListener {
     private BunchController bunchController;
 
     // Don't use CheckBoxMenuItem because of http://stackoverflow.com/questions/3759379
-    private final Map<Long, JCheckBox> entries = Maps.newTreeMap();
+    private final Map<UUID, JCheckBox> entries = Maps.newTreeMap();
 
 //    private static class StayOpenCheckBoxMenuItemUI extends BasicCheckBoxMenuItemUI {
 //
@@ -41,7 +42,7 @@ public class BunchMenu extends JPopupMenu implements Listeners.BunchListener {
 //    };
     @Override
     public void bunchAdded(Bunch bunch) {
-        final Long id = bunch.getId();
+        final UUID id = bunch.getId();
         final JCheckBox item = new JCheckBox(bunch.getName(), false);
 //        item.setUI(new StayOpenCheckBoxMenuItemUI());
         item.addActionListener(new ActionListener() {
