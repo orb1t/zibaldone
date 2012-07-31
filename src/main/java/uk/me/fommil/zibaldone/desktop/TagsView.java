@@ -47,12 +47,10 @@ public class TagsView extends JPanel implements TagListener {
         // TODO: rounded borders for tag background
         public TagView(Tag tag, TagChoice choice) {
             super(tag.getText());
-            Preconditions.checkNotNull(tag);
-            Preconditions.checkNotNull(choice);
             setLayout(new WrapLayout());
             this.tag = tag;
             setOpaque(true);
-            setChoice(choice);
+            setChoice(Preconditions.checkNotNull(choice));
             // TODO: font changes to TagsView after instantiation are ignored
             setFont(TagsView.this.getFont());
             addMouseListener(new MouseAdapter() {
@@ -71,8 +69,7 @@ public class TagsView extends JPanel implements TagListener {
         }
 
         public void setChoice(TagChoice choice) {
-            Preconditions.checkNotNull(choice);
-            this.choice = choice;
+            this.choice = Preconditions.checkNotNull(choice);
             setBackground(getColorForChoice(choice));
             repaint();
         }

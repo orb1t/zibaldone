@@ -86,10 +86,8 @@ public abstract class CrudDao<K, T> {
      * @param emf
      */
     protected CrudDao(Class<T> klass, EntityManagerFactory emf) {
-        Preconditions.checkNotNull(klass);
-        Preconditions.checkNotNull(emf);
-        this.klass = klass;
-        this.emf = emf;
+        this.klass = Preconditions.checkNotNull(klass);
+        this.emf = Preconditions.checkNotNull(emf);
         Preconditions.checkArgument(klass.getAnnotations() != null);
         boolean entity = false;
         for (Annotation annotation : klass.getAnnotations()) {

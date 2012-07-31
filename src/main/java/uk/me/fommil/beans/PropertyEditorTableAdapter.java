@@ -43,8 +43,7 @@ public class PropertyEditorTableAdapter extends AbstractCellEditor implements Ta
      */
     public PropertyEditorTableAdapter(PropertyEditor editor) {
         super();
-        Preconditions.checkNotNull(editor);
-        this.editor = editor;
+        this.editor = Preconditions.checkNotNull(editor);
         Preconditions.checkArgument(editor.supportsCustomEditor());
         editor.addPropertyChangeListener(new PropertyChangeListener() {
 

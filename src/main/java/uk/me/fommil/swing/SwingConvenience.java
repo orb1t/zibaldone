@@ -71,12 +71,10 @@ public final class SwingConvenience {
      * @param listener 
      */
     public static void showAsDialog(String title, Component component, boolean modal, @Nullable WindowListener listener) {
-        Preconditions.checkNotNull(title);
-        Preconditions.checkNotNull(component);
         JDialog dialog = new JDialog();
-        dialog.setTitle(title);
+        dialog.setTitle(Preconditions.checkNotNull(title));
         dialog.setModal(modal);
-        dialog.add(component);
+        dialog.add(Preconditions.checkNotNull(component));
         if (listener != null) {
             dialog.addWindowListener(listener);
         }

@@ -104,8 +104,7 @@ public class BeanHelper {
      * @param beaninfo if {@code null} then creates a {@link SimpleBeanInfo}.
      */
     public BeanHelper(Object bean, @Nullable BeanInfo beaninfo) {
-        Preconditions.checkNotNull(bean);
-        this.bean = bean;
+        this.bean = Preconditions.checkNotNull(bean);
         if (beaninfo != null) {
             this.beaninfo = beaninfo;
         } else {
@@ -148,8 +147,7 @@ public class BeanHelper {
         private final PropertyDescriptor descriptor;
 
         private Property(PropertyDescriptor descriptor) {
-            Preconditions.checkNotNull(descriptor);
-            this.descriptor = descriptor;
+            this.descriptor = Preconditions.checkNotNull(descriptor);
             Method getter = descriptor.getReadMethod();
             Method setter = descriptor.getWriteMethod();
             if (getter == null || getter.getParameterTypes().length != 0 || Modifier.isStatic(getter.getModifiers()) || !Modifier.isPublic(getter.getModifiers())) {

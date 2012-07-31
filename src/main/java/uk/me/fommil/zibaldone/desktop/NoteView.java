@@ -29,8 +29,7 @@ public class NoteView extends javax.swing.JPanel {
      * @param note
      */
     public void setNote(Note note) {
-        Preconditions.checkNotNull(note);
-        this.note = note;
+        this.note = Preconditions.checkNotNull(note);
         title.setText(note.getTitle());
         tags.tagsAdded(note.getTags());
         contents.setText(note.getContents());

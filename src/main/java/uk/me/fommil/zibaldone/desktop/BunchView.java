@@ -58,8 +58,7 @@ public class BunchView extends javax.swing.JPanel {
      * @param bunch
      */
     public void setBunch(final Bunch bunch) {
-        Preconditions.checkNotNull(bunch);
-        this.bunch = bunch;
+        this.bunch = Preconditions.checkNotNull(bunch);
 
         name.setText(bunch.getName());
         content.setText(bunch.getContents());

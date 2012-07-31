@@ -27,7 +27,7 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
-<!--        <repository>
+        <!--        <repository>
             <id>java.net-Public</id>
             <name>Maven Java Net Snapshots and Releases</name>
             <url>https://maven.java.net/content/repositories/staging/</url>
@@ -56,12 +56,21 @@
             <artifactId>hibernate-jpa-2.0-api</artifactId>
             <version>1.0.1.Final</version>
         </dependency>
+
+        <!-- to allow indexing, etc -->        
+<!--        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>4.1.5.SP1</version>
+            <scope>provided</scope>
+        </dependency>-->
+
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
             <version>2.0.0</version>
         </dependency>
-<!--        <dependency>
+        <!--        <dependency>
             <groupId>net.java.dev.glazedlists</groupId>
             <artifactId>glazedlists_java15</artifactId>
             <version>1.8.0</version>

@@ -292,8 +292,7 @@ public final class JBeanEditor extends JPanel {
      * @param bean
      */
     public void setBean(Object bean) {
-        Preconditions.checkNotNull(bean);
-        setBeanHelper(new BeanHelper(bean));
+        setBeanHelper(new BeanHelper(Preconditions.checkNotNull(bean)));
     }
 
     private final PropertyChangeListener beanChangeListener = new PropertyChangeListener() {
@@ -311,11 +310,10 @@ public final class JBeanEditor extends JPanel {
      * @param beanHelper
      */
     public void setBeanHelper(final BeanHelper beanHelper) {
-        Preconditions.checkNotNull(beanHelper);
         if (this.beanHelper != null) {
             this.beanHelper.removePropertyChangeListener(beanChangeListener);
         }
-        this.beanHelper = beanHelper;
+        this.beanHelper = Preconditions.checkNotNull(beanHelper);
         this.beanHelper.addPropertyChangeListener(beanChangeListener);
         refresh();
     }
