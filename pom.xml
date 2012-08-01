@@ -39,13 +39,22 @@
     
     <!-- mvn versions:display-dependency-updates -->
     <dependencies>
+        <!-- COMPILE TIME ONLY -->
         <dependency>
             <groupId>com.github.peichhorn</groupId>
             <artifactId>lombok-pg</artifactId>
             <version>0.11.3</version>
             <scope>provided</scope>
         </dependency>
+        <!-- to allow indexing, etc -->        
+        <!--        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>4.1.5.SP1</version>
+            <scope>provided</scope>
+        </dependency>-->
         
+        <!-- NORMAL -->
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-snowball</artifactId>
@@ -56,25 +65,11 @@
             <artifactId>hibernate-jpa-2.0-api</artifactId>
             <version>1.0.1.Final</version>
         </dependency>
-
-        <!-- to allow indexing, etc -->        
-<!--        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>4.1.5.SP1</version>
-            <scope>provided</scope>
-        </dependency>-->
-
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
             <version>2.0.0</version>
         </dependency>
-        <!--        <dependency>
-            <groupId>net.java.dev.glazedlists</groupId>
-            <artifactId>glazedlists_java15</artifactId>
-            <version>1.8.0</version>
-        </dependency>-->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -100,7 +95,31 @@
             <artifactId>swingx-all</artifactId>
             <version>1.6.4</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+            <version>3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.xhtmlrenderer</groupId>
+            <artifactId>flying-saucer-core</artifactId>
+            <version>9.0.1</version>
+        </dependency>
+        <!-- TODO: Apple Mac niceties -->
+        <!--        <dependency>
+            <groupId>org.simplericity.macify</groupId>
+            <artifactId>macify</artifactId>
+            <version>1.6</version>
+        </dependency>-->
+        <!-- TODO: beansbindings in JBeanEditor -->
+        <!--        <dependency>
+            <groupId>org.jdesktop</groupId>
+            <artifactId>beansbinding</artifactId>
+            <version>1.2.1</version>
+        </dependency>-->
 
+
+        <!-- RUNTIME -->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
@@ -128,39 +147,20 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- TEST -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.10</version>
             <scope>test</scope>
         </dependency>
-
+        
         <!-- JUNG samples just for browsing the source -->
         <dependency>
             <groupId>net.sf.jung</groupId>
             <artifactId>jung-samples</artifactId>
             <version>2.0.1</version>
             <scope>test</scope>
-        </dependency>
-        <!--        <dependency>
-            <groupId>org.simplericity.macify</groupId>
-            <artifactId>macify</artifactId>
-            <version>1.6</version>
-        </dependency>-->
-        <!--        <dependency>
-            <groupId>org.jdesktop</groupId>
-            <artifactId>beansbinding</artifactId>
-            <version>1.2.1</version>
-        </dependency>-->
-        <!--        <dependency>
-            <groupId>org.jdesktop</groupId>
-            <artifactId>beansbinding</artifactId>
-            <version>1.2.1</version>
-        </dependency>-->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-math3</artifactId>
-            <version>3.0</version>
         </dependency>
     </dependencies>
 	

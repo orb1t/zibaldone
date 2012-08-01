@@ -30,7 +30,10 @@ public class AggregateLayoutFixed<V, E> extends AggregateLayout<V, E> {
 
     @Override
     public void setSize(Dimension size) {
-        // https://sourceforge.net/tracker/index.php?func=detail&aid=3551453&group_id=73840&atid=539119
+        // NOT IMPLEMENTED
+        // https://sourceforge.net/tracker/?func=detail&aid=3553171&group_id=73840&atid=539122
+
+        // https://sourceforge.net/tracker/?func=detail&aid=3551453&group_id=73840&atid=539119
         Dimension oldSize = getSize();
         super.setSize(size);
         Dimension newSize = getSize();

@@ -125,28 +125,33 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     private final Transformer<Note, Icon> noteIcon = new Transformer<Note, Icon>() {
         @Override
         public Icon transform(final Note note) {
-            String title = note.getTitle();
-            final Rectangle2D size = getGraphics().getFontMetrics().getStringBounds(title, getGraphics());
-
             return new Icon() {
                 @Override
                 public int getIconHeight() {
-                    return Math.round((float) size.getHeight());
+                    return 50;
                 }
 
                 @Override
                 public int getIconWidth() {
-                    return Math.round((float) size.getWidth());
+                    return 50;
                 }
 
                 @Override
                 public void paintIcon(Component c, Graphics g, int x, int y) {
-                    if (graphVisualiser.getPickedVertexState().isPicked(note)) {
-                        g.setColor(Color.RED);
-                    } else if (!membersOfActiveBunches(Collections.singleton(note)).isEmpty()) {
-                        g.setColor(Color.GREEN);
+                    Set<Bunch> bunches = membersOfActiveBunches(Collections.singleton(note));
+                    boolean picked = graphVisualiser.getPickedVertexState().isPicked(note);
+                    if (bunches.isEmpty()) {
+                        if (picked) {
+                            g.setColor(new Color(255, 0, 0, 128));
+                        } else {
+                            g.setColor(new Color(255, 255, 0, 128));
+                        }
                     } else {
-                        g.setColor(Color.YELLOW);
+                        if (picked) {
+                            g.setColor(new Color(128, 255, 128, 128));
+                        } else {
+                            g.setColor(new Color(0, 255, 0, 128));
+                        }
                     }
                     g.fillRect(x, y, getIconWidth(), getIconHeight());
                     g.setColor(Color.BLACK);
@@ -207,12 +212,14 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     }
 
     private void selectNotes(final Set<Note> notes) {
-        if (notes.size() == 1) {
-            showNote(Iterables.getOnlyElement(notes));
-            return;
-        }
+//        if (notes.size() == 1) {
+//            showNote(Iterables.getOnlyElement(notes));
+//            return;
+//        }
 
         // TODO: reconsider the user interaction of what menus show up and when
+
+        // TODO: move these notes to the front of the render context (focus them)
 
         popup.removeAll();
 
