@@ -13,5 +13,5 @@ package uk.me.fommil.zibaldone;
  * @author Samuel Halliday
  */
 public interface Exporter {
-        
+    // TODO: Markdown Exporter
 }

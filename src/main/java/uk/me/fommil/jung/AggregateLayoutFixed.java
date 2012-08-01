@@ -21,17 +21,17 @@ import java.util.Map;
 @Deprecated
 public class AggregateLayoutFixed<V, E> extends AggregateLayout<V, E> {
 
-    /**
-     * @param delegate
-     */
-    public AggregateLayoutFixed(Layout<V, E> delegate) {
-        super(delegate);
+    public AggregateLayoutFixed() {
+        super(new FRLayoutFixed<V, E>());
     }
 
     @Override
     public void setSize(Dimension size) {
         // NOT IMPLEMENTED
         // https://sourceforge.net/tracker/?func=detail&aid=3553171&group_id=73840&atid=539122
+
+        // NOT IMPLEMENTED
+        // https://sourceforge.net/tracker/?func=detail&aid=3553281&group_id=73840&atid=539119
 
         // https://sourceforge.net/tracker/?func=detail&aid=3551453&group_id=73840&atid=539119
         Dimension oldSize = getSize();

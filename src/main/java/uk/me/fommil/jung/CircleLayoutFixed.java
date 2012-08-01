@@ -30,6 +30,9 @@ import uk.me.fommil.utils.JungGraphs;
 @Deprecated
 public class CircleLayoutFixed<V, E> extends CircleLayout<V, E> {
 
+    // NOT IMPLEMENTED
+    // https://sourceforge.net/tracker/?func=detail&aid=3553275&group_id=73840&atid=539119
+    
     @Getter @Setter
     private boolean priority;
 

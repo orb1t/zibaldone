@@ -17,9 +17,25 @@ import edu.uci.ics.jung.graph.UndirectedSparseGraph;
  */
 @Deprecated
 public class FRLayoutFixed<V, E> extends FRLayout<V, E> {
-    
+
     public FRLayoutFixed() {
         // https://sourceforge.net/tracker/?func=detail&aid=3542000&group_id=73840&atid=539119
         super(new UndirectedSparseGraph<V, E>());
     }
+//    @Getter @Setter
+//    private boolean priority;
+//
+//    @Override
+//    public int hashCode() {
+//        // https://sourceforge.net/tracker/?func=detail&aid=3550871&group_id=73840&atid=539119
+//        return priority ? 0 : 1;
+//    }
+//    @Override
+//    public void setSize(Dimension size) {
+//        super.setSize(size);
+//
+//        // NOT IMPLEMENTED
+//        // https://sourceforge.net/tracker/?func=detail&aid=3553281&group_id=73840&atid=539119
+//        // setInitializer(new RandomLocationTransformer<V>(size));
+//    }
 }

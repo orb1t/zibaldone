@@ -6,11 +6,6 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
-import uk.me.fommil.jung.VertexIconShapeTransformerFixed;
-import uk.me.fommil.jung.VisualizationViewerFixed;
-import uk.me.fommil.jung.CircleLayoutFixed;
-import uk.me.fommil.jung.AggregateLayoutFixed;
-import uk.me.fommil.jung.FRLayoutFixed;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
@@ -64,6 +59,12 @@ import javax.swing.event.MenuListener;
 import lombok.Setter;
 import lombok.extern.java.Log;
 import org.apache.commons.collections15.Transformer;
+import uk.me.fommil.jung.VertexIconShapeTransformerFixed;
+import uk.me.fommil.jung.VisualizationViewerFixed;
+import uk.me.fommil.jung.CircleLayoutFixed;
+import uk.me.fommil.jung.AggregateLayoutFixed;
+import uk.me.fommil.jung.FRLayoutFixed;
+import uk.me.fommil.jung.BasicRendererFixed;
 import uk.me.fommil.swing.SwingConvenience;
 import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.zibaldone.Bunch;
@@ -87,6 +88,8 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
     private final VisualizationViewer<Note, Weight> graphVisualiser = new VisualizationViewerFixed<Note, Weight>();
 
+    private final AggregateLayout<Note, Weight> graphLayout = new AggregateLayoutFixed<Note, Weight>();
+
     @Setter
     private BunchController bunchController;
 
@@ -100,18 +103,18 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     public JungGraphView() {
         super(new BorderLayout());
 
-        // TODO: set an initializer which uses a QuasiRandom sequence (check setSize support)
-        Layout<Note, Weight> delegateLayout = new FRLayoutFixed<Note, Weight>();
-        Layout<Note, Weight> graphLayout = new AggregateLayoutFixed<Note, Weight>(delegateLayout);
+        // TODO: set an initializer which uses a QuasiRandom sequence
+        // TODO: check setSize (resize) support of the initialiser
+        graphLayout.setDelegate(new FRLayoutFixed<Note, Weight>());
+
         graphVisualiser.setGraphLayout(graphLayout);
         graphVisualiser.setBackground(Color.WHITE);
         graphVisualiser.setDoubleBuffered(true);
         graphVisualiser.getRenderContext().setEdgeIncludePredicate(JungGraphs.<Note, Weight>noEdges());
         graphVisualiser.getRenderContext().setVertexIconTransformer(noteIcon);
-
         graphVisualiser.getRenderContext().setVertexShapeTransformer(new VertexIconShapeTransformerFixed<Note>(noteIcon));
         graphVisualiser.getRenderContext().setPickSupport(new ShapePickSupport<Note, Weight>(graphVisualiser));
-
+        graphVisualiser.setRenderer(new BasicRendererFixed<Note, Weight>());
         graphVisualiser.setGraphMouse(new ModelessGraphMouse());
 
         add(graphVisualiser, BorderLayout.CENTER);
@@ -127,6 +130,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         return (AggregateLayout<Note, Weight>) layout.getDelegate();
     }
 
+    // FIXME: lodge memory leak bug with JUNG about removed vertices
     // TODO: caching layer which means construction isn't required every time. Listen for Note removal.
     // TODO: construction of as much as possible on construction, to allow for dynamic sizes.
     // TODO: make this a general purpose "sticky note" Icon
@@ -252,6 +256,8 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         // TODO: reconsider the user interaction of what menus show up and when
 
         // TODO: move these notes to the front of the render context (focus them)
+
+
 
         popup.removeAll();
 
