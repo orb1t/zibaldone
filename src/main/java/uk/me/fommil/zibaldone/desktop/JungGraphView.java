@@ -19,7 +19,6 @@ import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.ObservableGraph;
-import edu.uci.ics.jung.graph.util.Context;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.GraphMousePlugin;
 import edu.uci.ics.jung.visualization.control.PickingGraphMousePlugin;
@@ -58,7 +57,6 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import lombok.Setter;
 import lombok.extern.java.Log;
-import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
 import uk.me.fommil.swing.SwingConvenience;
 import uk.me.fommil.utils.Convenience;
@@ -93,16 +91,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
     private final Map<ClusterId, Layout<Note, Weight>> clusters = Maps.newHashMap();
 
-    // TODO: shouldn't there be a stock field for this?
-    @Deprecated
-    private static final Predicate<Context<Graph<Note, Weight>, Weight>> NO_EDGES =
-            new Predicate<Context<Graph<Note, Weight>, Weight>>() {
-                @Override
-                public boolean evaluate(Context<Graph<Note, Weight>, Weight> context) {
-                    return false;
-                }
-            };
-
     public JungGraphView() {
         super(new BorderLayout());
 
@@ -112,8 +100,9 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         graphVisualiser.setGraphLayout(graphLayout);
         graphVisualiser.setBackground(Color.WHITE);
         graphVisualiser.setDoubleBuffered(true);
-        graphVisualiser.getRenderContext().setEdgeIncludePredicate(NO_EDGES);
+        graphVisualiser.getRenderContext().setEdgeIncludePredicate(JungGraphs.<Note, Weight>noEdges());
         graphVisualiser.getRenderContext().setVertexIconTransformer(noteIcon);
+
         graphVisualiser.getRenderContext().setVertexShapeTransformer(new VertexIconShapeTransformerFixed<Note>(noteIcon));
         graphVisualiser.getRenderContext().setPickSupport(new ShapePickSupport<Note, Weight>(graphVisualiser));
 

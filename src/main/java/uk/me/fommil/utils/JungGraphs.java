@@ -14,14 +14,17 @@ import edu.uci.ics.jung.graph.GraphDecorator;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
+import edu.uci.ics.jung.graph.util.Context;
 import edu.uci.ics.jung.graph.util.EdgeType;
+import edu.uci.ics.jung.visualization.RenderContext;
 import java.awt.geom.Point2D;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import uk.me.fommil.utils.Convenience;
+import org.apache.commons.collections15.Predicate;
+import org.apache.commons.collections15.PredicateUtils;
 
 /**
  * Utility methods for working with JUNG {@link Graph} objects.
@@ -146,5 +149,18 @@ public final class JungGraphs {
             points.add(layout.transform(note));
         }
         return points;
+    }
+    
+    /**
+     * Convenience for passing to
+     * {@link RenderContext#setEdgeIncludePredicate(Predicate)}
+     * to not draw any edges.
+     * 
+     * @param <V>
+     * @param <E>
+     * @return
+     */
+    public static <V,E> Predicate<Context<Graph<V, E>, E>> noEdges() {
+        return PredicateUtils.falsePredicate();
     }
 }
