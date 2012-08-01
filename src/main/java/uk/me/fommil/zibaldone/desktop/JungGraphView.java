@@ -30,7 +30,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -39,8 +41,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineBreakMeasurer;
+import java.awt.font.TextAttribute;
+import java.awt.font.TextLayout;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
+import java.text.AttributedString;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -121,42 +127,68 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         return (AggregateLayout<Note, Weight>) layout.getDelegate();
     }
 
-    // TODO: pettier icon for the Notes
+    // TODO: caching layer which means construction isn't required every time. Listen for Note removal.
+    // TODO: construction of as much as possible on construction, to allow for dynamic sizes.
+    // TODO: make this a general purpose "sticky note" Icon
     private final Transformer<Note, Icon> noteIcon = new Transformer<Note, Icon>() {
         @Override
         public Icon transform(final Note note) {
+
             return new Icon() {
                 @Override
                 public int getIconHeight() {
-                    return 50;
+                    return 40;
                 }
 
                 @Override
                 public int getIconWidth() {
-                    return 50;
+                    return 60;
                 }
 
                 @Override
                 public void paintIcon(Component c, Graphics g, int x, int y) {
-                    Set<Bunch> bunches = membersOfActiveBunches(Collections.singleton(note));
+                    Graphics2D g2d = (Graphics2D) g;
+                    // TODO: maybe translating to (x, y) might make drawing easier
+
+                    Set<Bunch> bunches = belongsToActiveBunches(Collections.singleton(note));
                     boolean picked = graphVisualiser.getPickedVertexState().isPicked(note);
                     if (bunches.isEmpty()) {
                         if (picked) {
-                            g.setColor(new Color(255, 0, 0, 128));
+                            g.setColor(new Color(255, 255, 0, 255));
                         } else {
                             g.setColor(new Color(255, 255, 0, 128));
                         }
                     } else {
                         if (picked) {
-                            g.setColor(new Color(128, 255, 128, 128));
+                            g.setColor(new Color(0, 255, 0, 255));
                         } else {
                             g.setColor(new Color(0, 255, 0, 128));
                         }
                     }
                     g.fillRect(x, y, getIconWidth(), getIconHeight());
+
+                    // http://docs.oracle.com/javase/tutorial/2d/text/drawmulstring.html
                     g.setColor(Color.BLACK);
-                    int descent = getGraphics().getFontMetrics().getMaxDescent();
-                    g.drawString(note.getTitle(), x, y + getIconHeight() - descent);
+                    // TODO: trim the text of titles (remove stop words, etc)
+                    // TODO: some extra graphics niceties - e.g. shading, texture
+                    AttributedString text = new AttributedString(note.getTitle());
+                    // TODO: iterate to find best font size (within a bound) for the text
+                    // TODO: recentering the text
+                    text.addAttribute(TextAttribute.FONT, new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+
+                    FontRenderContext frc = g2d.getFontRenderContext();
+                    LineBreakMeasurer lineMeasurer = new LineBreakMeasurer(text.getIterator(), frc);
+
+                    float drawPosY = y;
+                    TextLayout layout;
+                    while ((layout = lineMeasurer.nextLayout(getIconWidth())) != null) {
+                        drawPosY += layout.getAscent();
+                        if (drawPosY > (y + getIconHeight())) {
+                            break;
+                        }
+                        layout.draw(g2d, x, drawPosY);
+                        drawPosY += layout.getDescent() + layout.getLeading();
+                    }
                 }
             };
         }
@@ -223,7 +255,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
         popup.removeAll();
 
-        Set<Bunch> memberOf = membersOfActiveBunches(notes);
+        Set<Bunch> memberOf = belongsToActiveBunches(notes);
         if (!memberOf.isEmpty()) {
             if (notes.size() == 1) {
                 final Note note = Iterables.getOnlyElement(notes);
@@ -354,7 +386,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         SwingConvenience.showAsDialog("Bunch Editor", view, true, listener);
     }
 
-    private Set<Bunch> membersOfActiveBunches(Set<Note> notes) {
+    private Set<Bunch> belongsToActiveBunches(Set<Note> notes) {
         Set<Bunch> bunches = Sets.newHashSet();
         for (UUID bunchId : activeBunches.keySet()) {
             Set<Note> bunchNotes = Sets.newHashSet(activeBunches.get(bunchId).getGraph().getVertices());
