@@ -23,11 +23,8 @@ import edu.uci.ics.jung.visualization.picking.PickedState;
 import edu.uci.ics.jung.visualization.picking.ShapePickSupport;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -36,10 +33,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.font.FontRenderContext;
-import java.awt.font.LineBreakMeasurer;
 import java.awt.font.TextAttribute;
-import java.awt.font.TextLayout;
 import java.awt.geom.Point2D;
 import java.text.AttributedString;
 import java.util.Collection;
@@ -71,6 +65,7 @@ import uk.me.fommil.zibaldone.Bunch;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.control.BunchController;
 import uk.me.fommil.utils.JungGraphs;
+import uk.me.fommil.utils.Lucene;
 import uk.me.fommil.zibaldone.control.Listeners.BunchListener;
 import uk.me.fommil.zibaldone.control.Listeners.ClusterId;
 import uk.me.fommil.zibaldone.control.Listeners.ClusterListener;
@@ -130,73 +125,56 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         return (AggregateLayout<Note, Weight>) layout.getDelegate();
     }
 
-    // FIXME: lodge memory leak bug with JUNG about removed vertices
-    // TODO: caching layer which means construction isn't required every time. Listen for Note removal.
-    // TODO: construction of as much as possible on construction, to allow for dynamic sizes.
-    // TODO: make this a general purpose "sticky note" Icon
     private final Transformer<Note, Icon> noteIcon = new Transformer<Note, Icon>() {
         @Override
         public Icon transform(final Note note) {
-
-            return new Icon() {
+            StringIcon icon = new StringIcon() {
                 @Override
-                public int getIconHeight() {
-                    return 40;
-                }
-
-                @Override
-                public int getIconWidth() {
-                    return 60;
-                }
-
-                @Override
-                public void paintIcon(Component c, Graphics g, int x, int y) {
-                    Graphics2D g2d = (Graphics2D) g;
-                    // TODO: maybe translating to (x, y) might make drawing easier
-
+                public Color getBackground() {
+                    // FIXME: this is a potential DB hit for every Note! Cache the colours.
                     Set<Bunch> bunches = belongsToActiveBunches(Collections.singleton(note));
                     boolean picked = graphVisualiser.getPickedVertexState().isPicked(note);
                     if (bunches.isEmpty()) {
                         if (picked) {
-                            g.setColor(new Color(255, 255, 0, 255));
+                            return new Color(255, 255, 0, 255);
                         } else {
-                            g.setColor(new Color(255, 255, 0, 128));
+                            return new Color(255, 255, 0, 128);
                         }
                     } else {
                         if (picked) {
-                            g.setColor(new Color(0, 255, 0, 255));
+                            return new Color(0, 255, 0, 255);
                         } else {
-                            g.setColor(new Color(0, 255, 0, 128));
+                            return new Color(0, 255, 0, 128);
                         }
-                    }
-                    g.fillRect(x, y, getIconWidth(), getIconHeight());
-
-                    // http://docs.oracle.com/javase/tutorial/2d/text/drawmulstring.html
-                    g.setColor(Color.BLACK);
-                    // TODO: trim the text of titles (remove stop words, etc)
-                    // TODO: some extra graphics niceties - e.g. shading, texture
-                    AttributedString text = new AttributedString(note.getTitle());
-                    // TODO: iterate to find best font size (within a bound) for the text
-                    // TODO: recentering the text
-                    text.addAttribute(TextAttribute.FONT, new Font(Font.SANS_SERIF, Font.PLAIN, 10));
-
-                    FontRenderContext frc = g2d.getFontRenderContext();
-                    LineBreakMeasurer lineMeasurer = new LineBreakMeasurer(text.getIterator(), frc);
-
-                    float drawPosY = y;
-                    TextLayout layout;
-                    while ((layout = lineMeasurer.nextLayout(getIconWidth())) != null) {
-                        drawPosY += layout.getAscent();
-                        if (drawPosY > (y + getIconHeight())) {
-                            break;
-                        }
-                        layout.draw(g2d, x, drawPosY);
-                        drawPosY += layout.getDescent() + layout.getLeading();
                     }
                 }
             };
+            String shortened = Lucene.removeStopWords(note.getTitle());
+            AttributedString text = new AttributedString(shortened);
+            text.addAttribute(TextAttribute.FONT, new Font(Font.MONOSPACED, Font.PLAIN, 10));
+            text.addAttribute(TextAttribute.FOREGROUND, Color.BLACK);
+
+            icon.setMaximum(calculateNoteSize(5000, new Dimension(60, 40), 15000));
+            icon.setText(text);
+            return icon;
         }
     };
+
+    // TODO: Graph changes Layout parameters, based on spaciousness, and caches NoteSize
+    // lower, upper are thresholds and 'min' is the minimum dimension.
+    private Dimension calculateNoteSize(float lower, Dimension min, float upper) {
+        Dimension size = getSize();
+        float spaciousness = (float) (size.getWidth() * size.getHeight()) / getGraphLayout().getGraph().getVertexCount();
+        if (spaciousness < lower) {
+            return min;
+        } else if (spaciousness < upper) {
+            float scaler = 1 + (spaciousness - 5000f) / (15000f - 5000f);
+            assert scaler > 1 && scaler < 2 : scaler;
+            return new Dimension(Math.round(min.width * scaler), Math.round(min.height * scaler));
+        } else {
+            return new Dimension(min.width * 2, min.height * 2);
+        }
+    }
 
     /**
      * The JUNG mouse handling framework was developed
@@ -392,6 +370,8 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         SwingConvenience.showAsDialog("Bunch Editor", view, true, listener);
     }
 
+    // TODO: return the IDs only
+    @Deprecated
     private Set<Bunch> belongsToActiveBunches(Set<Note> notes) {
         Set<Bunch> bunches = Sets.newHashSet();
         for (UUID bunchId : activeBunches.keySet()) {

@@ -22,6 +22,7 @@ import lombok.Synchronized;
 import lombok.extern.java.Log;
 import org.tartarus.snowball.SnowballProgram;
 import org.tartarus.snowball.ext.EnglishStemmer;
+import uk.me.fommil.utils.Lucene;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
 import uk.me.fommil.zibaldone.persistence.SynonymDao;
 
@@ -35,8 +36,6 @@ import uk.me.fommil.zibaldone.persistence.SynonymDao;
 @Log
 @RequiredArgsConstructor
 public class Reconciler {
-
-    private final SnowballProgram stemmer = new EnglishStemmer();
 
     @NonNull
     private final EntityManagerFactory emf;
@@ -127,7 +126,7 @@ public class Reconciler {
         StringTokenizer tokeniser = new StringTokenizer(text);
         while (tokeniser.hasMoreTokens()) {
             String token = tokeniser.nextToken().toLowerCase();
-            String stemmed = stem(token);
+            String stemmed = Lucene.stem(token);
             builder.append(stemmed);
         }
 
@@ -135,11 +134,5 @@ public class Reconciler {
         stem.setText(builder.toString());
 
         return stem;
-    }
-
-    private String stem(String word) {
-        stemmer.setCurrent(word);
-        stemmer.stem();
-        return stemmer.getCurrent();
     }
 }
