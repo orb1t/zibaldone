@@ -14,10 +14,12 @@ import java.util.Iterator;
 import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 import lombok.Delegate;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ListenerSupport;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 /**
@@ -40,7 +42,9 @@ import lombok.experimental.Accessors;
  * Listeners should be mindful of what they intend to do with observations, as
  * changes to the underlying {@link Collection} may result in unexpected
  * behaviour.
- *
+ * <p>
+ * For a very functional {@code ObservableList} look at GlazedLists.
+ * 
  * @param <T> 
  * @author Samuel Halliday
  * @see <a href="http://code.google.com/p/guava-libraries/issues/detail?id=1077">Guava RFE</a>
@@ -49,6 +53,8 @@ import lombok.experimental.Accessors;
 @RequiredArgsConstructor
 @NotThreadSafe
 @ListenerSupport(ObservableCollection.CollectionListener.class)
+@EqualsAndHashCode
+@ToString(of="delegate")
 public class ObservableCollection<T> implements Collection<T> {
 
     /**
@@ -116,7 +122,7 @@ public class ObservableCollection<T> implements Collection<T> {
     }
 
     @Delegate(excludes = Mutators.class)
-    private final Collection<T> delegate;
+    protected final Collection<T> delegate;
 
     private Change<T> createAdditionChange(T added) {
         return createAdditionChange(Collections.singleton(added));

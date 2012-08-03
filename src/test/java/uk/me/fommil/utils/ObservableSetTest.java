@@ -15,21 +15,21 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import uk.me.fommil.utils.ObservableCollection.Change;
 import uk.me.fommil.utils.ObservableCollection.CollectionListener;
-import static uk.me.fommil.utils.ObservableCollection.observable;
+import static uk.me.fommil.utils.ObservableSet.observable;
 
 /**
  *
  * @author Samuel Halliday
  */
-public class ObservableCollectionTest {
+public class ObservableSetTest {
 
-    private ObservableCollection<String> newTestCollection() {
-        return observable(Lists.newArrayList("A", "B", "C", "D", "E", "F"));
+    private ObservableSet<String> newTestCollection() {
+        return observable(Sets.newHashSet("A", "B", "C", "D", "E", "F"));
     }
 
     @Test
     public void testIterator() {
-        ObservableCollection<String> collection = newTestCollection();
+        ObservableSet<String> collection = newTestCollection();
 
         final AtomicBoolean listened = new AtomicBoolean();
         collection.addCollectionListener(new CollectionListener<String>() {
@@ -55,7 +55,7 @@ public class ObservableCollectionTest {
 
     @Test
     public void testAdd() {
-        ObservableCollection<String> collection = newTestCollection();
+        ObservableSet<String> collection = newTestCollection();
 
         final AtomicBoolean listened = new AtomicBoolean();
         collection.addCollectionListener(new CollectionListener<String>() {
@@ -78,7 +78,7 @@ public class ObservableCollectionTest {
 
     @Test
     public void testAddAll() {
-        ObservableCollection<String> collection = newTestCollection();
+        ObservableSet<String> collection = newTestCollection();
 
         final AtomicBoolean listened = new AtomicBoolean();
         collection.addCollectionListener(new CollectionListener<String>() {
@@ -95,13 +95,13 @@ public class ObservableCollectionTest {
             }
         });
         collection.addAll(Lists.newArrayList("F", "G", "H"));
-        assertEquals(9, collection.size()); // List, not Set
+        assertEquals(8, collection.size()); // Set, not List
         assertTrue(listened.get());
     }
 
     @Test
     public void testRemove() {
-        ObservableCollection<String> collection = newTestCollection();
+        ObservableSet<String> collection = newTestCollection();
 
         final AtomicBoolean listened = new AtomicBoolean();
         collection.addCollectionListener(new CollectionListener<String>() {
@@ -124,7 +124,7 @@ public class ObservableCollectionTest {
 
     @Test
     public void testRemoveAll() {
-        ObservableCollection<String> collection = newTestCollection();
+        ObservableSet<String> collection = newTestCollection();
 
         final AtomicBoolean listened = new AtomicBoolean();
         collection.addCollectionListener(new CollectionListener<String>() {
@@ -147,7 +147,7 @@ public class ObservableCollectionTest {
 
     @Test
     public void testRetainAll() {
-        ObservableCollection<String> collection = newTestCollection();
+        ObservableSet<String> collection = newTestCollection();
 
         final AtomicBoolean listened = new AtomicBoolean();
         collection.addCollectionListener(new CollectionListener<String>() {
@@ -169,7 +169,7 @@ public class ObservableCollectionTest {
 
     @Test
     public void testClear() {
-        ObservableCollection<String> collection = newTestCollection();
+        ObservableSet<String> collection = newTestCollection();
 
         final AtomicBoolean listened = new AtomicBoolean();
         collection.addCollectionListener(new CollectionListener<String>() {
