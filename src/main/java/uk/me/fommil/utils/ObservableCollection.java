@@ -8,6 +8,8 @@ package uk.me.fommil.utils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeSupport;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -19,7 +21,6 @@ import lombok.Getter;
 import lombok.ListenerSupport;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 import lombok.experimental.Accessors;
 
 /**
@@ -43,18 +44,28 @@ import lombok.experimental.Accessors;
  * changes to the underlying {@link Collection} may result in unexpected
  * behaviour.
  * <p>
- * For a very functional {@code ObservableList} look at GlazedLists.
+ * Note that in order to allow the generics to work for {@code remove*} operations
+ * in the {@link CollectionListener} interface, all elements will be cast into the
+ * {@link Collection}'s generic type - which may not be compatible with (very badly
+ * written!) legacy collections.
+ * <p>
+ * For a very functional {@code ObservableList} look at GlazedLists (or perhaps
+ * it might be worthwhile implementing the extra functionality here).
+ * <p>
+ * Equality and hash codes ignore the registered listeners, calculating purely
+ * based on content, as users have come to expect of the Collections API.
  * 
  * @param <T> 
  * @author Samuel Halliday
+ * @see ObservableMap
+ * @see ObservableSet
  * @see <a href="http://code.google.com/p/guava-libraries/issues/detail?id=1077">Guava RFE</a>
  * @see <a href="http://docs.oracle.com/javafx/2/api/javafx/collections/package-frame.html">JavaFX Collections</a>
  */
 @RequiredArgsConstructor
 @NotThreadSafe
 @ListenerSupport(ObservableCollection.CollectionListener.class)
-@EqualsAndHashCode
-@ToString(of="delegate")
+@EqualsAndHashCode(of = "delegate")
 public class ObservableCollection<T> implements Collection<T> {
 
     /**
@@ -62,7 +73,7 @@ public class ObservableCollection<T> implements Collection<T> {
      * @param collection
      * @return 
      */
-    public static <T> ObservableCollection<T> observable(Collection<T> collection) {
+    public static <T> ObservableCollection<T> newObservableCollection(Collection<T> collection) {
         Preconditions.checkNotNull(collection);
         return new ObservableCollection<T>(collection);
     }
@@ -75,14 +86,38 @@ public class ObservableCollection<T> implements Collection<T> {
         private final ObservableCollection<T> collection;
 
         @NonNull
-        private final Collection<? extends T> elementsAdded;
-
-        @NonNull
-        private final Collection<?> elementsRemoved;
+        private final Collection<T> elementsAdded, elementsRemoved;
 
         @Accessors(fluent = true)
         private final boolean wasAdded, wasRemoved;
 
+    }
+
+    /**
+     * Registers a {@link CollectionListener} with the {@link ObservableCollection} which
+     * calls {@link PropertyChangeSupport#firePropertyChange(PropertyChangeEvent)}
+     * every time a change is detected. For efficiency of implementation, the
+     * {@code oldValue} is always {@code null}.
+     * 
+     * @param <T>
+     * @param pcs
+     * @param collection
+     * @param name
+     */
+    public static <T> void propertyChangeAdapter(
+            final PropertyChangeSupport pcs,
+            final ObservableCollection<T> collection,
+            final String name) {
+        Preconditions.checkNotNull(pcs);
+        Preconditions.checkNotNull(collection);
+        Preconditions.checkNotNull(name);
+        CollectionListener<T> listener = new CollectionListener<T>() {
+            @Override
+            public void onCollectionChanged(Change<T> change) {
+                pcs.firePropertyChange(name, null, collection);
+            }
+        };
+        collection.addCollectionListener(listener);
     }
 
     /**
@@ -95,7 +130,7 @@ public class ObservableCollection<T> implements Collection<T> {
         /**
          * Called after a change has been made to an {@link ObservableCollection}.
          * Note that in bulk updates, all elements which were requested to be
-         * added or removed will be included, but this does not guarantee that the
+         * added (or removed) will be included, but this does not guarantee that the
          * elements were present (or not present) before the operation.
          * 
          * @param change
@@ -128,16 +163,15 @@ public class ObservableCollection<T> implements Collection<T> {
         return createAdditionChange(Collections.singleton(added));
     }
 
-    private Change<T> createAdditionChange(Collection<? extends T> added) {
-        Change<T> change = new Change<T>(this, added, Collections.<T>emptySet(), true, false);
-        return change;
+    private Change<T> createAdditionChange(Collection<T> added) {
+        return new Change<T>(this, added, Collections.<T>emptySet(), true, false);
     }
 
-    private Change<T> createRemovalChange(Object removed) {
+    private Change<T> createRemovalChange(T removed) {
         return createRemovalChange(Collections.singleton(removed));
     }
 
-    private Change<T> createRemovalChange(Collection<?> removed) {
+    private Change<T> createRemovalChange(Collection<T> removed) {
         return new Change<T>(this, Collections.<T>emptySet(), removed, false, true);
     }
 
@@ -177,27 +211,30 @@ public class ObservableCollection<T> implements Collection<T> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean remove(Object o) {
         if (delegate.remove(o)) {
-            fireOnCollectionChanged(createRemovalChange(o));
+            fireOnCollectionChanged(createRemovalChange((T) o));
             return true;
         }
         return false;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean addAll(Collection<? extends T> c) {
         if (delegate.addAll(c)) {
-            fireOnCollectionChanged(createAdditionChange(c));
+            fireOnCollectionChanged(createAdditionChange((Collection<T>) c));
             return true;
         }
         return false;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean removeAll(Collection<?> c) {
         if (delegate.removeAll(c)) {
-            fireOnCollectionChanged(createRemovalChange(c));
+            fireOnCollectionChanged(createRemovalChange((Collection<T>) c));
             return true;
         }
         return false;
@@ -226,5 +263,10 @@ public class ObservableCollection<T> implements Collection<T> {
         if (!before.isEmpty()) {
             fireOnCollectionChanged(createRemovalChange(before));
         }
+    }
+
+    @Override
+    public String toString() {
+        return delegate.toString();
     }
 }

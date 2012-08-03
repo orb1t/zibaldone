@@ -15,7 +15,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import uk.me.fommil.utils.ObservableCollection.Change;
 import uk.me.fommil.utils.ObservableCollection.CollectionListener;
-import static uk.me.fommil.utils.ObservableSet.observable;
+import static uk.me.fommil.utils.ObservableSet.newObservableSet;
 
 /**
  *
@@ -24,7 +24,7 @@ import static uk.me.fommil.utils.ObservableSet.observable;
 public class ObservableSetTest {
 
     private ObservableSet<String> newTestCollection() {
-        return observable(Sets.newHashSet("A", "B", "C", "D", "E", "F"));
+        return newObservableSet(Sets.newHashSet("A", "B", "C", "D", "E", "F"));
     }
 
     @Test

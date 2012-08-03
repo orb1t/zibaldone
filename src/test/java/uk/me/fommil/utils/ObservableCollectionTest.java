@@ -7,7 +7,6 @@
 package uk.me.fommil.utils;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -15,29 +14,28 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import uk.me.fommil.utils.ObservableCollection.Change;
 import uk.me.fommil.utils.ObservableCollection.CollectionListener;
-import static uk.me.fommil.utils.ObservableCollection.observable;
 
 /**
  *
  * @author Samuel Halliday
  */
 public class ObservableCollectionTest {
-
+    
     private ObservableCollection<String> newTestCollection() {
-        return observable(Lists.newArrayList("A", "B", "C", "D", "E", "F"));
+        return ObservableCollection.newObservableCollection(Lists.newArrayList("A", "B", "C", "D", "E", "F"));
     }
-
+    
     @Test
     public void testIterator() {
         ObservableCollection<String> collection = newTestCollection();
-
+        
         final AtomicBoolean listened = new AtomicBoolean();
         collection.addCollectionListener(new CollectionListener<String>() {
             @Override
             public void onCollectionChanged(Change<String> change) {
                 listened.set(true);
                 assertNotNull(change.getCollection());
-
+                
                 assertFalse(change.wasAdded());
                 assertTrue(change.wasRemoved());
                 assertEquals(0, change.getElementsAdded().size());
@@ -52,18 +50,18 @@ public class ObservableCollectionTest {
         assertEquals(0, collection.size());
         assertTrue(listened.get());
     }
-
+    
     @Test
     public void testAdd() {
         ObservableCollection<String> collection = newTestCollection();
-
+        
         final AtomicBoolean listened = new AtomicBoolean();
         collection.addCollectionListener(new CollectionListener<String>() {
             @Override
             public void onCollectionChanged(Change<String> change) {
                 listened.set(true);
                 assertNotNull(change.getCollection());
-
+                
                 assertTrue(change.wasAdded());
                 assertFalse(change.wasRemoved());
                 assertEquals(1, change.getElementsAdded().size());
@@ -75,18 +73,18 @@ public class ObservableCollectionTest {
         assertEquals(7, collection.size());
         assertTrue(listened.get());
     }
-
+    
     @Test
     public void testAddAll() {
         ObservableCollection<String> collection = newTestCollection();
-
+        
         final AtomicBoolean listened = new AtomicBoolean();
         collection.addCollectionListener(new CollectionListener<String>() {
             @Override
             public void onCollectionChanged(Change<String> change) {
                 listened.set(true);
                 assertNotNull(change.getCollection());
-
+                
                 assertTrue(change.wasAdded());
                 assertFalse(change.wasRemoved());
                 assertEquals(3, change.getElementsAdded().size());
@@ -98,18 +96,18 @@ public class ObservableCollectionTest {
         assertEquals(9, collection.size()); // List, not Set
         assertTrue(listened.get());
     }
-
+    
     @Test
     public void testRemove() {
         ObservableCollection<String> collection = newTestCollection();
-
+        
         final AtomicBoolean listened = new AtomicBoolean();
         collection.addCollectionListener(new CollectionListener<String>() {
             @Override
             public void onCollectionChanged(Change<String> change) {
                 listened.set(true);
                 assertNotNull(change.getCollection());
-
+                
                 assertFalse(change.wasAdded());
                 assertTrue(change.wasRemoved());
                 assertEquals(1, change.getElementsRemoved().size());
@@ -121,18 +119,18 @@ public class ObservableCollectionTest {
         assertEquals(5, collection.size());
         assertTrue(listened.get());
     }
-
+    
     @Test
     public void testRemoveAll() {
         ObservableCollection<String> collection = newTestCollection();
-
+        
         final AtomicBoolean listened = new AtomicBoolean();
         collection.addCollectionListener(new CollectionListener<String>() {
             @Override
             public void onCollectionChanged(Change<String> change) {
                 listened.set(true);
                 assertNotNull(change.getCollection());
-
+                
                 assertFalse(change.wasAdded());
                 assertTrue(change.wasRemoved());
                 assertEquals(3, change.getElementsRemoved().size());
@@ -144,18 +142,18 @@ public class ObservableCollectionTest {
         assertEquals(4, collection.size());
         assertTrue(listened.get());
     }
-
+    
     @Test
     public void testRetainAll() {
         ObservableCollection<String> collection = newTestCollection();
-
+        
         final AtomicBoolean listened = new AtomicBoolean();
         collection.addCollectionListener(new CollectionListener<String>() {
             @Override
             public void onCollectionChanged(Change<String> change) {
                 listened.set(true);
                 assertNotNull(change.getCollection());
-
+                
                 assertFalse(change.wasAdded());
                 assertTrue(change.wasRemoved());
                 assertTrue(change.getElementsRemoved().size() > 0);
@@ -166,18 +164,18 @@ public class ObservableCollectionTest {
         assertEquals(1, collection.size());
         assertTrue(listened.get());
     }
-
+    
     @Test
     public void testClear() {
         ObservableCollection<String> collection = newTestCollection();
-
+        
         final AtomicBoolean listened = new AtomicBoolean();
         collection.addCollectionListener(new CollectionListener<String>() {
             @Override
             public void onCollectionChanged(Change<String> change) {
                 listened.set(true);
                 assertNotNull(change.getCollection());
-
+                
                 assertFalse(change.wasAdded());
                 assertTrue(change.wasRemoved());
                 assertTrue(change.getElementsRemoved().size() > 0);
