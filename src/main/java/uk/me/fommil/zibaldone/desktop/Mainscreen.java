@@ -8,10 +8,17 @@ package uk.me.fommil.zibaldone.desktop;
 
 import uk.me.fommil.zibaldone.control.GraphController;
 import com.google.common.base.Preconditions;
+import com.google.common.io.Files;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyEditorManager;
+import java.beans.XMLDecoder;
+import java.beans.XMLEncoder;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
@@ -20,13 +27,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import javax.persistence.EntityManagerFactory;
 import javax.swing.ComboBoxModel;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JCheckBox;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
-import javax.swing.JList;
-import javax.swing.JPopupMenu;
-import javax.swing.ListCellRenderer;
 import lombok.BoundSetter;
 import lombok.extern.java.Log;
 import org.jdesktop.swingx.combobox.MapComboBoxModel;
@@ -47,13 +48,40 @@ import uk.me.fommil.zibaldone.importer.OrgModeImporter;
 @Log
 public final class Mainscreen extends JFrame implements PropertyChangeListener {
 
-    /** @param args */
-    public static void main(String args[]) {
+    public static void main(String args[]) throws Exception {
         PropertyEditorManager.registerEditor(File.class, FilePropertyEditor.class);
         PropertyEditorManager.registerEditor(Date.class, DatePropertyEditor.class);
 
         EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
-        Settings settings = new Settings();
+
+        final Settings settings;
+        {
+            final File settingsFile = new File("zibaldone.xml");
+            if (settingsFile.exists()) {
+                FileInputStream in = Files.newInputStreamSupplier(settingsFile).getInput();
+                XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(in));
+                settings = (Settings) decoder.readObject();
+                decoder.close();
+            } else {
+                settings = new Settings();
+            }
+
+            settings.addPropertyChangeListener(new PropertyChangeListener() {
+                @Override
+                public void propertyChange(PropertyChangeEvent evt) {
+                    try {
+                        log.info("Saving Settings: " + evt.getPropertyName());
+                        FileOutputStream out = Files.newOutputStreamSupplier(settingsFile).getOutput();
+                        XMLEncoder encoder = new XMLEncoder(new BufferedOutputStream(out));
+                        encoder.writeObject(settings);
+                        encoder.close();
+                    } catch (IOException e) {
+                        log.log(Level.WARNING, "Problem saving " + settingsFile.getName(), e);
+                    }
+                }
+            });
+        }
+
         GraphController graphController = new GraphController(emf, settings);
         TagController tagController = new TagController(settings);
         BunchController bunchController = new BunchController(emf, settings);
@@ -72,7 +100,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         main.setVisible(true);
 
         {
-            // DEBUG: programmatic load of importer
+            // DEBUG: programmatic load of an importer
             UUID uuid = UUID.randomUUID();
             Map<UUID, Importer> importers = settings.getImporters();
             OrgModeImporter importer = new OrgModeImporter();
@@ -117,7 +145,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
             bunchController.addBunchListener(jungGraphView);
             bunchController.addBunchListener(bunchMenu);
             jungGraphView.setBunchController(bunchController);
-            bunchMenu.setBunchController(bunchController);            
+            bunchMenu.setBunchController(bunchController);
         } else if ("importerController".equals(property)) {
             importerController.addTagListener(tagSelectView);
         } else if ("settings".equals(property)) {
@@ -129,7 +157,6 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
 
     public Mainscreen() {
         super();
-        addPropertyChangeListener(this);
         rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         initComponents();
         settingsPanel.setVisible(false);
@@ -138,10 +165,11 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         Map<String, Class<Importer>> importers = ImporterController.getImporterImplementations();
         ComboBoxModel importerChoices = new MapComboBoxModel<String, Class<Importer>>(importers);
         importerSelector.setModel(importerChoices);
-        
-        
-        
-        
+
+        addPropertyChangeListener(this);
+
+
+
         // TODO: add the 'null' importer        
         // TODO: animated settings panel
         // TODO: icons for the toolbar buttons
@@ -196,6 +224,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Zibaldone");
         setMinimumSize(new java.awt.Dimension(900, 600));
+        setSize(new java.awt.Dimension(800, 600));
 
         jToolBar.setFloatable(false);
         jToolBar.setRollover(true);
@@ -313,13 +342,13 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private uk.me.fommil.zibaldone.desktop.BunchMenu bunchMenu;
-    javax.swing.JButton bunchesButton;
-    javax.swing.JComboBox importerSelector;
-    org.jdesktop.swingx.JXTaskPaneContainer importersPanel;
-    uk.me.fommil.zibaldone.desktop.JungGraphView jungGraphView;
-    javax.swing.JToggleButton settingsButton;
-    javax.swing.JTabbedPane settingsPanel;
-    javax.swing.JDialog tagDialog;
-    uk.me.fommil.zibaldone.desktop.TagsView tagSelectView;
+    private javax.swing.JButton bunchesButton;
+    private javax.swing.JComboBox importerSelector;
+    private org.jdesktop.swingx.JXTaskPaneContainer importersPanel;
+    private uk.me.fommil.zibaldone.desktop.JungGraphView jungGraphView;
+    private javax.swing.JToggleButton settingsButton;
+    private javax.swing.JTabbedPane settingsPanel;
+    private javax.swing.JDialog tagDialog;
+    private uk.me.fommil.zibaldone.desktop.TagsView tagSelectView;
     // End of variables declaration//GEN-END:variables
 }
