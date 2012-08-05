@@ -123,7 +123,7 @@ public class Settings {
         final Settings settings = new Settings();
         if (file.exists()) {
             Settings loaded = load(file);
-            // TODO: work out how to do deserialisation without this nonsense
+            // XStream resets final fields with default values
             settings.connections = loaded.connections;
             settings.importers.putAll(loaded.importers);
             settings.relators.addAll(loaded.relators);

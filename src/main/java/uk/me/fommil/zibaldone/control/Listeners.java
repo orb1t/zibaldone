@@ -80,4 +80,12 @@ public final class Listeners {
 
         public void notesRemoved(Set<Note> note);
     }
+
+    /**
+     * The search input bar.
+     */
+    public interface SearchListener {
+
+        public void searchChanged(String term);
+    }
 }

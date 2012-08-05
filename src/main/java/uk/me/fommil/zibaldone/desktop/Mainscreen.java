@@ -54,7 +54,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         importerController.addNoteListener(graphController);
         tagController.addTagListener(graphController);
 
-        // TODO: Swing Log capture and view
+        // TODO: Swing-based Log capture and view
         Mainscreen main = new Mainscreen();
         main.setTagController(tagController);
         main.setGraphController(graphController);
@@ -63,23 +63,15 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         main.setSettings(settings);
         main.setVisible(true);
 
+        importerController.loadDb();
+        bunchController.loadDb();
+
         // TODO: JXTaskPaneContainer Layout http://netbeans.org/bugzilla/show_bug.cgi?id=215528
-
-        // FIXME: load from the DB!
-
-//        {
-//            // DEBUG: programmatic load of an importer
-//            UUID uuid = UUID.randomUUID();
-//            Map<UUID, Importer> importers = settings.getImporters();
-//            OrgModeImporter importer = new OrgModeImporter();
-//            importer.getSettings().setFile(new File("/Users/samuel/QT2-notes.org"));
-//            importers.put(uuid, importer);
-//            try {
-//                importerController.doImport(uuid);
-//            } catch (IOException ex) {
-//                log.log(Level.SEVERE, null, ex);
-//            }
-//        }
+        // TODO: add the 'null' importer        
+        // TODO: animated settings panel
+        // TODO: icons for the toolbar buttons
+        // TODO: menu entries
+        // TODO: use simplericity for a better OS X experience
     }
 
     @BoundSetter
@@ -116,10 +108,15 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
             bunchMenu.setBunchController(bunchController);
         } else if ("importerController".equals(property)) {
             importerController.addTagListener(tagSelectView);
+            // TODO: dynamic lookup of available importers
+            Map<String, Class<Importer>> importers = importerController.getImporterImplementations();
+            ComboBoxModel importerChoices = new MapComboBoxModel<String, Class<Importer>>(importers);
+            importerSelector.setModel(importerChoices);
         } else if ("settings".equals(property)) {
             for (UUID uuid : settings.getImporters().keySet()) {
                 addImporter(uuid, true);
             }
+            search.setText(settings.getSearch());
         }
     }
 
@@ -128,21 +125,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
         initComponents();
         settingsPanel.setVisible(false);
-
-        // FIXME: dynamic lookup of available importers by querying 'settings'
-        Map<String, Class<Importer>> importers = ImporterController.getImporterImplementations();
-        ComboBoxModel importerChoices = new MapComboBoxModel<String, Class<Importer>>(importers);
-        importerSelector.setModel(importerChoices);
-
         addPropertyChangeListener(this);
-
-
-
-        // TODO: add the 'null' importer        
-        // TODO: animated settings panel
-        // TODO: icons for the toolbar buttons
-        // TODO: menu entries
-        // TODO: use simplericity for a better OS X experience
     }
 
     private void addImporter(UUID uuid, boolean used) {
@@ -162,7 +145,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         tagSelectView = new uk.me.fommil.zibaldone.desktop.TagsView();
         bunchMenu = new uk.me.fommil.zibaldone.desktop.BunchMenu();
         javax.swing.JToolBar jToolBar = new javax.swing.JToolBar();
-        org.jdesktop.swingx.JXSearchField jSearch = new org.jdesktop.swingx.JXSearchField();
+        search = new org.jdesktop.swingx.JXSearchField();
         javax.swing.JButton tagsButton = new javax.swing.JButton();
         bunchesButton = new javax.swing.JButton();
         javax.swing.JToggleButton jButtonLayout = new javax.swing.JToggleButton();
@@ -198,10 +181,15 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         jToolBar.setRollover(true);
         jToolBar.setPreferredSize(new java.awt.Dimension(480, 42));
 
-        jSearch.setMaximumSize(new java.awt.Dimension(1000, 2147483647));
-        jSearch.setMinimumSize(new java.awt.Dimension(100, 28));
-        jSearch.setPrompt("Search titles, tags and contents");
-        jToolBar.add(jSearch);
+        search.setMaximumSize(new java.awt.Dimension(1000, 2147483647));
+        search.setMinimumSize(new java.awt.Dimension(100, 28));
+        search.setPrompt("Search titles, tags and contents");
+        search.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchActionPerformed(evt);
+            }
+        });
+        jToolBar.add(search);
 
         tagsButton.setText("Tags");
         tagsButton.addActionListener(new java.awt.event.ActionListener() {
@@ -295,7 +283,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
     @SuppressWarnings("unchecked")
     private void jAddImporterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jAddImporterButtonActionPerformed
         String name = (String) importerSelector.getSelectedItem();
-        Entry<UUID, Importer> pair = ImporterController.newImporter(name);
+        Entry<UUID, Importer> pair = importerController.newImporter(name);
         settings.getImporters().put(pair.getKey(), pair.getValue());
         addImporter(pair.getKey(), false);
     }//GEN-LAST:event_jAddImporterButtonActionPerformed
@@ -308,15 +296,20 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         SwingConvenience.popupAtMouse(bunchMenu, this);
     }//GEN-LAST:event_bunchesButtonActionPerformed
 
+    private void searchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchActionPerformed
+        graphController.searchChanged(search.getText());
+    }//GEN-LAST:event_searchActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private uk.me.fommil.zibaldone.desktop.BunchMenu bunchMenu;
-    private javax.swing.JButton bunchesButton;
-    private javax.swing.JComboBox importerSelector;
-    private org.jdesktop.swingx.JXTaskPaneContainer importersPanel;
-    private uk.me.fommil.zibaldone.desktop.JungGraphView jungGraphView;
-    private javax.swing.JToggleButton settingsButton;
-    private javax.swing.JTabbedPane settingsPanel;
-    private javax.swing.JDialog tagDialog;
-    private uk.me.fommil.zibaldone.desktop.TagsView tagSelectView;
+    uk.me.fommil.zibaldone.desktop.BunchMenu bunchMenu;
+    javax.swing.JButton bunchesButton;
+    javax.swing.JComboBox importerSelector;
+    org.jdesktop.swingx.JXTaskPaneContainer importersPanel;
+    uk.me.fommil.zibaldone.desktop.JungGraphView jungGraphView;
+    private org.jdesktop.swingx.JXSearchField search;
+    javax.swing.JToggleButton settingsButton;
+    javax.swing.JTabbedPane settingsPanel;
+    javax.swing.JDialog tagDialog;
+    uk.me.fommil.zibaldone.desktop.TagsView tagSelectView;
     // End of variables declaration//GEN-END:variables
 }

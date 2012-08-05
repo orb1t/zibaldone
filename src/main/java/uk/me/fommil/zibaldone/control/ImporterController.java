@@ -14,6 +14,7 @@ import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.UUID;
@@ -28,6 +29,7 @@ import uk.me.fommil.zibaldone.Reconciler;
 import uk.me.fommil.zibaldone.Tag;
 import uk.me.fommil.zibaldone.control.Listeners.NoteListener;
 import uk.me.fommil.zibaldone.control.Listeners.TagListener;
+import uk.me.fommil.zibaldone.control.TagController.TagChoice;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
 
 /**
@@ -44,7 +46,7 @@ public class ImporterController {
      * @param klass
      * @return indexed by the proposed {@link NoteId#setSource(String)}
      */
-    public static Map.Entry<UUID, Importer> newImporter(Class<Importer> klass) {
+    public Map.Entry<UUID, Importer> newImporter(Class<Importer> klass) {
         Preconditions.checkNotNull(klass);
 
         final Importer importer;
@@ -60,7 +62,7 @@ public class ImporterController {
     /**
      * @return the {@link Importer} implementations, indexed by their name.
      */
-    public static Map<String, Class<Importer>> getImporterImplementations() {
+    public Map<String, Class<Importer>> getImporterImplementations() {
         ServiceLoader<Importer> importerService = ServiceLoader.load(Importer.class);
         HashMap<String, Class<Importer>> importerImpls = Maps.newHashMap();
         for (Importer importer : importerService) {
@@ -78,7 +80,7 @@ public class ImporterController {
      * @param name
      * @return
      */
-    public static Map.Entry<UUID, Importer> newImporter(String name) {
+    public Map.Entry<UUID, Importer> newImporter(String name) {
         return newImporter(getImporterImplementations().get(name));
     }
 
@@ -87,7 +89,20 @@ public class ImporterController {
 
     @NonNull
     private final Settings settings;
-    
+
+    public void loadDb() {
+        NoteDao dao = new NoteDao(emf);
+
+        Set<Tag> tags = dao.getAllTags();
+        Set<Note> notes = Sets.newHashSet(dao.readAll());
+
+        fireNotesAdded(notes);
+        fireTagsAdded(tags);
+        for (Entry<Tag, TagChoice> entry : settings.getSelectedTags().entrySet()) {
+            fireTagSelection(entry.getKey(), entry.getValue());
+        }
+    }
+
     public Importer getImporter(UUID sourceId) {
         return settings.getImporters().get(sourceId);
     }

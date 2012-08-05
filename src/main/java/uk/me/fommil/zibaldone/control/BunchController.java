@@ -8,6 +8,7 @@ package uk.me.fommil.zibaldone.control;
 
 import com.google.common.base.Preconditions;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import javax.persistence.EntityManagerFactory;
@@ -113,6 +114,17 @@ public class BunchController {
         }
         if (change) {
             fireBunchSelectionChanged(bunch, choice);
+        }
+    }
+
+    public void loadDb() {
+        BunchDao dao = new BunchDao(emf);
+        List<Bunch> all = dao.readAll();
+        for (Bunch bunch : all) {
+            fireBunchAdded(bunch);
+            if (settings.getSelectedBunches().contains(bunch.getId())) {
+                fireBunchSelectionChanged(bunch, TagChoice.SHOW);
+            }
         }
     }
 }

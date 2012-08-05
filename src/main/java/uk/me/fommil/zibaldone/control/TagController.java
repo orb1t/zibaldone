@@ -13,6 +13,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import uk.me.fommil.zibaldone.Tag;
 import uk.me.fommil.zibaldone.control.Listeners.TagListener;
+import uk.me.fommil.zibaldone.persistence.NoteDao;
 
 /**
  * Controller for {@link Tag} changes.

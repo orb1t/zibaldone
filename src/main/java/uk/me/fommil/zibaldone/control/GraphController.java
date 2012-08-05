@@ -35,6 +35,7 @@ import uk.me.fommil.zibaldone.Tag;
 import uk.me.fommil.zibaldone.control.Listeners.ClusterId;
 import uk.me.fommil.zibaldone.control.Listeners.ClusterListener;
 import uk.me.fommil.zibaldone.control.Listeners.NoteListener;
+import uk.me.fommil.zibaldone.control.Listeners.SearchListener;
 import uk.me.fommil.zibaldone.control.Listeners.TagListener;
 import uk.me.fommil.zibaldone.control.TagController.TagChoice;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
@@ -60,7 +61,7 @@ import uk.me.fommil.zibaldone.relator.TagRelator;
 @RequiredArgsConstructor
 @ListenerSupport(ClusterListener.class)
 @AutoGenMethodStub
-public class GraphController implements TagListener, NoteListener {
+public class GraphController implements TagListener, NoteListener, SearchListener {
 
     @NonNull
     private final EntityManagerFactory emf;
@@ -111,6 +112,12 @@ public class GraphController implements TagListener, NoteListener {
         relator.refresh(emf);
         rebuildEdges(relator);
         rebuildClusters(relator);
+    }
+    
+    @Override
+    public void searchChanged(String term) {
+        // TODO: search rebuilds the graph
+        // TODO: incorporate search into the rebuild restrictions
     }
 
     private void rebuildVertices() {
