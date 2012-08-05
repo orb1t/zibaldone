@@ -6,12 +6,17 @@
  */
 package uk.me.fommil.zibaldone.control;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
+import com.thoughtworks.xstream.XStream;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.io.Serializable;
+import java.io.File;
+import java.io.IOException;
 import java.util.UUID;
+import java.util.logging.Level;
 import lombok.BoundSetter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -41,10 +46,7 @@ import uk.me.fommil.zibaldone.control.TagController.TagChoice;
 @EqualsAndHashCode
 @ToString
 @Log
-public class Settings implements Serializable {
-
-    // add transient to 
-    private final transient PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+public class Settings {
 
     @BoundSetter
     @Deprecated // with preference for sparsity value
@@ -64,11 +66,84 @@ public class Settings implements Serializable {
     private final ObservableCollection<Relator> relators = ObservableCollection.newObservableCollection(Lists.<Relator>newArrayList());
 
     {
-        log.info("STARTING UP");
         ObservableMap.propertyChangeAdapter(getPropertyChangeSupport(), selectedTags, "selectedTags");
         ObservableCollection.propertyChangeAdapter(getPropertyChangeSupport(), selectedBunches, "selectedBunches");
         ObservableMap.propertyChangeAdapter(getPropertyChangeSupport(), importers, "importers");
         ObservableCollection.propertyChangeAdapter(getPropertyChangeSupport(), relators, "relators");
+    }
+
+    // JAXB is more powerful and quicker, but XStream is a lot easier to use
+    // http://www.oracle.com/technetwork/articles/javase/index-140168.html
+    // http://jaxb.java.net/tutorial/
+    private static final ThreadLocal<XStream> xstreams = new ThreadLocal<XStream>() {
+        @Override
+        protected XStream initialValue() {
+            XStream xstream = new XStream();
+            xstream.alias("settings", Settings.class);
+            xstream.alias("uuid", UUID.class);
+            xstream.alias("tag", Tag.class);
+            xstream.alias("tagchoice", TagChoice.class);
+            xstream.alias("importer", Importer.class);
+            xstream.alias("relator", Relator.class);
+
+            // BUG: https://github.com/peichhorn/lombok-pg/issues/118
+            xstream.omitField(ObservableCollection.class, "$registeredCollectionListener");
+            xstream.omitField(ObservableMap.class, "$registeredMapListener");
+            xstream.omitField(Settings.class, "$propertyChangeSupport");
+            xstream.omitField(Settings.class, "$propertyChangeSupportLock");
+
+            return xstream;
+        }
+    };
+
+    /**
+     * @param file
+     * @return 
+     */
+    public static Settings load(File file) {
+        Preconditions.checkNotNull(file);
+        Preconditions.checkArgument(file.exists());
+        XStream xstream = xstreams.get();
+        return (Settings) xstream.fromXML(file);
+    }
+
+    /**
+     * @param file
+     * @throws IOException 
+     */
+    public void save(File file) throws IOException {
+        Preconditions.checkNotNull(file);
+        XStream xstream = xstreams.get();
+        String xml = xstream.toXML(this);
+        Files.write(xml, file, Charsets.UTF_8);
+    }
+
+    public static Settings loadAutoSavingInstance(final File file) {
+        Preconditions.checkNotNull(file);
+        final Settings settings = new Settings();
+        if (file.exists()) {
+            Settings loaded = load(file);
+            // TODO: work out how to do deserialisation without this nonsense
+            settings.connections = loaded.connections;
+            settings.importers.putAll(loaded.importers);
+            settings.relators.addAll(loaded.relators);
+            settings.search = loaded.search;
+            settings.selectedBunches.addAll(loaded.selectedBunches);
+            settings.selectedTags.putAll(loaded.selectedTags);
+        }
+
+        settings.addPropertyChangeListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                try {
+                    log.fine("Saving " + file.getName() + ": " + evt.getPropertyName());
+                    settings.save(file);
+                } catch (IOException e) {
+                    log.log(Level.WARNING, "Problem saving " + file.getName(), e);
+                }
+            }
+        });
+        return settings;
     }
 
     public static void main(String[] args) {

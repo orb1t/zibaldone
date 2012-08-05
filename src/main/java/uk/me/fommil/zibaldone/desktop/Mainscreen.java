@@ -8,23 +8,14 @@ package uk.me.fommil.zibaldone.desktop;
 
 import uk.me.fommil.zibaldone.control.GraphController;
 import com.google.common.base.Preconditions;
-import com.google.common.io.Files;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyEditorManager;
-import java.beans.XMLDecoder;
-import java.beans.XMLEncoder;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.logging.Level;
 import javax.persistence.EntityManagerFactory;
 import javax.swing.ComboBoxModel;
 import javax.swing.JFrame;
@@ -40,7 +31,6 @@ import uk.me.fommil.zibaldone.control.BunchController;
 import uk.me.fommil.zibaldone.control.ImporterController;
 import uk.me.fommil.zibaldone.control.Settings;
 import uk.me.fommil.zibaldone.control.TagController;
-import uk.me.fommil.zibaldone.importer.OrgModeImporter;
 
 /**
  * @author Samuel Halliday
@@ -54,33 +44,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
 
         EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
 
-        final Settings settings;
-        {
-            final File settingsFile = new File("zibaldone.xml");
-            if (settingsFile.exists()) {
-                FileInputStream in = Files.newInputStreamSupplier(settingsFile).getInput();
-                XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(in));
-                settings = (Settings) decoder.readObject();
-                decoder.close();
-            } else {
-                settings = new Settings();
-            }
-
-            settings.addPropertyChangeListener(new PropertyChangeListener() {
-                @Override
-                public void propertyChange(PropertyChangeEvent evt) {
-                    try {
-                        log.info("Saving Settings: " + evt.getPropertyName());
-                        FileOutputStream out = Files.newOutputStreamSupplier(settingsFile).getOutput();
-                        XMLEncoder encoder = new XMLEncoder(new BufferedOutputStream(out));
-                        encoder.writeObject(settings);
-                        encoder.close();
-                    } catch (IOException e) {
-                        log.log(Level.WARNING, "Problem saving " + settingsFile.getName(), e);
-                    }
-                }
-            });
-        }
+        Settings settings = Settings.loadAutoSavingInstance(new File("zibaldone.xml"));
 
         GraphController graphController = new GraphController(emf, settings);
         TagController tagController = new TagController(settings);
@@ -99,19 +63,23 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         main.setSettings(settings);
         main.setVisible(true);
 
-        {
-            // DEBUG: programmatic load of an importer
-            UUID uuid = UUID.randomUUID();
-            Map<UUID, Importer> importers = settings.getImporters();
-            OrgModeImporter importer = new OrgModeImporter();
-            importer.getSettings().setFile(new File("/Users/samuel/QT2-notes.org"));
-            importers.put(uuid, importer);
-            try {
-                importerController.doImport(uuid);
-            } catch (IOException ex) {
-                log.log(Level.SEVERE, null, ex);
-            }
-        }
+        // TODO: JXTaskPaneContainer Layout http://netbeans.org/bugzilla/show_bug.cgi?id=215528
+
+        // FIXME: load from the DB!
+
+//        {
+//            // DEBUG: programmatic load of an importer
+//            UUID uuid = UUID.randomUUID();
+//            Map<UUID, Importer> importers = settings.getImporters();
+//            OrgModeImporter importer = new OrgModeImporter();
+//            importer.getSettings().setFile(new File("/Users/samuel/QT2-notes.org"));
+//            importers.put(uuid, importer);
+//            try {
+//                importerController.doImport(uuid);
+//            } catch (IOException ex) {
+//                log.log(Level.SEVERE, null, ex);
+//            }
+//        }
     }
 
     @BoundSetter
