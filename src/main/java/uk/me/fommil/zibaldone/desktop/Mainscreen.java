@@ -257,8 +257,6 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
 
         jScrollPane1.setBorder(null);
         jScrollPane1.setViewportView(null);
-
-        importersPanel.setLayout(new java.awt.FlowLayout());
         jScrollPane1.setViewportView(importersPanel);
 
         jImportersPanel.add(jScrollPane1, java.awt.BorderLayout.CENTER);
@@ -306,7 +304,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
     javax.swing.JComboBox importerSelector;
     org.jdesktop.swingx.JXTaskPaneContainer importersPanel;
     uk.me.fommil.zibaldone.desktop.JungGraphView jungGraphView;
-    private org.jdesktop.swingx.JXSearchField search;
+    org.jdesktop.swingx.JXSearchField search;
     javax.swing.JToggleButton settingsButton;
     javax.swing.JTabbedPane settingsPanel;
     javax.swing.JDialog tagDialog;

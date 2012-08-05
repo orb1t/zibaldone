@@ -301,8 +301,6 @@
                   <AuxValues>
                     <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="false"/>
                   </AuxValues>
-
-                  <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout"/>
                 </Container>
               </SubComponents>
             </Container>
