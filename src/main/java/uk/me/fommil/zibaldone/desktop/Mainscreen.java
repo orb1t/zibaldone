@@ -12,10 +12,13 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyEditorManager;
 import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import javax.swing.ComboBoxModel;
 import javax.swing.JFrame;
@@ -31,6 +34,7 @@ import uk.me.fommil.zibaldone.control.BunchController;
 import uk.me.fommil.zibaldone.control.ImporterController;
 import uk.me.fommil.zibaldone.control.Settings;
 import uk.me.fommil.zibaldone.control.TagController;
+import uk.me.fommil.zibaldone.exporter.MarkdownExporter;
 
 /**
  * @author Samuel Halliday
@@ -149,6 +153,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         javax.swing.JButton tagsButton = new javax.swing.JButton();
         bunchesButton = new javax.swing.JButton();
         javax.swing.JToggleButton jButtonLayout = new javax.swing.JToggleButton();
+        javax.swing.JButton export = new javax.swing.JButton();
         javax.swing.Box.Filler filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(50, 0), new java.awt.Dimension(1000, 0));
         settingsButton = new javax.swing.JToggleButton();
         jungGraphView = new uk.me.fommil.zibaldone.desktop.JungGraphView();
@@ -215,6 +220,17 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         jButtonLayout.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jButtonLayout.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar.add(jButtonLayout);
+
+        export.setText("Export");
+        export.setFocusable(false);
+        export.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        export.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        export.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                exportActionPerformed(evt);
+            }
+        });
+        jToolBar.add(export);
         jToolBar.add(filler1);
 
         settingsButton.setText("Settings");
@@ -297,6 +313,18 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
     private void searchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchActionPerformed
         graphController.searchChanged(search.getText());
     }//GEN-LAST:event_searchActionPerformed
+
+    private void exportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportActionPerformed
+        MarkdownExporter mdownexporter = new MarkdownExporter();
+        try {
+            mdownexporter.export(bunchController.getBunches());
+        } catch (IOException ex) {
+            log.log(Level.SEVERE, null, ex);
+        }
+        
+        
+        
+    }//GEN-LAST:event_exportActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     uk.me.fommil.zibaldone.desktop.BunchMenu bunchMenu;
