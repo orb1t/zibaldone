@@ -114,7 +114,7 @@ public class ImporterController {
 
         List<Note> importedNotes = getImporter(sourceId).getNotes();
         Reconciler reconciler = new Reconciler(emf);
-        reconciler.reconcile(sourceId, importedNotes);
+        reconciler.reconcile(sourceId, importedNotes, Reconciler.SIMPLE_RECONCILE);
 
         Set<Tag> tagsAfter = dao.getAllTags();
         Set<Note> notesAfter = Sets.newHashSet(dao.readAll());

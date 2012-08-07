@@ -37,7 +37,7 @@ public class NoteDao extends CrudDao<UUID, Note> {
     public long countForImporter(UUID sourceId) {
         Preconditions.checkNotNull(sourceId);
         @Cleanup("close") EntityManager em = createEntityManager();
-        Query q = em.createQuery("SELECT COUNT(s) FROM " + getTableName() + " s WHERE id.source = :name");
+        Query q = em.createQuery("SELECT COUNT(s) FROM " + getTableName() + " s WHERE source = :name");
         q.setParameter("name", sourceId);
         Long result = querySingle(em, q);
         return result;
@@ -63,5 +63,13 @@ public class NoteDao extends CrudDao<UUID, Note> {
     public void deleteById(UUID id) {
         // TODO: delete and remove references from Bunches
         throw new UnsupportedOperationException("not implemented yet: ");
+    }
+
+    public List<Note> readForImporter(UUID sourceId) {
+        Preconditions.checkNotNull(sourceId);
+        @Cleanup("close") EntityManager em = createEntityManager();
+        Query q = em.createQuery("SELECT s FROM " + getTableName() + " s WHERE source = :sourceId");
+        q.setParameter("sourceId", sourceId);
+        return query(em, q);
     }
 }

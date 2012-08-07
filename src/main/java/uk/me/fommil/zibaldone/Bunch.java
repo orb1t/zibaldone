@@ -43,8 +43,6 @@ public class Bunch implements Serializable {
     @Column
     private String name;
 
-    // TODO: investigate how to magically delete references
-    // from this JoinTable when Notes are removed elsewhere
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Note> notes = Sets.newHashSet();
 

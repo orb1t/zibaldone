@@ -53,7 +53,7 @@ public class OrgModeImporter implements Importer {
 
         Reconciler reconciler = new Reconciler(emf);
         UUID uuid = UUID.nameUUIDFromBytes("OrgModeParser.main".getBytes());
-        reconciler.reconcile(uuid, notes);
+        reconciler.reconcile(uuid, notes, Reconciler.SIMPLE_RECONCILE);
 
         NoteDao noteDao = new NoteDao(emf);
         noteDao.count();

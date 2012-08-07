@@ -6,6 +6,7 @@ package uk.me.fommil.persistence;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.Reader;
@@ -15,6 +16,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import javax.persistence.*;
 import lombok.Cleanup;
 import lombok.extern.java.Log;
@@ -36,7 +38,7 @@ import lombok.extern.java.Log;
  */
 @Log
 public abstract class CrudDao<K, T> {
-
+    
     private static final String JPA_PROPERTIES = "jpa.properties";
 
     /**
@@ -76,9 +78,9 @@ public abstract class CrudDao<K, T> {
             throw new ExceptionInInitializerError(e);
         }
     }
-
+    
     private final Class<T> klass;
-
+    
     private final EntityManagerFactory emf;
 
     /**
@@ -207,6 +209,37 @@ public abstract class CrudDao<K, T> {
     }
 
     /**
+     * Update the database with existing entities.
+     *
+     * @param entities
+     * @return
+     * @throws PersistenceException
+     */
+    @SuppressWarnings("AssignmentToForLoopParameter")
+    public Set<T> update(Collection<T> entities) {        
+        Preconditions.checkNotNull(entities);
+        if (entities.isEmpty()) {
+            return Collections.emptySet();
+        }
+        @Cleanup("close") EntityManager em = createEntityManager();
+        try {
+            em.getTransaction().begin();
+            Set<T> updated = Sets.newHashSet();
+            for (T entity : entities) {
+                entity = em.merge(entity);
+                updated.add(entity);
+            }
+            em.getTransaction().commit();
+            return updated;
+        } catch (PersistenceException e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        }
+    }
+
+    /**
      * @param entity
      * @throws PersistenceException
      */
@@ -218,6 +251,32 @@ public abstract class CrudDao<K, T> {
             em.getTransaction().begin();
             entity = em.merge(entity);
             em.remove(entity);
+            em.getTransaction().commit();
+        } catch (PersistenceException e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * @param entities
+     * @throws PersistenceException
+     */
+    @SuppressWarnings("AssignmentToForLoopParameter")
+    public void delete(Collection<T> entities) {
+        Preconditions.checkNotNull(entities);
+        if (entities.isEmpty()) {
+            return;
+        }
+        @Cleanup("close") EntityManager em = createEntityManager();
+        try {
+            em.getTransaction().begin();
+            for (T entity : entities) {
+                entity = em.merge(entity);
+                em.remove(entity);
+            }
             em.getTransaction().commit();
         } catch (PersistenceException e) {
             if (em.getTransaction().isActive()) {

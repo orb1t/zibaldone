@@ -37,12 +37,12 @@ public class ReconcilerTest {
 
         Reconciler reconciler = new Reconciler(emf);
         UUID uuid = UUID.nameUUIDFromBytes("ReconcilerTest".getBytes());
-        reconciler.reconcile(uuid, notes1);
+        reconciler.reconcile(uuid, notes1, Reconciler.SIMPLE_RECONCILE);
 
         NoteDao noteDao = new NoteDao(emf);
         long count = noteDao.count();
 
-        reconciler.reconcile(uuid, notes2);
+        reconciler.reconcile(uuid, notes2, Reconciler.SIMPLE_RECONCILE);
 
         Assert.assertEquals(count, noteDao.count());
     }
