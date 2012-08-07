@@ -38,7 +38,7 @@ public class OrgModeImporter implements Importer {
 
     private static final Pattern startPattern = Pattern.compile("^\\*+\\s");
 
-    private volatile Config config = new Config();
+    private final Config config = new Config();
 
     /**
      * @param args

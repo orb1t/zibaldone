@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
 import java.util.Set;
+import java.util.StringTokenizer;
 import org.apache.lucene.analysis.FilteringTokenFilter;
 import org.apache.lucene.analysis.StopFilter;
 import org.apache.lucene.analysis.Tokenizer;
@@ -21,6 +22,7 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.util.Version;
 import org.tartarus.snowball.SnowballProgram;
 import org.tartarus.snowball.ext.EnglishStemmer;
+import uk.me.fommil.zibaldone.Tag;
 
 /**
  * Convenience methods for dealing with the Lucene
@@ -107,5 +109,25 @@ public final class Lucene {
         stemmer.setCurrent(word);
         stemmer.stem();
         return stemmer.getCurrent();
+    }
+
+    /**
+     * Break the sentence into words and stem each individually.
+     * Multi-token stemming is never going to be brilliant
+     * e.g. consider "every thing" and "everything" - they might not
+     * have the same stem.
+     * 
+     * @param text
+     * @return
+     */
+    public static String tokeniseAndStem(String text) {
+        StringBuilder builder = new StringBuilder();
+        StringTokenizer tokeniser = new StringTokenizer(text);
+        while (tokeniser.hasMoreTokens()) {
+            String token = tokeniser.nextToken();
+            String stemmed = stem(token);
+            builder.append(stemmed);
+        }
+        return builder.toString();
     }
 }

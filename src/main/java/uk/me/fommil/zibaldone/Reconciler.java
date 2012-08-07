@@ -13,15 +13,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.UUID;
 import javax.persistence.EntityManagerFactory;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Synchronized;
 import lombok.extern.java.Log;
-import org.tartarus.snowball.SnowballProgram;
-import org.tartarus.snowball.ext.EnglishStemmer;
 import uk.me.fommil.utils.Lucene;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
 import uk.me.fommil.zibaldone.persistence.SynonymDao;
@@ -91,7 +88,8 @@ public class Reconciler {
         HashMultimap<Tag, Tag> stems = HashMultimap.create();
 
         for (Tag tag : tags) {
-            Tag stem = tokeniseAndStem(tag);
+            Tag stem = new Tag();
+            stem.setText(Lucene.tokeniseAndStem(Lucene.removeStopWords(tag.getText())));
             if (!stems.containsKey(stem)) {
                 stems.put(stem, tag);
             } else {
@@ -115,24 +113,5 @@ public class Reconciler {
         SynonymDao equivDao = new SynonymDao(emf);
         equivDao.updateAllAutomatics(synonyms);
         log.info(equivDao.count() + " Synonyms: " + synonyms);
-    }
-
-    private Tag tokeniseAndStem(Tag tag) {
-        // multi-token stemming is never going to be brilliant
-        // e.g. consider "every thing" and "everything" - they might not
-        // have the same stem.
-        StringBuilder builder = new StringBuilder();
-        String text = tag.getText();
-        StringTokenizer tokeniser = new StringTokenizer(text);
-        while (tokeniser.hasMoreTokens()) {
-            String token = tokeniser.nextToken().toLowerCase();
-            String stemmed = Lucene.stem(token);
-            builder.append(stemmed);
-        }
-
-        Tag stem = new Tag();
-        stem.setText(builder.toString());
-
-        return stem;
     }
 }
