@@ -24,8 +24,6 @@ import uk.me.fommil.zibaldone.persistence.BunchDao;
 
 /**
  * Controller for {@link Bunch} instances.
- * <p>
- * TODO: is this redundant and simply delegating to the DAO?
  * 
  * @author Samuel Halliday
  */

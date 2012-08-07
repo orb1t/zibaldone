@@ -116,7 +116,6 @@ public class GraphController implements TagListener, NoteListener, SearchListene
     
     @Override
     public void searchChanged(String term) {
-        // TODO: search rebuilds the graph
         // TODO: incorporate search into the rebuild restrictions
     }
 

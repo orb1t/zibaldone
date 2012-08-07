@@ -16,7 +16,6 @@ import java.util.Collection;
  * @author Samuel Halliday
  */
 public interface Exporter {
-    // TODO: Markdown Exporter
 
     /**
      * Empty interface indicating an Importer's settings Javabeans object.

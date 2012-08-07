@@ -7,15 +7,15 @@
 package uk.me.fommil.zibaldone.persistence;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 import java.util.List;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.Query;
+import lombok.Cleanup;
 import lombok.extern.java.Log;
 import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.Synonym;
 import uk.me.fommil.zibaldone.Synonym.Context;
-import uk.me.fommil.zibaldone.Tag;
 
 /**
  * Data Access Object for {@link Synonym} instances.
@@ -41,42 +41,29 @@ public class SynonymDao extends CrudDao<Long, Synonym> {
      * @param synonyms
      */
     public void updateAllAutomatics(List<Synonym> synonyms) {
-        if (count() > 0) {
-            throw new UnsupportedOperationException("not implemented yet");
+        @Cleanup("close") EntityManager em = createEntityManager();
+
+        em.getTransaction().begin();
+
+        // ??: would be faster with a query, but this fails with broken constraints
+//        Query q = em.createQuery("DELETE FROM " + getTableName() + " s WHERE s.context = :context");
+//        q.setParameter("context", Synonym.Context.AUTOMATIC);
+//        q.executeUpdate();
+
+        Query q = em.createQuery("SELECT s FROM " + getTableName() + " s WHERE s.context = :context");
+        q.setParameter("context", Synonym.Context.AUTOMATIC);
+        @SuppressWarnings("unchecked")
+        List<Synonym> results = q.getResultList();
+        if (!results.isEmpty()) {
+            for (Synonym synonym : results) {
+                em.remove(synonym);
+            }
         }
-        create(synonyms);
-
-//        @Cleanup("close") EntityManager em = createEntityManager();
-//        Query clear = em.createQuery("DELETE " + getTableName() + " e WHERE e.context = :automatic");
-//        clear.setParameter("automatic", Context.class.getName() + "." + Context.AUTOMATIC.name());
-//            em.getTransaction().begin();
-//            clear.executeUpdate();
-//            for (Synonym equivalence : equivalences) {
-//                Preconditions.checkArgument(equivalence.getContext() == Context.AUTOMATIC, "context was not AUTOMATIC");
-//                Preconditions.checkArgument(equivalence.getStem() != null, "stem was null");
-//                em.persist(equivalence);
-//            }
-//            em.getTransaction().commit();
-    }
-
-    /**
-     * @return all the synonyms minus the {@link Context#AUTOMATIC} instances
-     * that have a complimentary {@link Context#AUTOMATIC_IGNORED} instance.
-     */
-    public ListMultimap<Synonym.Context, Synonym> readActive() {
-        log.info("Not Implemented Yet");
-        return ArrayListMultimap.create();
-    }
-        
-    /**
-     * @param tags
-     * @return the synonyms that have a non-zero intersection of tags with the input.
-     */
-    public List<Synonym> readByTags(List<Tag> tags) {
-        Preconditions.checkNotNull(tags);
-        Preconditions.checkArgument(!tags.isEmpty());
-        
-        // TODO: implement method
-        throw new UnsupportedOperationException("not implemented yet");
+        for (Synonym synonym : synonyms) {
+            Preconditions.checkArgument(synonym.getContext() == Context.AUTOMATIC, "context was not AUTOMATIC");
+            Preconditions.checkArgument(synonym.getStem() != null, "stem was null");
+            em.persist(synonym);
+        }
+        em.getTransaction().commit();
     }
 }

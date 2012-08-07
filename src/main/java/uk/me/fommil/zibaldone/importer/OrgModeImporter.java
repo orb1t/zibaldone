@@ -20,13 +20,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import java.util.*;
-import javax.persistence.EntityManagerFactory;
 import lombok.Cleanup;
 import lombok.Data;
 import lombok.extern.java.Log;
-import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.zibaldone.*;
-import uk.me.fommil.zibaldone.persistence.NoteDao;
 
 /**
  * Parse Emacs <a href="http://orgmode.org/">Org-Mode</a> files.
@@ -39,26 +36,6 @@ public class OrgModeImporter implements Importer {
     private static final Pattern startPattern = Pattern.compile("^\\*+\\s");
 
     private final Config config = new Config();
-
-    /**
-     * @param args
-     * @throws Exception
-     */
-    public static void main(String[] args) throws Exception {
-        final EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
-
-        OrgModeImporter importer = new OrgModeImporter();
-        importer.getSettings().setFile(new File("../data/QT2-notes.org"));
-        List<Note> notes = importer.getNotes();
-
-        Reconciler reconciler = new Reconciler(emf);
-        UUID uuid = UUID.nameUUIDFromBytes("OrgModeParser.main".getBytes());
-        reconciler.reconcile(uuid, notes, Reconciler.SIMPLE_RECONCILE);
-
-        NoteDao noteDao = new NoteDao(emf);
-        noteDao.count();
-        List<Note> dbNotes = noteDao.readAll();
-    }
 
     @Override
     public String getName() {

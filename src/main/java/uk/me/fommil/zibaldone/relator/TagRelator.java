@@ -8,9 +8,7 @@ package uk.me.fommil.zibaldone.relator;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.util.*;
 import javax.persistence.EntityManagerFactory;
@@ -22,6 +20,7 @@ import uk.me.fommil.zibaldone.Synonym;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Relator;
 import uk.me.fommil.zibaldone.Tag;
+import uk.me.fommil.zibaldone.TagResolver;
 import uk.me.fommil.zibaldone.persistence.SynonymDao;
 
 /**
@@ -39,55 +38,27 @@ public class TagRelator implements Relator {
     @Getter
     private final String name = "Tags";
 
-    // TODO: tag resolving should be done in a separate object
-    // tags that appear in a Synonym are resolved to an arbitrary tag
-    private final transient Map<Tag, Tag> resolve = Maps.newHashMap();
-
-    private Set<Tag> resolve(Collection<Tag> tags) {
-        Set<Tag> resolved = Sets.newHashSet();
-        for (Tag tag : tags) {
-            resolved.add(resolve(tag));
-        }
-        return resolved;
-    }
-
-    private Tag resolve(Tag tag) {
-        if (resolve.containsKey(tag)) {
-            return resolve.get(tag);
-        }
-        return tag;
-    }
+    private final TagResolver resolver = new TagResolver();
 
     @Override
     public void refresh(EntityManagerFactory emf) {
         Preconditions.checkNotNull(emf);
         SynonymDao dao = new SynonymDao(emf);
-        Collection<Synonym> synonyms = dao.readActive().values();
+        Collection<Synonym> synonyms = dao.readAll();
         refresh(synonyms);
     }
 
     @VisibleForTesting
     void refresh(Collection<Synonym> synonyms) {
-        resolve.clear();
-        Set<Set<Tag>> bags = Sets.newHashSet();
-        for (Synonym e : synonyms) {
-            Set<Tag> tags = e.getTags();
-            bags.add(tags);
-        }
-        for (Set<Tag> bag : Convenience.disjointify(bags)) {
-            Tag resolved = Iterables.get(bag, 0);
-            for (Tag tag : bag) {
-                resolve.put(tag, resolved);
-            }
-        }
+        resolver.refresh(synonyms);
     }
 
     @Override
     public double relate(Note a, Note b) {
         Preconditions.checkNotNull(a);
         Preconditions.checkNotNull(b);
-        Set<Tag> aResolved = resolve(a.getTags());
-        Set<Tag> bResolved = resolve(b.getTags());
+        Set<Tag> aResolved = resolver.resolve(a.getTags());
+        Set<Tag> bResolved = resolver.resolve(b.getTags());
         if (aResolved.isEmpty() || bResolved.isEmpty()) {
             return 1;
         }

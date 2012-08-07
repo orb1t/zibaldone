@@ -8,14 +8,11 @@ package uk.me.fommil.zibaldone;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -24,16 +21,14 @@ import java.util.UUID;
 import javax.persistence.EntityManagerFactory;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.Synchronized;
 import lombok.extern.java.Log;
 import uk.me.fommil.utils.Lucene;
 import uk.me.fommil.zibaldone.persistence.NoteDao;
-import uk.me.fommil.zibaldone.persistence.SynonymDao;
 
 /**
  * Identifies when a newly imported {@link Note} is actually an update to an
- * existing one. This class is responsible for persisting {@link Note} instances
- * and updating the library of {@link Tag} stems.
+ * existing one. This class is responsible for correctly persisting {@link Note}
+ * instances from an {@link Importer}.
  * 
  * @author Samuel Halliday
  */
@@ -42,12 +37,13 @@ import uk.me.fommil.zibaldone.persistence.SynonymDao;
 public class Reconciler {
 
     /**
-     * Callback that allows the user or some other agent to define the rules
-     * for reconciling a Note against the existing database. Notes can only be
-     * reconciled against the same source, if a Note is moved between importer
-     * sources then it cannot be reconciled.
+     * Callback that allows the user (or some other agent) to define the rules
+     * for reconciling a Note against the existing database.
+     * <p>
+     * Newly imported Notes can only be reconciled against existing Notes from
+     * the same source.
      */
-    public interface Reconcile {
+    public interface Callback {
 
         /**
          * @param newNotes which may not yet be managed by the DB
@@ -57,24 +53,23 @@ public class Reconciler {
         public Map<Note, Note> reconcile(Collection<Note> newNotes, Collection<Note> candidates);
 
         /**
-         * The 'summary' that should be identical for an existing and imported
-         * Note if the latter is to be considered an update to the former.
-         * Anything that isn't matched by exactly one existing Note will be passed to
-         * {@link #reconcile(Collection, Collection)}.
-         * 
-         * ?? could be more general than String
+         * An identifying object for the Note. If the identifier of a newly
+         * imported Note matches exactly one Note from the database, it will
+         * be automatically reconciled: otherwise
+         * {@link #reconcile(Collection, Collection)}
+         * will be called. Must not return {@code null}.
          * 
          * @param note
          * @return
          */
-        public String summarise(Note note);
+        public Object summarise(Note note);
     }
 
     /**
      * Callback policy that says Notes are always to be considered new, unless
      * their title and tags exactly match an existing one (up to stop word removal).
      */
-    public static final Reconcile SIMPLE_RECONCILE = new Reconcile() {
+    public static final Callback SIMPLE_RECONCILE = new Callback() {
         @Override
         public Map<Note, Note> reconcile(Collection<Note> newNotes, Collection<Note> candidates) {
             Map<Note, Note> identity = Maps.newHashMap();
@@ -103,122 +98,69 @@ public class Reconciler {
      * @param notes
      * @param callback 
      */
-    public void reconcile(UUID sourceId, List<Note> notes, Reconcile callback) {
+    public void reconcile(UUID sourceId, List<Note> notes, Callback callback) {
         Preconditions.checkNotNull(sourceId);
         Preconditions.checkNotNull(notes);
-        Map<UUID, List<Note>> singleton = Collections.singletonMap(sourceId, notes);
-        reconcile(singleton, callback);
-    }
-
-    /**
-     * Attempts to reconcile all the given {@link Note}s with those currently
-     * persisted. {@link Note#getSource()} will be ignored.
-     * 
-     * @param incoming indexed by the proposed {@link Note#setSource(UUID)}.
-     * @param callback 
-     */
-    @Synchronized
-    public void reconcile(Map<UUID, List<Note>> incoming, Reconcile callback) {
-        Preconditions.checkNotNull(incoming);
 
         NoteDao dao = new NoteDao(emf);
+        for (Note note : notes) {
+            note.setSource(sourceId);
+        }
 
+        log.info("Reconciling: " + sourceId);
 
-        for (Map.Entry<UUID, List<Note>> entry : incoming.entrySet()) {
-            UUID sourceId = entry.getKey();
-            log.info("Reconciling: " + sourceId);
+        if (dao.countForImporter(sourceId) == 0) {
+            long start = dao.count();
+            dao.create(notes);
+            long end = dao.count();
+            log.info("Persisted " + (end - start) + " new notes from " + sourceId);
+            return;
+        }
 
-            List<Note> notes = entry.getValue();
-            for (Note note : notes) {
-                note.setSource(sourceId);
-            }
-
-            if (dao.countForImporter(sourceId) == 0) {
-                long start = dao.count();
-                dao.create(notes);
-                long end = dao.count();
-                log.info("Persisted " + (end - start) + " Notes");
+        List<Note> existing = dao.readForImporter(sourceId);
+        Multimap<Object, Note> summaryMapping = ArrayListMultimap.create();
+        for (Note note : existing) {
+            summaryMapping.put(callback.summarise(note), note);
+        }
+        Set<Note> createNotes = Sets.newHashSet();
+        Set<Note> updateNotes = Sets.newHashSet();
+        Set<Note> deleteNotes = Sets.newHashSet();
+        for (Note note : notes) {
+            Collection<Note> candidates = summaryMapping.get(callback.summarise(note));
+            if (candidates.size() == 1) {
+                Note candidate = Iterables.getOnlyElement(candidates);
+                note.setId(candidate.getId());
+                updateNotes.add(note);
             } else {
-                List<Note> existing = dao.readForImporter(sourceId);
-                Multimap<String, Note> summaryMapping = ArrayListMultimap.create();
-                for (Note note : existing) {
-                    String summary = callback.summarise(note);
-                    summaryMapping.put(summary, note);
-                }
-                Set<Note> createNotes = Sets.newHashSet();
-                Set<Note> updateNotes = Sets.newHashSet();
-                Set<Note> deleteNotes = Sets.newHashSet();
-                for (Note note : notes) {
-                    String summary = callback.summarise(note);
-                    Collection<Note> candidates = summaryMapping.get(summary);
-                    if (candidates.size() == 1) {
-                        Note candidate = Iterables.getOnlyElement(candidates);
-                        note.setId(candidate.getId());
-                        updateNotes.add(note);
-                    } else {
-                        createNotes.add(note);
-                    }
-                }
-
-                for (Note note : existing) {
-                    if (!createNotes.contains(note) && !updateNotes.contains(note)) {
-                        deleteNotes.add(note);
-                    }
-                }
-                Map<Note, Note> reconciled = callback.reconcile(createNotes, deleteNotes);
-                Preconditions.checkState(reconciled.size() == createNotes.size());
-                Preconditions.checkState(reconciled.size() == Sets.newHashSet(reconciled.values()).size());
-
-                for (Entry<Note, Note> e : reconciled.entrySet()) {
-                    if (!e.getKey().equals(e.getValue())) {
-                        createNotes.remove(e.getKey());
-                        e.getKey().setId(e.getValue().getId());
-                        updateNotes.add(e.getKey());
-                        deleteNotes.remove(e.getValue());
-                        log.info("UPDATING: " + e.getKey());
-                    } else {
-                        log.info("CREATING: " + e.getKey());
-                    }
-                }
-
-                log.info("deleting " + deleteNotes.size());
-                dao.delete(deleteNotes);
-                log.info("creating " + createNotes.size());
-                dao.create(createNotes);
-                log.info("updating " + updateNotes.size());
-                dao.update(updateNotes);
+                createNotes.add(note);
             }
         }
 
-        Set<Tag> tags = dao.getAllTags();
-        log.info(tags.size() + " unique Tags: " + tags);
-        HashMultimap<Tag, Tag> stems = HashMultimap.create();
-
-        for (Tag tag : tags) {
-            Tag stem = new Tag();
-            stem.setText(Lucene.tokeniseAndStem(Lucene.removeStopWords(tag.getText())));
-            if (!stems.containsKey(stem)) {
-                stems.put(stem, tag);
-            } else {
-                if (!stems.get(stem).contains(tag)) {
-                    stems.put(stem, tag);
-                }
+        for (Note note : existing) {
+            if (!createNotes.contains(note) && !updateNotes.contains(note)) {
+                deleteNotes.add(note);
             }
         }
-        log.info(stems.keySet().size() + " unique Stems: " + stems);
+        Map<Note, Note> reconciled = callback.reconcile(createNotes, deleteNotes);
+        Preconditions.checkState(reconciled.size() == createNotes.size());
+        Preconditions.checkState(reconciled.size() == Sets.newHashSet(reconciled.values()).size());
 
-        // gather all the stemmed words
-        List<Synonym> synonyms = Lists.newArrayList();
-        for (Tag stem : stems.keySet()) {
-            Set<Tag> originals = stems.get(stem);
-            Synonym synonym = new Synonym();
-            synonym.setContext(Synonym.Context.AUTOMATIC);
-            synonym.setStem(stem);
-            synonym.setTags(originals);
-            synonyms.add(synonym);
+        for (Entry<Note, Note> e : reconciled.entrySet()) {
+            if (!e.getKey().equals(e.getValue())) {
+                Note update = e.getKey();
+                Note old = e.getValue();
+                createNotes.remove(update);
+                deleteNotes.remove(old);
+                update.setId(old.getId());
+                updateNotes.add(update);
+            }
         }
-        SynonymDao equivDao = new SynonymDao(emf);
-        equivDao.updateAllAutomatics(synonyms);
-        log.info(equivDao.count() + " Synonyms: " + synonyms);
+
+        log.info("deleting " + deleteNotes.size() + " notes from " + sourceId);
+        dao.delete(deleteNotes);
+        log.info("creating " + createNotes.size() + " notes from " + sourceId);
+        dao.create(createNotes);
+        log.info("updating " + updateNotes.size() + " notes from " + sourceId);
+        dao.update(updateNotes);
     }
 }

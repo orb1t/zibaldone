@@ -22,11 +22,6 @@ import java.util.*;
  * @author Samuel Halliday
  */
 public interface Importer {
-
-    // TODO: Delicious Importer
-    // TODO: EverNote Importer
-    // TODO: Apple Stickies Importer
-    // TODO: Apple Notes Importer
     
     /**
      * Empty interface indicating an Importer's settings Javabeans object.
