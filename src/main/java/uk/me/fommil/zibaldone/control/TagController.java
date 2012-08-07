@@ -13,12 +13,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import uk.me.fommil.zibaldone.Tag;
 import uk.me.fommil.zibaldone.control.Listeners.TagListener;
-import uk.me.fommil.zibaldone.persistence.NoteDao;
 
 /**
  * Controller for {@link Tag} changes.
- * <p>
- * TODO: redundant if listener support can be added to Settings
  * 
  * @author Samuel Halliday
  */
@@ -29,7 +26,6 @@ public class TagController {
     @NonNull
     private final Settings settings;
 
-    // TODO: rename to something more general
     public enum TagChoice {
 
         IGNORE, SHOW, HIDE

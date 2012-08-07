@@ -59,9 +59,10 @@ public class Reconciler {
         /**
          * The 'summary' that should be identical for an existing and imported
          * Note if the latter is to be considered an update to the former.
-         * (yes, this could be a lot more general than this). Anything that isn't
-         * matched by exactly one existing Note will be passed to
+         * Anything that isn't matched by exactly one existing Note will be passed to
          * {@link #reconcile(Collection, Collection)}.
+         * 
+         * ?? could be more general than String
          * 
          * @param note
          * @return

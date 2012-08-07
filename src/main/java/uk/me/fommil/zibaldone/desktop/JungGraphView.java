@@ -487,6 +487,13 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         Graph<Note, Weight> graph = graphVisualiser.getGraphLayout().getGraph();
         Graph<Note, Weight> subGraph = JungGraphs.subGraph(graph, notes);
 
+        for (Note note : notes) {
+            if (!subGraph.getVertices().contains(note)) {
+                // these should be clumped, but aren't currently shown
+                subGraph.addVertex(note);
+            }
+        }
+
         layout.setGraph(subGraph);
         layout.setSize(calculateClumpSize(notes));
 //        layout.setSize(new Dimension());
