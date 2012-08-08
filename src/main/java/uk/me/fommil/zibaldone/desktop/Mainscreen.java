@@ -172,7 +172,6 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         tagDialog.setTitle("Tags");
         tagDialog.setAlwaysOnTop(true);
         tagDialog.setMinimumSize(new java.awt.Dimension(300, 300));
-        tagDialog.setResizable(false);
 
         tagSelectView.setSelectable(true);
         tagDialog.getContentPane().add(tagSelectView, java.awt.BorderLayout.CENTER);

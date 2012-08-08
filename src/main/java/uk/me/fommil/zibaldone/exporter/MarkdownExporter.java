@@ -32,7 +32,7 @@ public class MarkdownExporter implements Exporter {
     private final MdownSettings settings = new MdownSettings();
 
     @Override
-    public Settings getSettings() {
+    public MdownSettings getSettings() {
         return settings;
     }
 
