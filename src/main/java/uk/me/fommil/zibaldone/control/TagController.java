@@ -40,8 +40,6 @@ public class TagController {
         Preconditions.checkNotNull(tag);
         Preconditions.checkNotNull(choice);
 
-        // ??: almost the same as Bunch select code
-
         Map<Tag, TagChoice> selected = settings.getSelectedTags();
         boolean change;
         if (choice == TagChoice.IGNORE) {

@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import javax.swing.ComboBoxModel;
 import javax.swing.JFrame;
@@ -58,7 +57,6 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         importerController.addNoteListener(graphController);
         tagController.addTagListener(graphController);
 
-        // TODO: Swing-based Log capture and view
         Mainscreen main = new Mainscreen();
         main.setTagController(tagController);
         main.setGraphController(graphController);
@@ -70,11 +68,12 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         importerController.loadDb();
         bunchController.loadDb();
 
-        // TODO: JXTaskPaneContainer Layout http://netbeans.org/bugzilla/show_bug.cgi?id=215528
-        // TODO: add the 'null' importer        
+        // TODO: Swing-based Log capture and view
+        // TODO: menu entries
+        // TODO: exporter preferences
+        // TODO: add the 'not found' importers
         // TODO: animated settings panel
         // TODO: icons for the toolbar buttons
-        // TODO: menu entries
         // TODO: use simplericity for a better OS X experience
     }
 
@@ -167,7 +166,6 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         javax.swing.JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
         importersPanel = new org.jdesktop.swingx.JXTaskPaneContainer();
         javax.swing.JPanel jAdvancedPanel = new javax.swing.JPanel();
-        javax.swing.JPanel jSynonymsPanel = new javax.swing.JPanel();
 
         tagDialog.setTitle("Tags");
         tagDialog.setAlwaysOnTop(true);
@@ -281,9 +279,6 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         jAdvancedPanel.setLayout(new java.awt.BorderLayout());
         settingsPanel.addTab("Relators", jAdvancedPanel);
 
-        jSynonymsPanel.setLayout(new java.awt.BorderLayout());
-        settingsPanel.addTab("Synonyms", jSynonymsPanel);
-
         getContentPane().add(settingsPanel, java.awt.BorderLayout.EAST);
 
         pack();
@@ -313,6 +308,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         graphController.searchChanged(search.getText());
     }//GEN-LAST:event_searchActionPerformed
 
+    @Deprecated
     private void exportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportActionPerformed
         MarkdownExporter mdownexporter = new MarkdownExporter();
         try {
@@ -320,9 +316,6 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         } catch (IOException ex) {
             log.log(Level.SEVERE, null, ex);
         }
-        
-        
-        
     }//GEN-LAST:event_exportActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

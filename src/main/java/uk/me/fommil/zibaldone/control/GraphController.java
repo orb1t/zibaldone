@@ -113,7 +113,7 @@ public class GraphController implements TagListener, NoteListener, SearchListene
         rebuildEdges(relator);
         rebuildClusters(relator);
     }
-    
+
     @Override
     public void searchChanged(String term) {
         // TODO: incorporate search into the rebuild restrictions
@@ -121,7 +121,11 @@ public class GraphController implements TagListener, NoteListener, SearchListene
 
     private void rebuildVertices() {
         NoteDao dao = new NoteDao(emf);
+
+        // TODO: tag/search restrictions could be done at the DB level here
+        // (would require tag "deresolving")
         Set<Note> notes = Sets.newHashSet(dao.readAll());
+
         List<Note> existing = Lists.newArrayList(graph.getVertices());
         for (Note note : existing) {
             if (!notes.contains(note)) {

@@ -26,7 +26,6 @@ import lombok.extern.java.Log;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Reconciler;
-import uk.me.fommil.zibaldone.Synonymiser;
 import uk.me.fommil.zibaldone.Tag;
 import uk.me.fommil.zibaldone.control.Listeners.NoteListener;
 import uk.me.fommil.zibaldone.control.Listeners.TagListener;
@@ -110,19 +109,17 @@ public class ImporterController {
 
     public void doImport(UUID sourceId) throws IOException {
         NoteDao dao = new NoteDao(emf);
+
         Set<Tag> tagsBefore = dao.getAllTags();
+
         Set<Note> notesBefore = Sets.newHashSet(dao.readAll());
 
         List<Note> importedNotes = getImporter(sourceId).getNotes();
         Reconciler reconciler = new Reconciler(emf);
         reconciler.reconcile(sourceId, importedNotes, Reconciler.SIMPLE_RECONCILE);
-        
-        Synonymiser synonymiser = new Synonymiser(emf);
-        synonymiser.refresh();
-        
-        // TODO: update tag resolving (including in TagRelator)
 
         Set<Tag> tagsAfter = dao.getAllTags();
+
         Set<Note> notesAfter = Sets.newHashSet(dao.readAll());
 
         diffTags(tagsBefore, tagsAfter);

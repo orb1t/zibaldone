@@ -6,7 +6,6 @@
  */
 package uk.me.fommil.zibaldone.relator;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -16,12 +15,8 @@ import lombok.Getter;
 import lombok.extern.java.Log;
 import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.utils.Convenience.Loop;
-import uk.me.fommil.zibaldone.Synonym;
 import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Relator;
-import uk.me.fommil.zibaldone.Tag;
-import uk.me.fommil.zibaldone.TagResolver;
-import uk.me.fommil.zibaldone.persistence.SynonymDao;
 
 /**
  * Defines the relation between {@link Note} instances based purely on tags.
@@ -38,39 +33,26 @@ public class TagRelator implements Relator {
     @Getter
     private final String name = "Tags";
 
-    private final TagResolver resolver = new TagResolver();
-
     @Override
     public void refresh(EntityManagerFactory emf) {
-        Preconditions.checkNotNull(emf);
-        SynonymDao dao = new SynonymDao(emf);
-        Collection<Synonym> synonyms = dao.readAll();
-        refresh(synonyms);
-    }
-
-    @VisibleForTesting
-    void refresh(Collection<Synonym> synonyms) {
-        resolver.refresh(synonyms);
     }
 
     @Override
     public double relate(Note a, Note b) {
         Preconditions.checkNotNull(a);
         Preconditions.checkNotNull(b);
-        Set<Tag> aResolved = resolver.resolve(a.getTags());
-        Set<Tag> bResolved = resolver.resolve(b.getTags());
-        if (aResolved.isEmpty() || bResolved.isEmpty()) {
+        if (a.getTags().isEmpty() || b.getTags().isEmpty()) {
             return 1;
         }
-        if (aResolved.equals(bResolved)) {
+        if (a.getTags().equals(b.getTags())) {
             return 0;
         }
 
-        int overlapTags = Sets.intersection(aResolved, bResolved).size();
+        int overlapTags = Sets.intersection(a.getTags(), b.getTags()).size();
         if (overlapTags == 0) {
             return 1;
         }
-        int totalTags = Sets.union(aResolved, bResolved).size();
+        int totalTags = Sets.union(a.getTags(), b.getTags()).size();
 
         double overlap = ((double) overlapTags) / totalTags;
         return (1 - overlap);

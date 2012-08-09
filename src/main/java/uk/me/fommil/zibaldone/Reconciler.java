@@ -19,6 +19,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import javax.persistence.EntityManagerFactory;
+import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
@@ -37,8 +38,28 @@ import uk.me.fommil.zibaldone.persistence.NoteDao;
 public class Reconciler {
 
     /**
-     * Callback that allows the user (or some other agent) to define the rules
-     * for reconciling a Note against the existing database.
+     * Marker interface for an object which implements
+     * {@link Object#equals(Object)} and remains invariant
+     * across sessions for {@link Note} instances, even if
+     * the user changes the {@link Note} at its source.
+     */
+    public interface Fingerprint {
+    }
+
+    /**
+     * Simple {@link String} implementation of {@link Fingerprint}.
+     */
+    @RequiredArgsConstructor
+    @Data
+    public static class StringFingerprint implements Fingerprint {
+
+        private final String text;
+
+    }
+
+    /**
+     * Callback that allows the caller to define the rules
+     * for reconciling a {@link Note} against the database.
      * <p>
      * Newly imported Notes can only be reconciled against existing Notes from
      * the same source.
@@ -48,26 +69,26 @@ public class Reconciler {
         /**
          * @param newNotes which may not yet be managed by the DB
          * @param candidates
-         * @return a map from each newNote to either a candidate or itself
+         * @return a one-to-one map from each newNote to either a candidate or itself.
          */
         public Map<Note, Note> reconcile(Collection<Note> newNotes, Collection<Note> candidates);
 
         /**
-         * An identifying object for the Note. If the identifier of a newly
-         * imported Note matches exactly one Note from the database, it will
-         * be automatically reconciled: otherwise
-         * {@link #reconcile(Collection, Collection)}
-         * will be called. Must not return {@code null}.
+         * If the fingerprint of a newly imported {@link Note} exactly matches
+         * that of one {@link Note} from the database, it will
+         * be automatically reconciled. Otherwise
+         * {@link #reconcile(Collection, Collection)} will be called.
          * 
          * @param note
          * @return
          */
-        public Object summarise(Note note);
+        public Fingerprint toFingerprint(Note note);
     }
 
     /**
      * Callback policy that says Notes are always to be considered new, unless
-     * their title and tags exactly match an existing one (up to stop word removal).
+     * their title and tags exactly match one existing Note from the database
+     * (up to stop word removal).
      */
     public static final Callback SIMPLE_RECONCILE = new Callback() {
         @Override
@@ -80,11 +101,11 @@ public class Reconciler {
         }
 
         @Override
-        public String summarise(Note note) {
+        public StringFingerprint toFingerprint(Note note) {
             String text = note.getTitle() + " " + Sets.newTreeSet(note.getTags()).toString();
             String summary = Lucene.removeStopWords(text).toLowerCase();
 //            log.info(summary);
-            return summary;
+            return new StringFingerprint(summary);
         }
     };
 
@@ -120,13 +141,13 @@ public class Reconciler {
         List<Note> existing = dao.readForImporter(sourceId);
         Multimap<Object, Note> summaryMapping = ArrayListMultimap.create();
         for (Note note : existing) {
-            summaryMapping.put(callback.summarise(note), note);
+            summaryMapping.put(callback.toFingerprint(note), note);
         }
         Set<Note> createNotes = Sets.newHashSet();
         Set<Note> updateNotes = Sets.newHashSet();
         Set<Note> deleteNotes = Sets.newHashSet();
         for (Note note : notes) {
-            Collection<Note> candidates = summaryMapping.get(callback.summarise(note));
+            Collection<Note> candidates = summaryMapping.get(callback.toFingerprint(note));
             if (candidates.size() == 1) {
                 Note candidate = Iterables.getOnlyElement(candidates);
                 note.setId(candidate.getId());
