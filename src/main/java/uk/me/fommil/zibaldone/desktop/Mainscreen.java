@@ -8,6 +8,7 @@ package uk.me.fommil.zibaldone.desktop;
 
 import uk.me.fommil.zibaldone.control.GraphController;
 import com.google.common.base.Preconditions;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyEditorManager;
@@ -191,9 +192,15 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
                 searchActionPerformed(evt);
             }
         });
+        search.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                searchKeyTyped(evt);
+            }
+        });
         jToolBar.add(search);
 
         tagsButton.setText("Tags");
+        tagsButton.setFocusable(false);
         tagsButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 tagsButtonActionPerformed(evt);
@@ -317,6 +324,13 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
             log.log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_exportActionPerformed
+
+    private void searchKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_searchKeyTyped
+        char c = evt.getKeyChar();
+        if (c == KeyEvent.VK_ENTER || c == KeyEvent.VK_TAB) {
+            jungGraphView.requestFocus();
+        }
+    }//GEN-LAST:event_searchKeyTyped
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     uk.me.fommil.zibaldone.desktop.BunchMenu bunchMenu;

@@ -14,11 +14,12 @@ import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.ObservableGraph;
+import edu.uci.ics.jung.graph.event.GraphEvent;
+import edu.uci.ics.jung.graph.event.GraphEventListener;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.GraphMousePlugin;
 import edu.uci.ics.jung.visualization.control.PickingGraphMousePlugin;
 import edu.uci.ics.jung.visualization.control.PluggableGraphMouse;
-import edu.uci.ics.jung.visualization.layout.ObservableCachingLayout;
 import edu.uci.ics.jung.visualization.picking.PickedState;
 import edu.uci.ics.jung.visualization.picking.ShapePickSupport;
 import java.awt.BorderLayout;
@@ -79,7 +80,7 @@ import uk.me.fommil.zibaldone.control.Weight;
  * @author Samuel Halliday
  */
 @Log
-public class JungGraphView extends JPanel implements ClusterListener, BunchListener {
+public class JungGraphView extends JPanel implements ClusterListener, BunchListener, GraphEventListener<Note, Weight> {
 
     private final VisualizationViewer<Note, Weight> graphVisualiser = new VisualizationViewerFixed<Note, Weight>();
 
@@ -117,12 +118,14 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
     public void setGraph(ObservableGraph<Note, Weight> graph) {
         Preconditions.checkNotNull(graph);
-        getGraphLayout().setGraph(graph);
-    }
-
-    private AggregateLayout<Note, Weight> getGraphLayout() {
-        ObservableCachingLayout<Note, Weight> layout = (ObservableCachingLayout<Note, Weight>) graphVisualiser.getGraphLayout();
-        return (AggregateLayout<Note, Weight>) layout.getDelegate();
+        Graph<Note, Weight> current = graphLayout.getGraph();
+        if (current != graph) {
+            if (current instanceof ObservableGraph) {
+                ((ObservableGraph<Note, Weight>) current).removeGraphEventListener(this);
+            }
+            graphLayout.setGraph(graph);
+            graph.addGraphEventListener(this);
+        }
     }
 
     private final Transformer<Note, Icon> noteIcon = new Transformer<Note, Icon>() {
@@ -164,7 +167,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     // lower, upper are thresholds and 'min' is the minimum dimension.
     private Dimension calculateNoteSize(float lower, Dimension min, float upper) {
         Dimension size = getSize();
-        float spaciousness = (float) (size.getWidth() * size.getHeight()) / getGraphLayout().getGraph().getVertexCount();
+        float spaciousness = (float) (size.getWidth() * size.getHeight()) / graphLayout.getGraph().getVertexCount();
         if (spaciousness < lower) {
             return min;
         } else if (spaciousness < upper) {
@@ -444,10 +447,10 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     private Layout<Note, Weight> createClump(Set<Note> notes, final boolean priority) {
         CircleLayoutFixed<Note, Weight> subLayout = new CircleLayoutFixed<Note, Weight>();
         subLayout.setPriority(priority);
-        subLayout.setAggregate(getGraphLayout());
+        subLayout.setAggregate(graphLayout);
 
         Point2D position = calculateClumpPosition(notes, priority);
-        getGraphLayout().put(subLayout, position);
+        graphLayout.put(subLayout, position);
 
         updateClump(subLayout, notes);
 
@@ -468,7 +471,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         }
 
         // TODO: could be smarter about where to put bunches (this fails when not new)
-        Collection<Point2D> positions = JungGraphs.getPositions(getGraphLayout(), notes);
+        Collection<Point2D> positions = JungGraphs.getPositions(graphLayout, notes);
         return SwingConvenience.average(positions);
     }
 
@@ -478,13 +481,12 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     }
 
     private void removeClump(Layout<Note, Weight> layout) {
-        AggregateLayout<Note, Weight> graphLayout = getGraphLayout();
         graphLayout.remove(layout);
         graphVisualiser.repaint();
     }
 
     private void updateClump(Layout<Note, Weight> layout, Set<Note> notes) {
-        Graph<Note, Weight> graph = graphVisualiser.getGraphLayout().getGraph();
+        Graph<Note, Weight> graph = graphLayout.getGraph();
         Graph<Note, Weight> subGraph = JungGraphs.subGraph(graph, notes);
 
         for (Note note : notes) {
@@ -499,5 +501,15 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 //        layout.setSize(new Dimension());
 
         graphVisualiser.repaint();
+    }
+
+    @Override
+    public void handleGraphEvent(GraphEvent<Note, Weight> evt) {
+        // this seems superfluous
+        switch (evt.getType()) {
+            case VERTEX_ADDED:
+            case VERTEX_REMOVED:
+                repaint();
+        }
     }
 }

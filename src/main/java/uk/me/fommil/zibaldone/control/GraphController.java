@@ -173,6 +173,12 @@ public class GraphController implements TagListener, NoteListener, SearchListene
                     new String[]{"title", "tags", "contents"}, analyzer);
             Query q;
             try {
+                if (search.contains("content:")) {
+                    search = search.replace("content:", "contents:");
+                }
+                if (search.contains("tag:")) {
+                    search = search.replace("tag:", "tags:");
+                }
                 q = parser.parse(search);
             } catch (ParseException e) {
                 log.fine("Lucene didn't like search: \"" + search + "\"");
