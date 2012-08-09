@@ -35,6 +35,8 @@ import lombok.extern.java.Log;
  * @param <K> the class of the type's primary key
  * @param <T> the class of the type
  * @author Samuel Halliday
+ * @see <a href="http://code.google.com/p/hibernate-generic-dao/">Hibernate Generic DAO</a>
+ * @see <a href="http://code.google.com/p/generic-dao/">Generic DAO</a>
  */
 @Log
 public abstract class CrudDao<K, T> {

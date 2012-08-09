@@ -15,6 +15,9 @@ import org.apache.commons.collections15.Transformer;
 /**
  * Workaround for inadequacy in JUNG where edges are expected to be
  * unique: an epic fail for a simple weighted graph!
+ * <p>
+ * Note that we, by design, break the {@link #equals(Object)}/{@link #compareTo(Weight)}
+ * contract, so don't use in a {@link SortedSet}.
  * 
  * @author Samuel Halliday
  */

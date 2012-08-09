@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
 import java.util.Set;
-import java.util.StringTokenizer;
 import org.apache.lucene.analysis.FilteringTokenFilter;
 import org.apache.lucene.analysis.StopFilter;
 import org.apache.lucene.analysis.Tokenizer;
@@ -22,12 +21,11 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.util.Version;
 import org.tartarus.snowball.SnowballProgram;
 import org.tartarus.snowball.ext.EnglishStemmer;
-import uk.me.fommil.zibaldone.Tag;
 
 /**
- * Convenience methods for dealing with the Lucene
+ * Convenience methods for using the Lucene
  * <del>Labyrinth</del> <ins>libraries</ins> for the simplest of use cases.
- * 
+ *
  * @author Samuel Halliday
  * @see <a href="http://lucene.apache.org">Lucene</a>
  */
@@ -81,7 +79,6 @@ public final class Lucene {
 
             @Override
             protected boolean accept() throws IOException {
-                // potentially more efficient: char[] instead of String
                 String word = new String(termAtt.buffer(), 0, termAtt.length());
                 String stemmed = stem(word);
                 return !ENGLISH_STEMMED_STOP_WORDS.contains(stemmed);
@@ -104,30 +101,9 @@ public final class Lucene {
      * @return
      */
     public static String stem(String word) {
-        // potentially more efficient: char[] instead of String
         SnowballProgram stemmer = stemmers.get();
         stemmer.setCurrent(word);
         stemmer.stem();
         return stemmer.getCurrent();
-    }
-
-    /**
-     * Break the sentence into words and stem each individually.
-     * Multi-token stemming is never going to be brilliant
-     * e.g. consider "every thing" and "everything" - they might not
-     * have the same stem.
-     * 
-     * @param text
-     * @return
-     */
-    public static String tokeniseAndStem(String text) {
-        StringBuilder builder = new StringBuilder();
-        StringTokenizer tokeniser = new StringTokenizer(text);
-        while (tokeniser.hasMoreTokens()) {
-            String token = tokeniser.nextToken();
-            String stemmed = stem(token);
-            builder.append(stemmed);
-        }
-        return builder.toString();
     }
 }

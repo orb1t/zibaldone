@@ -96,7 +96,7 @@ public class ImporterController {
         Set<Tag> tags = dao.getAllTags();
         Set<Note> notes = Sets.newHashSet(dao.readAll());
 
-        fireNotesAdded(notes);
+        fireNotesChanged(notes);
         fireTagsAdded(tags);
         for (Entry<Tag, TagChoice> entry : settings.getSelectedTags().entrySet()) {
             fireTagSelection(entry.getKey(), entry.getValue());
@@ -112,18 +112,15 @@ public class ImporterController {
 
         Set<Tag> tagsBefore = dao.getAllTags();
 
-        Set<Note> notesBefore = Sets.newHashSet(dao.readAll());
-
         List<Note> importedNotes = getImporter(sourceId).getNotes();
         Reconciler reconciler = new Reconciler(emf);
         reconciler.reconcile(sourceId, importedNotes, Reconciler.SIMPLE_RECONCILE);
 
         Set<Tag> tagsAfter = dao.getAllTags();
-
-        Set<Note> notesAfter = Sets.newHashSet(dao.readAll());
-
         diffTags(tagsBefore, tagsAfter);
-        diffNotes(notesBefore, notesAfter);
+
+        Set<Note> notes = Sets.newHashSet(dao.readAll());
+        fireNotesChanged(notes);
     }
 
     public void doRemove(UUID sourceId) {
@@ -151,29 +148,6 @@ public class ImporterController {
         }
         if (!added.isEmpty()) {
             fireTagsAdded(added);
-        }
-    }
-
-    // ?? code repetition with diffTags
-    private void diffNotes(Set<Note> before, Set<Note> after) {
-        Set<Note> removed = Sets.newHashSet();
-        for (Note note : before) {
-            if (!after.contains(note)) {
-                removed.add(note);
-            }
-        }
-        if (!removed.isEmpty()) {
-            fireNotesRemoved(removed);
-        }
-
-        Set<Note> added = Sets.newHashSet();
-        for (Note note : after) {
-            if (!before.contains(note)) {
-                added.add(note);
-            }
-        }
-        if (!added.isEmpty()) {
-            fireNotesAdded(added);
         }
     }
 }

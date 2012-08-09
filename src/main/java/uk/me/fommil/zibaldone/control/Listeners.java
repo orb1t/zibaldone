@@ -76,9 +76,8 @@ public final class Listeners {
      */
     public interface NoteListener extends EventListener {
 
-        public void notesAdded(Set<Note> note);
-
-        public void notesRemoved(Set<Note> note);
+        // ?? could be a notice without telling what the changes are
+        public void notesChanged(Set<Note> note);
     }
 
     /**
