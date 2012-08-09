@@ -6,8 +6,11 @@
  */
 package uk.me.fommil.zibaldone.control;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -15,6 +18,7 @@ import com.google.common.collect.Sets;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -23,11 +27,26 @@ import java.util.Map;
 import java.util.Set;
 import javax.persistence.EntityManagerFactory;
 import lombok.AutoGenMethodStub;
+import lombok.Cleanup;
 import lombok.Getter;
 import lombok.ListenerSupport;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.queryParser.MultiFieldQueryParser;
+import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopScoreDocCollector;
+import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.util.Version;
 import uk.me.fommil.utils.Convenience;
 import uk.me.fommil.utils.Convenience.Loop;
 import uk.me.fommil.zibaldone.Note;
@@ -39,7 +58,6 @@ import uk.me.fommil.zibaldone.control.Listeners.NoteListener;
 import uk.me.fommil.zibaldone.control.Listeners.SearchListener;
 import uk.me.fommil.zibaldone.control.Listeners.TagListener;
 import uk.me.fommil.zibaldone.control.TagController.TagChoice;
-import uk.me.fommil.zibaldone.persistence.NoteDao;
 import uk.me.fommil.zibaldone.relator.TagRelator;
 
 /**
@@ -78,6 +96,13 @@ public class GraphController implements TagListener, NoteListener, SearchListene
     // TODO: user choice of Relator
     private final Relator relator = new TagRelator();
 
+    // keys are the UUIDs of the Notes, and are used in Lucene's Documents
+    private final BiMap<String, Note> noteIds = HashBiMap.create();
+
+    private final RAMDirectory index = new RAMDirectory();
+
+    private final StandardAnalyzer analyzer = new StandardAnalyzer(Version.LUCENE_36);
+
     @Override
     public void notesChanged(Set<Note> notes) {
         Preconditions.checkNotNull(notes);
@@ -95,7 +120,8 @@ public class GraphController implements TagListener, NoteListener, SearchListene
             }
         }
 
-        rebuildGraph(notes);
+        rebuildLucene(notes);
+        rebuildGraph();
     }
 
     @Override
@@ -109,22 +135,76 @@ public class GraphController implements TagListener, NoteListener, SearchListene
         rebuildGraph();
     }
 
-    private void rebuildGraph() {
-        // TODO: tag/search restrictions could be done at the DB level
-        NoteDao dao = new NoteDao(emf);
-        Set<Note> notes = Sets.newHashSet(dao.readAll());
-        rebuildGraph(notes);
+    private void rebuildLucene(Set<Note> notes) {
+        try {
+            // rebuild the Lucene search objects
+            // see http://www.lucenetutorial.com/lucene-in-5-minutes.html
+            IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_36, analyzer);
+//            config.setMaxBufferedDocs(Math.max(1000, notes.size() + 1));
+//            config.setRAMBufferSizeMB(IndexWriterConfig.DISABLE_AUTO_FLUSH);
+            @Cleanup IndexWriter w = new IndexWriter(index, config);
+            w.deleteAll();
+            w.commit();
+            noteIds.clear();
+            for (Note note : notes) {
+                Document doc = new Document();
+                String id = note.getId().toString();
+                doc.add(new Field("id", id, Field.Store.YES, Field.Index.NO));
+                doc.add(new Field("title", note.getTitle(), Field.Store.YES, Field.Index.ANALYZED));
+                doc.add(new Field("tags", Joiner.on(" ").join(note.getTags()), Field.Store.YES, Field.Index.ANALYZED));
+                doc.add(new Field("contents", note.getContents(), Field.Store.YES, Field.Index.ANALYZED));
+                w.addDocument(doc);
+                noteIds.put(id, note);
+            }
+            w.commit();
+        } catch (IOException e) {
+            throw new IllegalStateException("Lucene stopped working", e);
+        }
     }
 
-    private void rebuildGraph(Set<Note> notes) {
-        rebuildVertices(notes);
+    private Set<Note> searchRestrictedNotes() {
+        String search = settings.getSearch();
+        if (search == null || search.trim().length() < 4 || noteIds.isEmpty()) {
+            return noteIds.values();
+        }
+        try {
+            Set<Note> notes = Sets.newHashSet();
+            MultiFieldQueryParser parser = new MultiFieldQueryParser(Version.LUCENE_36,
+                    new String[]{"title", "tags", "contents"}, analyzer);
+            Query q;
+            try {
+                q = parser.parse(search);
+            } catch (ParseException e) {
+                log.fine("Lucene didn't like search: \"" + search + "\"");
+                return Sets.newHashSet(graph.getVertices());
+            }
+
+            @Cleanup IndexReader reader = IndexReader.open(index);
+            @Cleanup IndexSearcher searcher = new IndexSearcher(reader);
+            TopScoreDocCollector collector = TopScoreDocCollector.create(noteIds.size(), true);
+            searcher.search(q, collector);
+            ScoreDoc[] hits = collector.topDocs().scoreDocs;
+            for (int i = 0; i < hits.length; i++) {
+                int docId = hits[i].doc;
+                Document d = searcher.doc(docId);
+                Note note = noteIds.get(d.get("id"));
+                notes.add(note);
+            }
+            return notes;
+        } catch (IOException e) {
+            throw new IllegalStateException("Lucene stopped working", e);
+        }
+    }
+
+    private void rebuildGraph() {
+        rebuildVertices();
         relator.refresh(emf);
         rebuildEdges();
         rebuildClusters();
     }
 
-    private void rebuildVertices(Set<Note> notes) {
-        Preconditions.checkNotNull(notes);
+    private void rebuildVertices() {
+        Set<Note> notes = searchRestrictedNotes();
 
         for (Note existing : Lists.newArrayList(graph.getVertices())) {
             if (!notes.contains(existing)) {
@@ -134,10 +214,9 @@ public class GraphController implements TagListener, NoteListener, SearchListene
 
         Map<Tag, TagChoice> selections = settings.getSelectedTags();
         boolean restricting = selections.values().contains(TagChoice.SHOW);
-        String search = settings.getSearch();
 
         for (Note note : notes) {
-            if (showVertexTagRules(note, selections, restricting) && showVertexSearchRules(note, search)) {
+            if (showVertexTagRules(note, selections, restricting)) {
                 graph.addVertex(note);
             } else if (graph.containsVertex(note)) {
                 graph.removeVertex(note);
@@ -147,7 +226,8 @@ public class GraphController implements TagListener, NoteListener, SearchListene
 
     private boolean showVertexTagRules(Note note, Map<Tag, TagChoice> selections, boolean restricting) {
         boolean show = !restricting;
-        for (Tag tag : note.getTags()) {
+        Set<Tag> tags = note.getTags();
+        for (Tag tag : tags) {
             TagChoice selection = selections.get(tag);
             if (selection == TagChoice.SHOW) {
                 return true;
@@ -157,14 +237,6 @@ public class GraphController implements TagListener, NoteListener, SearchListene
             }
         }
         return show;
-    }
-
-    private boolean showVertexSearchRules(Note note, String search) {
-        if (search == null || search.trim().isEmpty()) {
-            return true;
-        }
-        // TODO: search restrictions
-        return false;
     }
 
     private void rebuildEdges() {

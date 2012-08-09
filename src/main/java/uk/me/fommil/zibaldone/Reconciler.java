@@ -6,10 +6,12 @@
  */
 package uk.me.fommil.zibaldone;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import java.util.Collection;
@@ -71,7 +73,7 @@ public class Reconciler {
          * @param candidates
          * @return a one-to-one map from each newNote to either a candidate or itself.
          */
-        public Map<Note, Note> reconcile(Collection<Note> newNotes, Collection<Note> candidates);
+        public BiMap<Note, Note> reconcile(Collection<Note> newNotes, Collection<Note> candidates);
 
         /**
          * If the fingerprint of a newly imported {@link Note} exactly matches
@@ -92,8 +94,8 @@ public class Reconciler {
      */
     public static final Callback SIMPLE_RECONCILE = new Callback() {
         @Override
-        public Map<Note, Note> reconcile(Collection<Note> newNotes, Collection<Note> candidates) {
-            Map<Note, Note> identity = Maps.newHashMap();
+        public BiMap<Note, Note> reconcile(Collection<Note> newNotes, Collection<Note> candidates) {
+            BiMap<Note, Note> identity = HashBiMap.create();
             for (Note note : newNotes) {
                 identity.put(note, note);
             }
@@ -102,7 +104,7 @@ public class Reconciler {
 
         @Override
         public StringFingerprint toFingerprint(Note note) {
-            String text = note.getTitle() + " " + Sets.newTreeSet(note.getTags()).toString();
+            String text = note.getTitle() + " " + Joiner.on(" ").join(Sets.newTreeSet(note.getTags()));
             String summary = Lucene.removeStopWords(text).toLowerCase();
 //            log.info(summary);
             return new StringFingerprint(summary);
