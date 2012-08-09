@@ -8,6 +8,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 import javax.persistence.*;
@@ -44,6 +45,10 @@ public class Note implements Serializable {
     @Basic(fetch = FetchType.EAGER)
     private String contents;
 
+    @Column
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dateTime;
+
     public void setContents(String contents) {
         if (contents.length() > CONTENTS_MAX) {
             log.warning("Cutting contents of " + toString());
@@ -65,7 +70,8 @@ public class Note implements Serializable {
         return Objects.equal(source, other.source)
                 && Objects.equal(title, other.title)
                 && Objects.equal(tags, other.tags)
-                && Objects.equal(contents, other.contents);
+                && Objects.equal(contents, other.contents)
+                && Objects.equal(dateTime, other.dateTime);
     }
 
     @Override
