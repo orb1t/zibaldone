@@ -101,6 +101,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
         // TODO: set an initializer which uses a QuasiRandom sequence
         // TODO: check setSize (resize) support of the initialiser
+        // FIXME: setSize (resize) support of AbstractLayout/Aggregate/FR
         graphLayout.setDelegate(new FRLayoutFixed<Note, Weight>());
 
         graphVisualiser.setGraphLayout(graphLayout);
@@ -229,32 +230,24 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     }
 
     private void selectNotes(final Set<Note> notes) {
-//        if (notes.size() == 1) {
-//            showNote(Iterables.getOnlyElement(notes));
-//            return;
-//        }
-
-        // TODO: reconsider the user interaction of what menus show up and when
-
-        // TODO: move these notes to the front of the render context (focus them)
-
-
+        // TODO: rethink the mouse/graph interaction
 
         popup.removeAll();
+        if (notes.size() == 1) {
+            final Note note = Iterables.getOnlyElement(notes);
+            JMenuItem item = new JMenuItem("Show \"" + note.getTitle() + "\"");
+            item.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    showNote(note);
+                }
+            });
+            popup.add(item);
+            popup.add(new JSeparator());
+        }
 
         Set<Bunch> memberOf = belongsToActiveBunches(notes);
         if (!memberOf.isEmpty()) {
-            if (notes.size() == 1) {
-                final Note note = Iterables.getOnlyElement(notes);
-                JMenuItem item = new JMenuItem("Show \"" + note.getTitle() + "\"");
-                item.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        showNote(note);
-                    }
-                });
-                popup.add(new JSeparator());
-            }
             for (final Bunch bunch : memberOf) {
                 JMenuItem item = new JMenuItem("Show \"" + bunch.getName() + "\"");
                 item.addActionListener(new ActionListener() {
@@ -505,11 +498,11 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
     @Override
     public void handleGraphEvent(GraphEvent<Note, Weight> evt) {
-        // this seems superfluous
+        // https://sourceforge.net/tracker/?func=detail&aid=3555746&group_id=73840&atid=539119
         switch (evt.getType()) {
             case VERTEX_ADDED:
             case VERTEX_REMOVED:
-                repaint();
+                graphVisualiser.repaint();
         }
     }
 }
