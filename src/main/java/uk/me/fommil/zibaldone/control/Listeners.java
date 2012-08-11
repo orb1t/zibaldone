@@ -23,16 +23,6 @@ public final class Listeners {
     public final static class ClusterId {
     }
 
-    // TODO: is it possible to use generics to reduce the number of APIs?
-    public interface GenericListener<T> extends EventListener {
-
-        public void listenToAdded(T added);
-
-        public void listenToRemoved(T removed);
-
-        public void listenToUpdated(T updated);
-    }
-
     public interface BunchListener extends EventListener {
 
         public void bunchAdded(Bunch bunch);
@@ -76,7 +66,6 @@ public final class Listeners {
      */
     public interface NoteListener extends EventListener {
 
-        // ?? could be a notice without telling what the changes are
         public void notesChanged(Set<Note> note);
     }
 

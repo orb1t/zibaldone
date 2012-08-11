@@ -34,7 +34,6 @@ public final class ImporterView extends JXTaskPane implements PropertyChangeList
     private ImporterController importerController;
 
     @Getter @BoundSetter
-    @Deprecated
     private UUID uuid;
 
     public ImporterView() {
@@ -125,9 +124,7 @@ public final class ImporterView extends JXTaskPane implements PropertyChangeList
 
     private void reloadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reloadButtonActionPerformed
         try {
-            // TODO: visual "wait" feedback
             importerController.doImport(uuid);
-            reloadButton.setText("Reload");
         } catch (IOException ex) {
             log.log(Level.WARNING, "failed import", ex);
             SwingConvenience.warning(this, "There was a problem with the data source.");

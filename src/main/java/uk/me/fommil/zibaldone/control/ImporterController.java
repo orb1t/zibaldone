@@ -125,8 +125,7 @@ public class ImporterController {
 
     public void doRemove(UUID sourceId) {
         settings.getImporters().remove(sourceId);
-        // TODO: implement method
-        log.warning("doRemove() not implemented yet");
+        log.warning("doRemove() not implemented yet, see issue #3");
     }
 
     private void diffTags(Set<Tag> before, Set<Tag> after) {

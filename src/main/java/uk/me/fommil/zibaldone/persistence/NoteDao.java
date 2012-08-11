@@ -55,13 +55,11 @@ public class NoteDao extends CrudDao<UUID, Note> {
 
     @Override
     public void delete(Note entity) {
-        // TODO: delete and remove references from Bunches
         throw new UnsupportedOperationException("not implemented yet: ");
     }
 
     @Override
     public void deleteById(UUID id) {
-        // TODO: delete and remove references from Bunches
         throw new UnsupportedOperationException("not implemented yet: ");
     }
 

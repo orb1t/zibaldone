@@ -59,10 +59,8 @@ public class Settings {
 
     private final ObservableSet<UUID> selectedBunches = ObservableSet.newObservableHashSet();
 
-    // TODO: careful about persistence - Importer is mutable
     private final ObservableMap<UUID, Importer> importers = ObservableMap.newObservableHashMap();
 
-    // TODO: careful about persistence - Relators can be mutable
     private final ObservableCollection<Relator> relators = ObservableCollection.newObservableCollection(Lists.<Relator>newArrayList());
 
     {

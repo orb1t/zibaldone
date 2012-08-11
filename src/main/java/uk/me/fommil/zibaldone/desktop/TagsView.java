@@ -9,6 +9,7 @@ package uk.me.fommil.zibaldone.desktop;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Set;
@@ -28,30 +29,26 @@ import uk.me.fommil.zibaldone.control.TagController.TagChoice;
  * Shows tags and provides programmatic options to enable tag selection,
  * deletion and creation. The user sets the width of this and the height
  * is automatically calculated based on the tags and the inherited font.
- * <p>
- * TODO: implement editable mode
  * 
  * @author Samuel Halliday
  */
 @Log
 public class TagsView extends JPanel implements TagListener {
-
+    
     private final class TagView extends JLabel {
-
+        
         @Getter
         private final Tag tag;
-
+        
         @Getter
         private TagChoice choice;
-
-        // TODO: rounded borders for tag background
+        
         public TagView(Tag tag, TagChoice choice) {
             super(tag.getText());
             setLayout(new WrapLayout());
             this.tag = tag;
             setOpaque(true);
             setChoice(Preconditions.checkNotNull(choice));
-            // TODO: font changes to TagsView after instantiation are ignored
             setFont(TagsView.this.getFont());
             addMouseListener(new MouseAdapter() {
                 @Override
@@ -60,20 +57,20 @@ public class TagsView extends JPanel implements TagListener {
                 }
             });
         }
-
+        
         private void click() {
             if (!selectable) {
                 return;
             }
             tagController.selectTag(tag, nextChoice());
         }
-
+        
         public void setChoice(TagChoice choice) {
             this.choice = Preconditions.checkNotNull(choice);
             setBackground(getColorForChoice(choice));
             repaint();
         }
-
+        
         private TagChoice nextChoice() {
             switch (choice) {
                 case IGNORE:
@@ -84,7 +81,7 @@ public class TagsView extends JPanel implements TagListener {
                     return TagChoice.IGNORE;
             }
         }
-
+        
         private Color getColorForChoice(TagChoice choice) {
             switch (choice) {
                 case IGNORE:
@@ -96,23 +93,19 @@ public class TagsView extends JPanel implements TagListener {
             }
         }
     }
-
+    
     @Setter
     private TagController tagController;
-
-    // TODO: editable/selectable should be listened to
-    @Getter @Setter
-    private boolean editable;
-
+    
     @Getter @Setter
     private boolean selectable;
-
+    
     public TagsView() {
         super(new WrapLayout());
     }
-
+    
     private final SortedMap<Tag, TagView> views = Maps.newTreeMap();
-
+    
     @Override
     public void tagsAdded(Set<Tag> tags) {
         for (Tag tag : tags) {
@@ -123,7 +116,7 @@ public class TagsView extends JPanel implements TagListener {
         }
         redraw();
     }
-
+    
     @Override
     public void tagsRemoved(Set<Tag> tags) {
         for (Tag tag : views.keySet()) {
@@ -133,15 +126,15 @@ public class TagsView extends JPanel implements TagListener {
         }
         redraw();
     }
-
+    
     @Override
     public void tagSelection(Tag tag, TagChoice choice) {
         Preconditions.checkNotNull(tag);
         Preconditions.checkNotNull(choice);
-
+        
         views.get(tag).setChoice(choice);
     }
-
+    
     private void redraw() {
         removeAll();
         for (TagView view : views.values()) {
@@ -156,5 +149,13 @@ public class TagsView extends JPanel implements TagListener {
      */
     public void setWidth(int width) {
         setSize(width, getSize().height);
+    }
+    
+    @Override
+    public void setFont(Font font) {
+        super.setFont(font);
+        for (TagView view : views.values()) {
+            view.setFont(font);
+        }
     }
 }

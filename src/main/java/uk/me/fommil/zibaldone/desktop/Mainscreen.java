@@ -68,14 +68,6 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
 
         importerController.loadDb();
         bunchController.loadDb();
-
-        // TODO: Swing-based Log capture and view
-        // TODO: menu entries
-        // TODO: exporter preferences
-        // TODO: add the 'not found' importers
-        // TODO: animated settings panel
-        // TODO: icons for the toolbar buttons
-        // TODO: use simplericity for a better OS X experience
     }
 
     @BoundSetter
@@ -98,7 +90,6 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         Preconditions.checkNotNull(evt);
         String property = evt.getPropertyName();
         log.fine("Changed " + property);
-        // TODO: remove older listeners
         if ("graphController".equals(property)) {
             graphController.addClusterListener(jungGraphView);
             jungGraphView.setGraph(graphController.getGraph());
@@ -112,7 +103,6 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
             bunchMenu.setBunchController(bunchController);
         } else if ("importerController".equals(property)) {
             importerController.addTagListener(tagSelectView);
-            // TODO: dynamic lookup of available importers
             Map<String, Class<Importer>> importers = importerController.getImporterImplementations();
             ComboBoxModel importerChoices = new MapComboBoxModel<String, Class<Importer>>(importers);
             importerSelector.setModel(importerChoices);

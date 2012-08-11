@@ -46,11 +46,9 @@ public final class Convenience {
     }
 
     /**
-     * Loop over the upper entries of the outer (matrix) product of the iterable
+     * Loop over the upper entries of the outer (matrix) product of the {@link Iterable}
      * and itself. Does not include diagonal entries and uses an ordering that
      * exhausts the second index before incrementing the first.
-     * <p>
-     * TODO: parallel execution option
      * 
      * @param <T>
      * @param iterable

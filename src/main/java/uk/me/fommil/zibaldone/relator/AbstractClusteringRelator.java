@@ -13,7 +13,6 @@ import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Relator;
 
 /**
- * TODO what is this supposed to do 
  * @author Hannu Rajaniemi
  */
 public abstract class AbstractClusteringRelator implements Relator {

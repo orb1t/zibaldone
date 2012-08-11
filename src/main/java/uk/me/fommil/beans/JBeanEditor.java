@@ -164,7 +164,7 @@ public final class JBeanEditor extends JPanel {
         public TableCellRenderer getCellRenderer(int row, int column) {
             MyTableModel model = (MyTableModel) getModel();
             if (column == 0) {
-                // ?? JXTable default renderer doesn't align right
+                // JXTable default renderer doesn't align right
                 DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
                 renderer.setToolTipText(model.getToolTipText(row));
                 renderer.setHorizontalAlignment(JLabel.RIGHT);
@@ -223,7 +223,7 @@ public final class JBeanEditor extends JPanel {
         // Set the width/height of columns/rows by the largest rendering entry
         private void customiseMinimumDimensions(Dimension dim, int row, int column) {
             TableColumn tableColumn = getColumnModel().getColumn(column);
-            // ?? this required extra margin padding is a mystery to me...
+            // this required extra margin padding is a mystery to me...
             dim.setSize(dim.width + getColumnMargin(), dim.height + getRowMargin());
             // potential bug: refresh() is needed to reduce size of unusually large temporary entries
             if (tableColumn.getWidth() < dim.width) {
@@ -243,7 +243,7 @@ public final class JBeanEditor extends JPanel {
         setLayout(new BorderLayout());
 
         table.setTableHeader(null);
-//        table.setBackground(null); // ?? why is this needed?
+//        table.setBackground(null);
         table.setShowGrid(false);
         table.setCellSelectionEnabled(false);
         table.setFocusable(false);

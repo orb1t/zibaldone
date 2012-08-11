@@ -50,7 +50,6 @@ public abstract class JPropertyEditor extends PropertyEditorSupport {
     public void setValue(Object value) {
         super.setValue(value);
         label.setText(getAsText());
-        // ?? would be nice to set the preferred size here
     }
 
     @Override

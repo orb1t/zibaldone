@@ -63,8 +63,6 @@ public interface Relator {
 
     /**
      * Clusters (in the machine learning sense) {@link Note}s into distinct sets.
-     * 
-     * TODO: abstract machine learning clustering algorithm
      *
      * @param notes
      * @return

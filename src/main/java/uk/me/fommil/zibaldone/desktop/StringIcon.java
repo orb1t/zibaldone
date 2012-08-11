@@ -70,12 +70,6 @@ public class StringIcon implements Icon {
             g.fillRect(0, 0, width, height);
         }
 
-        // TODO: some extra graphics niceties - e.g. shading, texture, padding
-        // TODO: iterate to find best font size (within a bound) for the text
-        // TODO: centering the text
-        // TODO: dynamic sizing on content
-        // TODO: text justification
-
         FontRenderContext frc = g2d.getFontRenderContext();
         LineBreakMeasurer lineMeasurer = new LineBreakMeasurer(text.getIterator(), frc);
 

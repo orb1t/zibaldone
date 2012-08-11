@@ -7,6 +7,7 @@
 package uk.me.fommil.zibaldone.control;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -45,9 +46,9 @@ public class BunchController {
         return dao.readAll();
     }
 
-    public Collection<Bunch> getBunches(Collection<UUID> ids) {
+    public Set<Bunch> getBunches(Collection<UUID> ids) {
         BunchDao dao = new BunchDao(emf);
-        return dao.read(ids);
+        return Sets.newHashSet(dao.read(ids));
     }
 
     public Bunch getBunch(UUID bunchId) {

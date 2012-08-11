@@ -99,9 +99,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     public JungGraphView() {
         super(new BorderLayout());
 
-        // TODO: set an initializer which uses a QuasiRandom sequence
-        // TODO: check setSize (resize) support of the initialiser
-        // FIXME: setSize (resize) support of AbstractLayout/Aggregate/FR
         graphLayout.setDelegate(new FRLayoutFixed<Note, Weight>());
 
         graphVisualiser.setGraphLayout(graphLayout);
@@ -135,8 +132,8 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
             StringIcon icon = new StringIcon() {
                 @Override
                 public Color getBackground() {
-                    // FIXME: this is a potential DB hit for every Note! Cache the colours.
-                    Set<Bunch> bunches = belongsToActiveBunches(Collections.singleton(note));
+                    Set<UUID> bunchIds = belongsToActiveBunches(Collections.singleton(note));
+                    Set<Bunch> bunches = bunchController.getBunches(bunchIds);
                     boolean picked = graphVisualiser.getPickedVertexState().isPicked(note);
                     if (bunches.isEmpty()) {
                         if (picked) {
@@ -164,7 +161,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         }
     };
 
-    // TODO: Graph changes Layout parameters, based on spaciousness, and caches NoteSize
     // lower, upper are thresholds and 'min' is the minimum dimension.
     private Dimension calculateNoteSize(float lower, Dimension min, float upper) {
         Dimension size = getSize();
@@ -188,10 +184,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
      * Here we go back to the highest abstraction in the JUNG mouse handling
      * logic and provide a lightweight "modeless" experience that should be
      * feasible to extend to provide multi-touch support.
-     * <p>
-     * http://stackoverflow.com/questions/369301
-     * TODO: touchpad swipe gestures = scrolling up/down/left/right
-     * TODO: touchpad pinching = zoom
      */
     private class ModelessGraphMouse extends PluggableGraphMouse {
 
@@ -218,8 +210,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
             Set<Note> picked = graphVisualiser.getPickedVertexState().getPicked();
 
             if (!picked.isEmpty()) {
-                // TODO: detect if dragged into a Bunch
-
                 if (location.distance(e.getLocationOnScreen()) < 10
                         || picked.hashCode() != pickedBefore
                         || picked.size() > 1) {
@@ -230,8 +220,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     }
 
     private void selectNotes(final Set<Note> notes) {
-        // TODO: rethink the mouse/graph interaction
-
         popup.removeAll();
         if (notes.size() == 1) {
             final Note note = Iterables.getOnlyElement(notes);
@@ -246,7 +234,8 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
             popup.add(new JSeparator());
         }
 
-        Set<Bunch> memberOf = belongsToActiveBunches(notes);
+        Set<UUID> memberOfIds = belongsToActiveBunches(notes);
+        Set<Bunch> memberOf = bunchController.getBunches(memberOfIds);
         if (!memberOf.isEmpty()) {
             for (final Bunch bunch : memberOf) {
                 JMenuItem item = new JMenuItem("Show \"" + bunch.getName() + "\"");
@@ -345,7 +334,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         return menu;
     }
 
-    // TODO: should have add/view Bunch buttons OR drag & drop add to Bunch
     @Deprecated
     private void showNote(Note note) {
         NoteView noteView = new NoteView();
@@ -366,15 +354,12 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         SwingConvenience.showAsDialog("Bunch Editor", view, true, listener);
     }
 
-    // TODO: return the IDs only
-    @Deprecated
-    private Set<Bunch> belongsToActiveBunches(Set<Note> notes) {
-        Set<Bunch> bunches = Sets.newHashSet();
+    private Set<UUID> belongsToActiveBunches(Set<Note> notes) {
+        Set<UUID> bunches = Sets.newHashSet();
         for (UUID bunchId : activeBunches.keySet()) {
             Set<Note> bunchNotes = Sets.newHashSet(activeBunches.get(bunchId).getGraph().getVertices());
             if (Convenience.isSubset(notes, bunchNotes)) {
-                Bunch bunch = bunchController.getBunch(bunchId);
-                bunches.add(bunch);
+                bunches.add(bunchId);
             }
         }
         return bunches;
@@ -452,7 +437,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
 
     private Point2D calculateClumpPosition(Set<Note> notes, boolean priority) {
         if (!priority) {
-            // TODO: quasirandom https://issues.apache.org/jira/browse/MATH-826
             Random random = new Random();
             double unitX = random.nextDouble();
             double unitY = random.nextDouble();
@@ -463,7 +447,6 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
             return new Point(x, y);
         }
 
-        // TODO: could be smarter about where to put bunches (this fails when not new)
         Collection<Point2D> positions = JungGraphs.getPositions(graphLayout, notes);
         return SwingConvenience.average(positions);
     }

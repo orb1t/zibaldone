@@ -12,8 +12,6 @@ import uk.me.fommil.zibaldone.Note;
 /**
  * Popup view of a Note.
  * 
- * TODO: use an HTML rendered version of the contents instead of a JTextArea
- * 
  * @author Samuel Halliday
  */
 public class NoteView extends javax.swing.JPanel {

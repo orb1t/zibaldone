@@ -7,18 +7,11 @@
 package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import java.awt.Dimension;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import lombok.extern.java.Log;
-import org.jdesktop.swingx.autocomplete.ListAdaptor;
-import org.jdesktop.swingx.combobox.ListComboBoxModel;
 import org.jdesktop.swingx.combobox.MapComboBoxModel;
 import uk.me.fommil.swing.SwingConvenience;
 import uk.me.fommil.zibaldone.Bunch;
@@ -35,10 +28,6 @@ public class BunchView extends javax.swing.JPanel {
 
     public BunchView() {
         initComponents();
-
-        // TODO: a Remove Note button
-        // TODO: Note popups
-
         tags.setWidth(400);
     }
 
@@ -132,7 +121,6 @@ public class BunchView extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void notesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_notesMouseClicked
-        // TODO: is there a better way that mouseClick to register this?
         @SuppressWarnings("unchecked")
         MapComboBoxModel<String, Note> model = (MapComboBoxModel<String, Note>) notes.getModel();
         Object[] selected = notes.getSelectedValues();

@@ -32,6 +32,7 @@ import lombok.Getter;
 import lombok.ListenerSupport;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.java.Log;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -93,8 +94,8 @@ public class GraphController implements TagListener, NoteListener, SearchListene
 
     private final Map<ClusterId, Set<Note>> clusters = Maps.newHashMap();
 
-    // TODO: user choice of Relator
-    private final Relator relator = new TagRelator();
+    @Getter @Setter @NonNull
+    private Relator relator = new TagRelator();
 
     // keys are the UUIDs of the Notes, and are used in Lucene's Documents
     private final BiMap<String, Note> noteIds = HashBiMap.create();
