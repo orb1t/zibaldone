@@ -8,6 +8,7 @@ package uk.me.fommil.zibaldone.desktop;
 
 import uk.me.fommil.zibaldone.control.GraphController;
 import com.google.common.base.Preconditions;
+import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -91,22 +92,49 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         String property = evt.getPropertyName();
         log.fine("Changed " + property);
         if ("graphController".equals(property)) {
+            Preconditions.checkState(jungGraphView != null);
+            GraphController old = (GraphController) evt.getOldValue();
+            if (old != null) {
+                old.removeClusterListener(jungGraphView);
+            }
             graphController.addClusterListener(jungGraphView);
             jungGraphView.setGraph(graphController.getGraph());
         } else if ("tagController".equals(property)) {
+            Preconditions.checkState(tagSelectView != null);
+            TagController old = (TagController) evt.getOldValue();
+            if (old != null) {
+                old.removeTagListener(tagSelectView);
+            }
             tagController.addTagListener(tagSelectView);
             tagSelectView.setTagController(tagController);
         } else if ("bunchController".equals(property)) {
+            Preconditions.checkState(jungGraphView != null);
+            Preconditions.checkState(bunchMenu != null);
+            BunchController old = (BunchController) evt.getOldValue();
+            if (old != null) {
+                old.removeBunchListener(jungGraphView);
+                old.removeBunchListener(bunchMenu);
+            }
             bunchController.addBunchListener(jungGraphView);
             bunchController.addBunchListener(bunchMenu);
             jungGraphView.setBunchController(bunchController);
             bunchMenu.setBunchController(bunchController);
         } else if ("importerController".equals(property)) {
+            Preconditions.checkState(tagSelectView != null);
+            ImporterController old = (ImporterController) evt.getOldValue();
+            if (old != null) {
+                importerController.removeTagListener(tagSelectView);
+            }
             importerController.addTagListener(tagSelectView);
             Map<String, Class<Importer>> importers = importerController.getImporterImplementations();
             ComboBoxModel importerChoices = new MapComboBoxModel<String, Class<Importer>>(importers);
             importerSelector.setModel(importerChoices);
         } else if ("settings".equals(property)) {
+            for (Component component : importersPanel.getComponents()) {
+                if (component instanceof ImporterView) {
+                    importersPanel.remove(component);
+                }
+            }
             for (UUID uuid : settings.getImporters().keySet()) {
                 addImporter(uuid, true);
             }
