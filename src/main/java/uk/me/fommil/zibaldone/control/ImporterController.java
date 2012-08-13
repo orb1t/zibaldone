@@ -12,6 +12,7 @@ import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -124,8 +125,13 @@ public class ImporterController {
     }
 
     public void doRemove(UUID sourceId) {
+        Preconditions.checkNotNull(sourceId);
         settings.getImporters().remove(sourceId);
-        log.warning("doRemove() not implemented yet, see issue #3");
+        NoteDao dao = new NoteDao(emf);
+        List<Note> toRemove = dao.readForImporter(sourceId);
+        dao.delete(toRemove);
+        Set<Note> notes = Sets.newHashSet(dao.readAll());
+        fireNotesChanged(notes);
     }
 
     private void diffTags(Set<Tag> before, Set<Tag> after) {
