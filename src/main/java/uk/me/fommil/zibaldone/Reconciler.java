@@ -141,14 +141,23 @@ public class Reconciler {
         }
 
         List<Note> existing = dao.readForImporter(sourceId);
-        Multimap<Object, Note> summaryMapping = ArrayListMultimap.create();
+        Multimap<Fingerprint, Note> summaryMapping = ArrayListMultimap.create();
         for (Note note : existing) {
             summaryMapping.put(callback.toFingerprint(note), note);
         }
         Set<Note> createNotes = Sets.newHashSet();
         Set<Note> updateNotes = Sets.newHashSet();
         Set<Note> deleteNotes = Sets.newHashSet();
+        Set<Note> ignoreNotes = Sets.newHashSet();
+        new_notes:
         for (Note note : notes) {
+            for (Note old : existing) {
+                if (note.propertiesEquals(old)) {
+                    // no changes at all, don't touch the DB
+                    ignoreNotes.add(old);
+                    continue new_notes;
+                }
+            }
             Collection<Note> candidates = summaryMapping.get(callback.toFingerprint(note));
             if (candidates.size() == 1) {
                 Note candidate = Iterables.getOnlyElement(candidates);
@@ -158,15 +167,13 @@ public class Reconciler {
                 createNotes.add(note);
             }
         }
-
         for (Note note : existing) {
-            if (!createNotes.contains(note) && !updateNotes.contains(note)) {
+            if (!ignoreNotes.contains(note) && !createNotes.contains(note) && !updateNotes.contains(note)) {
                 deleteNotes.add(note);
             }
         }
-        Map<Note, Note> reconciled = callback.reconcile(createNotes, deleteNotes);
+        BiMap<Note, Note> reconciled = callback.reconcile(createNotes, deleteNotes);
         Preconditions.checkState(reconciled.size() == createNotes.size());
-        Preconditions.checkState(reconciled.size() == Sets.newHashSet(reconciled.values()).size());
 
         for (Entry<Note, Note> e : reconciled.entrySet()) {
             if (!e.getKey().equals(e.getValue())) {
@@ -179,6 +186,7 @@ public class Reconciler {
             }
         }
 
+        log.info("ignoring " + ignoreNotes.size() + " notes from " + sourceId);
         log.info("deleting " + deleteNotes.size() + " notes from " + sourceId);
         dao.delete(deleteNotes);
         log.info("creating " + createNotes.size() + " notes from " + sourceId);
