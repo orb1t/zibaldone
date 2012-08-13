@@ -20,6 +20,7 @@ import java.util.Set;
 import javax.persistence.*;
 import lombok.Cleanup;
 import lombok.extern.java.Log;
+import uk.me.fommil.zibaldone.Bunch;
 
 /**
  * Generic CRUD (CREATE, READ, UPDATE, DELETE) DAO (Data Access Object) for {@link Entity} types.
@@ -40,7 +41,7 @@ import lombok.extern.java.Log;
  */
 @Log
 public abstract class CrudDao<K, T> {
-    
+
     private static final String JPA_PROPERTIES = "jpa.properties";
 
     /**
@@ -80,9 +81,9 @@ public abstract class CrudDao<K, T> {
             throw new ExceptionInInitializerError(e);
         }
     }
-    
+
     private final Class<T> klass;
-    
+
     private final EntityManagerFactory emf;
 
     /**
@@ -218,7 +219,7 @@ public abstract class CrudDao<K, T> {
      * @throws PersistenceException
      */
     @SuppressWarnings("AssignmentToForLoopParameter")
-    public Set<T> update(Collection<T> entities) {        
+    public Set<T> update(Collection<T> entities) {
         Preconditions.checkNotNull(entities);
         if (entities.isEmpty()) {
             return Collections.emptySet();
@@ -252,6 +253,7 @@ public abstract class CrudDao<K, T> {
         try {
             em.getTransaction().begin();
             entity = em.merge(entity);
+            removeFromManyToManyMappings(em, entity);
             em.remove(entity);
             em.getTransaction().commit();
         } catch (PersistenceException e) {
@@ -277,6 +279,7 @@ public abstract class CrudDao<K, T> {
             em.getTransaction().begin();
             for (T entity : entities) {
                 entity = em.merge(entity);
+                removeFromManyToManyMappings(em, entity);
                 em.remove(entity);
             }
             em.getTransaction().commit();
@@ -297,10 +300,14 @@ public abstract class CrudDao<K, T> {
         @Cleanup("close") EntityManager em = createEntityManager();
         try {
             em.getTransaction().begin();
-            T entity = em.find(klass, id);
-            if (entity != null) {
-                em.remove(entity);
+//            T entity = em.find(klass, id);
+            T entity = em.getReference(klass, id);
+            if (entity == null) {
+                em.getTransaction().rollback();
+                return;
             }
+            removeFromManyToManyMappings(em, entity);
+            em.remove(entity);
             em.getTransaction().commit();
         } catch (PersistenceException e) {
             if (em.getTransaction().isActive()) {
@@ -374,5 +381,38 @@ public abstract class CrudDao<K, T> {
         Preconditions.checkNotNull(em);
         Preconditions.checkNotNull(query);
         return (C) query.getSingleResult();
+    }
+
+    /**
+     * Called within {@code DELETE} transactions to allow specialist DAOs
+     * to remove foreign key references from other tables (i.e. if this entity
+     * is the target of a {@link ManyToMany} collection in another entity). No
+     * need to do anything if the entity is the "owner" of a bi-directional
+     * relationship.
+     * <p>
+     * This will be called from within a transaction. If the relationship is
+     * bi-directional then the following pattern usually works:
+     * <code><pre>
+     * Collection<Other> others = entity.getOthers();
+     * for (Other other : others) {
+     *    other.getEntity().remove(entity);
+     *    em.merge(other);
+     * }
+     * </pre></code>
+     * whereas for uni-directional a JPQL query is needed, e.g.:
+     * <code><pre>
+     * Query q = em.createQuery("SELECT DISTINCT o FROM Other o INNER JOIN o.entity e where e.id = :id");
+     * q.setParameter("id", entity.getId());
+     * @SuppressWarnings("unchecked") Collection<Other> others = q.getResultList();
+     * ...
+     * </pre></code>
+     *
+     * @param em which has already begun a transaction
+     * @param entity managed
+     * @see <a href="http://stackoverflow.com/questions/1980177">Cascade on delete using unidirectional Many-To-Many mapping</a>
+     * @see <a href="http://stackoverflow.com/questions/1082095">How to remove entity with ManyToMany relationship in JPA</a>
+     * @see <a href="http://stackoverflow.com/questions/8339889">JPA JPQL: select items when attribute of item (list/set) contains another item</a>
+     */
+    protected void removeFromManyToManyMappings(EntityManager em, T entity) {
     }
 }

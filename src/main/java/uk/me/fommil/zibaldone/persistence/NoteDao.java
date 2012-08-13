@@ -5,6 +5,7 @@
 package uk.me.fommil.zibaldone.persistence;
 
 import com.google.common.base.Preconditions;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -14,6 +15,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import lombok.Cleanup;
 import uk.me.fommil.persistence.CrudDao;
+import uk.me.fommil.zibaldone.Bunch;
 import uk.me.fommil.zibaldone.Tag;
 
 /**
@@ -54,13 +56,16 @@ public class NoteDao extends CrudDao<UUID, Note> {
     }
 
     @Override
-    public void delete(Note entity) {
-        throw new UnsupportedOperationException("not implemented yet: ");
-    }
-
-    @Override
-    public void deleteById(UUID id) {
-        throw new UnsupportedOperationException("not implemented yet: ");
+    protected void removeFromManyToManyMappings(EntityManager em, Note managedNote) {
+//        Query q = em.createQuery("SELECT DISTINCT b FROM Bunch b INNER JOIN b.notes n WHERE n.id = :id");
+//        q.setParameter("id", managedNote.getId());
+//        @SuppressWarnings("unchecked")
+//        Collection<Bunch> bunches = q.getResultList();
+        Collection<Bunch> bunches = managedNote.getBunches();
+        for (Bunch bunch : bunches) {
+            bunch.getNotes().remove(managedNote);
+            em.merge(bunch);
+        }
     }
 
     public List<Note> readForImporter(UUID sourceId) {

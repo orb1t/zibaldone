@@ -34,15 +34,15 @@ import uk.me.fommil.zibaldone.control.TagController.TagChoice;
  */
 @Log
 public class TagsView extends JPanel implements TagListener {
-    
+
     private final class TagView extends JLabel {
-        
+
         @Getter
         private final Tag tag;
-        
+
         @Getter
         private TagChoice choice;
-        
+
         public TagView(Tag tag, TagChoice choice) {
             super(tag.getText());
             setLayout(new WrapLayout());
@@ -57,20 +57,20 @@ public class TagsView extends JPanel implements TagListener {
                 }
             });
         }
-        
+
         private void click() {
             if (!selectable) {
                 return;
             }
             tagController.selectTag(tag, nextChoice());
         }
-        
+
         public void setChoice(TagChoice choice) {
             this.choice = Preconditions.checkNotNull(choice);
             setBackground(getColorForChoice(choice));
             repaint();
         }
-        
+
         private TagChoice nextChoice() {
             switch (choice) {
                 case IGNORE:
@@ -81,7 +81,7 @@ public class TagsView extends JPanel implements TagListener {
                     return TagChoice.IGNORE;
             }
         }
-        
+
         private Color getColorForChoice(TagChoice choice) {
             switch (choice) {
                 case IGNORE:
@@ -93,19 +93,19 @@ public class TagsView extends JPanel implements TagListener {
             }
         }
     }
-    
+
     @Setter
     private TagController tagController;
-    
+
     @Getter @Setter
     private boolean selectable;
-    
+
     public TagsView() {
         super(new WrapLayout());
     }
-    
+
     private final SortedMap<Tag, TagView> views = Maps.newTreeMap();
-    
+
     @Override
     public void tagsAdded(Set<Tag> tags) {
         for (Tag tag : tags) {
@@ -116,7 +116,7 @@ public class TagsView extends JPanel implements TagListener {
         }
         redraw();
     }
-    
+
     @Override
     public void tagsRemoved(Set<Tag> tags) {
         for (Tag tag : views.keySet()) {
@@ -126,15 +126,15 @@ public class TagsView extends JPanel implements TagListener {
         }
         redraw();
     }
-    
+
     @Override
     public void tagSelection(Tag tag, TagChoice choice) {
         Preconditions.checkNotNull(tag);
         Preconditions.checkNotNull(choice);
-        
+
         views.get(tag).setChoice(choice);
     }
-    
+
     private void redraw() {
         removeAll();
         for (TagView view : views.values()) {
@@ -150,12 +150,14 @@ public class TagsView extends JPanel implements TagListener {
     public void setWidth(int width) {
         setSize(width, getSize().height);
     }
-    
+
     @Override
     public void setFont(Font font) {
         super.setFont(font);
-        for (TagView view : views.values()) {
-            view.setFont(font);
+        if (views != null) {
+            for (TagView view : views.values()) {
+                view.setFont(font);
+            }
         }
     }
 }

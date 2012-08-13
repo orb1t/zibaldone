@@ -107,7 +107,6 @@ public class GraphController implements TagListener, NoteListener, SearchListene
     @Override
     public void notesChanged(Set<Note> notes) {
         Preconditions.checkNotNull(notes);
-        Preconditions.checkArgument(!notes.isEmpty());
 
         // the new Notes might be different, but will still be "equal"
         // so remove/add the vertices which have changed (no "update" in JUNG)

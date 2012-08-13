@@ -49,6 +49,11 @@ public class Note implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateTime;
 
+    // this might seem superfluous, but it is actually free information
+    // that is already in the DB and it makes Note deletion much easier.
+    @ManyToMany(mappedBy = "notes", fetch = FetchType.LAZY)
+    private Set<Bunch> bunches = Sets.newHashSet();
+
     public void setContents(String contents) {
         if (contents.length() > CONTENTS_MAX) {
             log.warning("Cutting contents of " + toString());
