@@ -436,7 +436,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     }
 
     private Point2D calculateClumpPosition(Set<Note> notes, boolean priority) {
-        if (!priority) {
+        if (!priority || notes.isEmpty()) {
             Random random = new Random();
             double unitX = random.nextDouble();
             double unitY = random.nextDouble();

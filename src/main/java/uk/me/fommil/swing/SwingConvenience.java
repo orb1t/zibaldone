@@ -12,23 +12,27 @@ import com.google.common.primitives.Doubles;
 import java.awt.Component;
 import java.awt.MouseInfo;
 import java.awt.Point;
+import java.awt.Window;
 import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
 import javax.annotation.Nullable;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
+import lombok.extern.java.Log;
 import org.apache.commons.math3.stat.StatUtils;
-import uk.me.fommil.zibaldone.Note;
 
 /**
  * Convenience methods for Swing UIs.
  * 
  * @author Samuel Halliday
  */
+@Log
 public final class SwingConvenience {
 
     /**
@@ -100,5 +104,22 @@ public final class SwingConvenience {
         double x = StatUtils.mean(Doubles.toArray(xs));
         double y = StatUtils.mean(Doubles.toArray(ys));
         return new Point2D.Double(x, y);
+    }
+
+    /**
+     * @param window
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static void enableOSXFullscreen(Window window) {
+        Preconditions.checkNotNull(window);
+        try {
+            Class util = Class.forName("com.apple.eawt.FullScreenUtilities");
+            Class params[] = new Class[]{Window.class, Boolean.TYPE};
+            Method method = util.getMethod("setWindowCanFullScreen", params);
+            method.invoke(util, window, true);
+        } catch (ClassNotFoundException e1) {
+        } catch (Exception e) {
+            log.log(Level.WARNING, "OS X Fullscreen FAIL", e);
+        }
     }
 }

@@ -6,13 +6,15 @@
  */
 package uk.me.fommil.zibaldone.desktop;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Map;
 import java.util.UUID;
-import javax.swing.JCheckBox;
-import javax.swing.JPopupMenu;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.java.Log;
@@ -25,26 +27,30 @@ import uk.me.fommil.zibaldone.control.TagController.TagChoice;
  * @author Samuel Halliday
  */
 @Log
-public class BunchMenu extends JPopupMenu implements Listeners.BunchListener {
+public class BunchMenu extends JMenu implements Listeners.BunchListener {
 
     @Getter @Setter
     private BunchController bunchController;
 
-    // Don't use CheckBoxMenuItem because of http://stackoverflow.com/questions/3759379
-    private final Map<UUID, JCheckBox> entries = Maps.newTreeMap();
+    // JCheckBoxMenuItem closes JMenu http://stackoverflow.com/questions/3759379
+    private final Map<UUID, JCheckBoxMenuItem> entries = Maps.newTreeMap();
 
-//    private static class StayOpenCheckBoxMenuItemUI extends BasicCheckBoxMenuItemUI {
-//
-//        @Override
-//        protected void doClick(MenuSelectionManager msm) {
-//            menuItem.doClick(0);
-//        }
-//    };
+    private final JMenuItem none = new JMenuItem("No Bunches");
+
+    public BunchMenu() {
+        super();
+        none.setEnabled(false);
+        add(none);
+    }
+
     @Override
     public void bunchAdded(Bunch bunch) {
+        Preconditions.checkNotNull(bunch);
+        log.info("BUNCH ADDED " + bunch);
+
+        remove(none);
         final UUID id = bunch.getId();
-        final JCheckBox item = new JCheckBox(bunch.getName(), false);
-//        item.setUI(new StayOpenCheckBoxMenuItemUI());
+        final JCheckBoxMenuItem item = new JCheckBoxMenuItem(bunch.getName(), false);
         item.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -64,12 +70,14 @@ public class BunchMenu extends JPopupMenu implements Listeners.BunchListener {
 
     @Override
     public void bunchRemoved(Bunch bunch) {
+        Preconditions.checkNotNull(bunch);
         entries.remove(bunch.getId());
         rebuild();
     }
 
     @Override
     public void bunchUpdated(Bunch bunch) {
+        Preconditions.checkNotNull(bunch);
         entries.get(bunch.getId()).setText(bunch.getName());
         rebuild();
     }
@@ -85,8 +93,14 @@ public class BunchMenu extends JPopupMenu implements Listeners.BunchListener {
 
     private void rebuild() {
         removeAll();
-        for (JCheckBox item : entries.values()) {
+        for (JCheckBoxMenuItem item : entries.values()) {
             add(item);
         }
+
+        if (getMenuComponentCount() == 0) {
+            add(none);
+        }
+//        revalidate();
+//        repaint();
     }
 }

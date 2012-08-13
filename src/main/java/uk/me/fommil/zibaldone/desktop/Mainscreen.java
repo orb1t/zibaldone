@@ -14,15 +14,14 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyEditorManager;
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.logging.Level;
 import javax.persistence.EntityManagerFactory;
 import javax.swing.ComboBoxModel;
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import lombok.BoundSetter;
 import lombok.extern.java.Log;
 import org.jdesktop.swingx.combobox.MapComboBoxModel;
@@ -35,7 +34,6 @@ import uk.me.fommil.zibaldone.control.BunchController;
 import uk.me.fommil.zibaldone.control.ImporterController;
 import uk.me.fommil.zibaldone.control.Settings;
 import uk.me.fommil.zibaldone.control.TagController;
-import uk.me.fommil.zibaldone.exporter.MarkdownExporter;
 
 /**
  * @author Samuel Halliday
@@ -44,31 +42,38 @@ import uk.me.fommil.zibaldone.exporter.MarkdownExporter;
 public final class Mainscreen extends JFrame implements PropertyChangeListener {
 
     public static void main(String args[]) throws Exception {
+        System.setProperty("apple.laf.useScreenMenuBar", "true");
+
         PropertyEditorManager.registerEditor(File.class, FilePropertyEditor.class);
         PropertyEditorManager.registerEditor(Date.class, DatePropertyEditor.class);
 
-        EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
+        final EntityManagerFactory emf = CrudDao.createEntityManagerFactory("ZibaldonePU");
+        final Settings settings = Settings.loadAutoSavingInstance(new File("zibaldone.xml"));
 
-        Settings settings = Settings.loadAutoSavingInstance(new File("zibaldone.xml"));
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                GraphController graphController = new GraphController(emf, settings);
+                TagController tagController = new TagController(settings);
+                BunchController bunchController = new BunchController(emf, settings);
+                ImporterController importerController = new ImporterController(emf, settings);
+                importerController.addTagListener(graphController);
+                importerController.addNoteListener(graphController);
+                tagController.addTagListener(graphController);
 
-        GraphController graphController = new GraphController(emf, settings);
-        TagController tagController = new TagController(settings);
-        BunchController bunchController = new BunchController(emf, settings);
-        ImporterController importerController = new ImporterController(emf, settings);
-        importerController.addTagListener(graphController);
-        importerController.addNoteListener(graphController);
-        tagController.addTagListener(graphController);
+                Mainscreen main = new Mainscreen();
+                main.setTagController(tagController);
+                main.setGraphController(graphController);
+                main.setBunchController(bunchController);
+                main.setImporterController(importerController);
+                main.setSettings(settings);
+                
+                main.setVisible(true);
 
-        Mainscreen main = new Mainscreen();
-        main.setTagController(tagController);
-        main.setGraphController(graphController);
-        main.setBunchController(bunchController);
-        main.setImporterController(importerController);
-        main.setSettings(settings);
-        main.setVisible(true);
-
-        importerController.loadDb();
-        bunchController.loadDb();
+                importerController.loadDb();
+                bunchController.loadDb();
+            }
+        });
     }
 
     @BoundSetter
@@ -109,16 +114,16 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
             tagSelectView.setTagController(tagController);
         } else if ("bunchController".equals(property)) {
             Preconditions.checkState(jungGraphView != null);
-            Preconditions.checkState(bunchMenu != null);
+            Preconditions.checkState(bunchList != null);
             BunchController old = (BunchController) evt.getOldValue();
             if (old != null) {
                 old.removeBunchListener(jungGraphView);
-                old.removeBunchListener(bunchMenu);
+                old.removeBunchListener(bunchList);
             }
             bunchController.addBunchListener(jungGraphView);
-            bunchController.addBunchListener(bunchMenu);
+            bunchController.addBunchListener(bunchList);
             jungGraphView.setBunchController(bunchController);
-            bunchMenu.setBunchController(bunchController);
+            bunchList.setBunchController(bunchController);
         } else if ("importerController".equals(property)) {
             Preconditions.checkState(tagSelectView != null);
             ImporterController old = (ImporterController) evt.getOldValue();
@@ -145,8 +150,9 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
     public Mainscreen() {
         super();
         rootPane.putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
+        SwingConvenience.enableOSXFullscreen(this);
+
         initComponents();
-        settingsPanel.setVisible(false);
         addPropertyChangeListener(this);
     }
 
@@ -165,17 +171,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
 
         tagDialog = new javax.swing.JDialog();
         tagSelectView = new uk.me.fommil.zibaldone.desktop.TagsView();
-        bunchMenu = new uk.me.fommil.zibaldone.desktop.BunchMenu();
-        javax.swing.JToolBar jToolBar = new javax.swing.JToolBar();
-        search = new org.jdesktop.swingx.JXSearchField();
-        javax.swing.JButton tagsButton = new javax.swing.JButton();
-        bunchesButton = new javax.swing.JButton();
-        javax.swing.JToggleButton jButtonLayout = new javax.swing.JToggleButton();
-        javax.swing.JButton export = new javax.swing.JButton();
-        javax.swing.Box.Filler filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(50, 0), new java.awt.Dimension(1000, 0));
-        settingsButton = new javax.swing.JToggleButton();
-        jungGraphView = new uk.me.fommil.zibaldone.desktop.JungGraphView();
-        settingsPanel = new javax.swing.JTabbedPane();
+        importDialog = new javax.swing.JDialog();
         javax.swing.JPanel jImportersPanel = new javax.swing.JPanel();
         javax.swing.JToolBar jToolBar1 = new javax.swing.JToolBar();
         org.jdesktop.swingx.JXButton jAddImporterButton = new org.jdesktop.swingx.JXButton();
@@ -184,7 +180,18 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         org.jdesktop.swingx.JXButton jReloadImportersButton = new org.jdesktop.swingx.JXButton();
         javax.swing.JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
         importersPanel = new org.jdesktop.swingx.JXTaskPaneContainer();
-        javax.swing.JPanel jAdvancedPanel = new javax.swing.JPanel();
+        exportDialog = new javax.swing.JDialog();
+        javax.swing.JToolBar jToolBar = new javax.swing.JToolBar();
+        search = new org.jdesktop.swingx.JXSearchField();
+        javax.swing.JButton tagsButton = new javax.swing.JButton();
+        javax.swing.Box.Filler filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(50, 0), new java.awt.Dimension(1000, 0));
+        jungGraphView = new uk.me.fommil.zibaldone.desktop.JungGraphView();
+        javax.swing.JMenuBar menu = new javax.swing.JMenuBar();
+        javax.swing.JMenu fileMenu = new javax.swing.JMenu();
+        javax.swing.JMenuItem importMenu = new javax.swing.JMenuItem();
+        javax.swing.JMenuItem exportMenu = new javax.swing.JMenuItem();
+        bunchList = new uk.me.fommil.zibaldone.desktop.BunchMenu();
+        javax.swing.JMenu relatorsMenu = new javax.swing.JMenu();
 
         tagDialog.setTitle("Tags");
         tagDialog.setAlwaysOnTop(true);
@@ -192,6 +199,48 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
 
         tagSelectView.setSelectable(true);
         tagDialog.getContentPane().add(tagSelectView, java.awt.BorderLayout.CENTER);
+
+        importDialog.setTitle("Importers");
+        importDialog.setAlwaysOnTop(true);
+        importDialog.setModal(true);
+        importDialog.setPreferredSize(new java.awt.Dimension(300, 400));
+
+        jImportersPanel.setLayout(new java.awt.BorderLayout());
+
+        jToolBar1.setFloatable(false);
+
+        jAddImporterButton.setText("+");
+        jAddImporterButton.setFocusable(false);
+        jAddImporterButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jAddImporterButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jAddImporterButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jAddImporterButtonActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jAddImporterButton);
+        jToolBar1.add(importerSelector);
+        jToolBar1.add(filler2);
+
+        jReloadImportersButton.setText("Reload All");
+        jReloadImportersButton.setFocusable(false);
+        jReloadImportersButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jReloadImportersButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(jReloadImportersButton);
+
+        jImportersPanel.add(jToolBar1, java.awt.BorderLayout.SOUTH);
+
+        jScrollPane1.setBorder(null);
+        jScrollPane1.setViewportView(null);
+        jScrollPane1.setViewportView(importersPanel);
+
+        jImportersPanel.add(jScrollPane1, java.awt.BorderLayout.CENTER);
+
+        importDialog.getContentPane().add(jImportersPanel, java.awt.BorderLayout.CENTER);
+
+        exportDialog.setTitle("Export");
+        exportDialog.setAlwaysOnTop(true);
+        exportDialog.setModal(true);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Zibaldone");
@@ -225,93 +274,42 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
             }
         });
         jToolBar.add(tagsButton);
-
-        bunchesButton.setText("Bunches");
-        bunchesButton.setFocusable(false);
-        bunchesButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        bunchesButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        bunchesButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                bunchesButtonActionPerformed(evt);
-            }
-        });
-        jToolBar.add(bunchesButton);
-
-        jButtonLayout.setText("Relators");
-        jButtonLayout.setFocusable(false);
-        jButtonLayout.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButtonLayout.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar.add(jButtonLayout);
-
-        export.setText("Export");
-        export.setFocusable(false);
-        export.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        export.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        export.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                exportActionPerformed(evt);
-            }
-        });
-        jToolBar.add(export);
         jToolBar.add(filler1);
-
-        settingsButton.setText("Settings");
-        settingsButton.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                settingsButtonStateChanged(evt);
-            }
-        });
-        jToolBar.add(settingsButton);
 
         getContentPane().add(jToolBar, java.awt.BorderLayout.PAGE_START);
         getContentPane().add(jungGraphView, java.awt.BorderLayout.CENTER);
 
-        settingsPanel.setPreferredSize(new java.awt.Dimension(320, 480));
+        fileMenu.setText("File");
 
-        jImportersPanel.setLayout(new java.awt.BorderLayout());
-
-        jToolBar1.setFloatable(false);
-
-        jAddImporterButton.setText("+");
-        jAddImporterButton.setFocusable(false);
-        jAddImporterButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jAddImporterButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jAddImporterButton.addActionListener(new java.awt.event.ActionListener() {
+        importMenu.setText("Import");
+        importMenu.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jAddImporterButtonActionPerformed(evt);
+                importMenuActionPerformed(evt);
             }
         });
-        jToolBar1.add(jAddImporterButton);
-        jToolBar1.add(importerSelector);
-        jToolBar1.add(filler2);
+        fileMenu.add(importMenu);
 
-        jReloadImportersButton.setText("Reload All");
-        jReloadImportersButton.setFocusable(false);
-        jReloadImportersButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jReloadImportersButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar1.add(jReloadImportersButton);
+        exportMenu.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.META_MASK));
+        exportMenu.setText("Export");
+        exportMenu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                exportMenuActionPerformed(evt);
+            }
+        });
+        fileMenu.add(exportMenu);
 
-        jImportersPanel.add(jToolBar1, java.awt.BorderLayout.SOUTH);
+        menu.add(fileMenu);
 
-        jScrollPane1.setBorder(null);
-        jScrollPane1.setViewportView(null);
-        jScrollPane1.setViewportView(importersPanel);
+        bunchList.setText("Bunches");
+        menu.add(bunchList);
 
-        jImportersPanel.add(jScrollPane1, java.awt.BorderLayout.CENTER);
+        relatorsMenu.setText("Relators");
+        menu.add(relatorsMenu);
 
-        settingsPanel.addTab("Importers", jImportersPanel);
-
-        jAdvancedPanel.setLayout(new java.awt.BorderLayout());
-        settingsPanel.addTab("Relators", jAdvancedPanel);
-
-        getContentPane().add(settingsPanel, java.awt.BorderLayout.EAST);
+        setJMenuBar(menu);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void settingsButtonStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_settingsButtonStateChanged
-        settingsPanel.setVisible(settingsButton.isSelected());
-    }//GEN-LAST:event_settingsButtonStateChanged
 
     @SuppressWarnings("unchecked")
     private void jAddImporterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jAddImporterButtonActionPerformed
@@ -325,23 +323,9 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         tagDialog.setVisible(true);
     }//GEN-LAST:event_tagsButtonActionPerformed
 
-    private void bunchesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bunchesButtonActionPerformed
-        SwingConvenience.popupAtMouse(bunchMenu, this);
-    }//GEN-LAST:event_bunchesButtonActionPerformed
-
     private void searchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchActionPerformed
         graphController.searchChanged(search.getText());
     }//GEN-LAST:event_searchActionPerformed
-
-    @Deprecated
-    private void exportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportActionPerformed
-        MarkdownExporter mdownexporter = new MarkdownExporter();
-        try {
-            mdownexporter.export(bunchController.getBunches());
-        } catch (IOException ex) {
-            log.log(Level.SEVERE, null, ex);
-        }
-    }//GEN-LAST:event_exportActionPerformed
 
     private void searchKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_searchKeyTyped
         char c = evt.getKeyChar();
@@ -350,15 +334,22 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         }
     }//GEN-LAST:event_searchKeyTyped
 
+    private void importMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importMenuActionPerformed
+        importDialog.setVisible(true);
+    }//GEN-LAST:event_importMenuActionPerformed
+
+    private void exportMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportMenuActionPerformed
+        exportDialog.setVisible(true);
+    }//GEN-LAST:event_exportMenuActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    uk.me.fommil.zibaldone.desktop.BunchMenu bunchMenu;
-    javax.swing.JButton bunchesButton;
+    uk.me.fommil.zibaldone.desktop.BunchMenu bunchList;
+    javax.swing.JDialog exportDialog;
+    javax.swing.JDialog importDialog;
     javax.swing.JComboBox importerSelector;
     org.jdesktop.swingx.JXTaskPaneContainer importersPanel;
     uk.me.fommil.zibaldone.desktop.JungGraphView jungGraphView;
     org.jdesktop.swingx.JXSearchField search;
-    javax.swing.JToggleButton settingsButton;
-    javax.swing.JTabbedPane settingsPanel;
     javax.swing.JDialog tagDialog;
     uk.me.fommil.zibaldone.desktop.TagsView tagSelectView;
     // End of variables declaration//GEN-END:variables
