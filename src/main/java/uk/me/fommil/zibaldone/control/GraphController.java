@@ -164,7 +164,7 @@ public class GraphController implements TagListener, NoteListener, SearchListene
 
     private Set<Note> searchRestrictedNotes() {
         String search = settings.getSearch();
-        if (search == null || search.trim().length() < 4 || noteIds.isEmpty()) {
+        if (search == null || search.trim().length() < 3 || noteIds.isEmpty()) {
             return noteIds.values();
         }
         try {

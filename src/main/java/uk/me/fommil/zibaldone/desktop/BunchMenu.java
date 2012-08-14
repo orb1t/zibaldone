@@ -46,7 +46,6 @@ public class BunchMenu extends JMenu implements Listeners.BunchListener {
     @Override
     public void bunchAdded(Bunch bunch) {
         Preconditions.checkNotNull(bunch);
-        log.info("BUNCH ADDED " + bunch);
 
         remove(none);
         final UUID id = bunch.getId();
@@ -100,7 +99,5 @@ public class BunchMenu extends JMenu implements Listeners.BunchListener {
         if (getMenuComponentCount() == 0) {
             add(none);
         }
-//        revalidate();
-//        repaint();
     }
 }

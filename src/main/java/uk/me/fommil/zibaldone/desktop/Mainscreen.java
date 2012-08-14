@@ -177,7 +177,6 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         org.jdesktop.swingx.JXButton jAddImporterButton = new org.jdesktop.swingx.JXButton();
         importerSelector = new javax.swing.JComboBox();
         javax.swing.Box.Filler filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(500, 32767));
-        org.jdesktop.swingx.JXButton jReloadImportersButton = new org.jdesktop.swingx.JXButton();
         javax.swing.JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
         importersPanel = new org.jdesktop.swingx.JXTaskPaneContainer();
         exportDialog = new javax.swing.JDialog();
@@ -195,15 +194,16 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
 
         tagDialog.setTitle("Tags");
         tagDialog.setAlwaysOnTop(true);
-        tagDialog.setMinimumSize(new java.awt.Dimension(300, 300));
+        tagDialog.setResizable(false);
 
         tagSelectView.setSelectable(true);
+        tagSelectView.setWidth(400);
         tagDialog.getContentPane().add(tagSelectView, java.awt.BorderLayout.CENTER);
 
         importDialog.setTitle("Importers");
         importDialog.setAlwaysOnTop(true);
         importDialog.setModal(true);
-        importDialog.setPreferredSize(new java.awt.Dimension(300, 400));
+        importDialog.setResizable(false);
 
         jImportersPanel.setLayout(new java.awt.BorderLayout());
 
@@ -222,15 +222,10 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         jToolBar1.add(importerSelector);
         jToolBar1.add(filler2);
 
-        jReloadImportersButton.setText("Reload All");
-        jReloadImportersButton.setFocusable(false);
-        jReloadImportersButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jReloadImportersButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar1.add(jReloadImportersButton);
-
         jImportersPanel.add(jToolBar1, java.awt.BorderLayout.SOUTH);
 
         jScrollPane1.setBorder(null);
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(320, 480));
         jScrollPane1.setViewportView(null);
         jScrollPane1.setViewportView(importersPanel);
 
@@ -241,6 +236,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         exportDialog.setTitle("Export");
         exportDialog.setAlwaysOnTop(true);
         exportDialog.setModal(true);
+        exportDialog.setResizable(false);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Zibaldone");
@@ -320,6 +316,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
     }//GEN-LAST:event_jAddImporterButtonActionPerformed
 
     private void tagsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tagsButtonActionPerformed
+        tagDialog.pack();
         tagDialog.setVisible(true);
     }//GEN-LAST:event_tagsButtonActionPerformed
 
@@ -335,10 +332,12 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
     }//GEN-LAST:event_searchKeyTyped
 
     private void importMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importMenuActionPerformed
+        importDialog.pack();
         importDialog.setVisible(true);
     }//GEN-LAST:event_importMenuActionPerformed
 
     private void exportMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportMenuActionPerformed
+        exportDialog.pack();
         exportDialog.setVisible(true);
     }//GEN-LAST:event_exportMenuActionPerformed
 
