@@ -16,11 +16,14 @@ import java.util.logging.Level;
 import javax.swing.JPanel;
 import lombok.BoundSetter;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.java.Log;
 import org.jdesktop.swingx.JXTaskPane;
+import uk.me.fommil.beans.BeanHelper;
 import uk.me.fommil.swing.SwingConvenience;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.control.ImporterController;
+import uk.me.fommil.zibaldone.control.Settings;
 
 /**
  * The specialist GUI widget for interacting with {@link Importer}s.
@@ -36,6 +39,9 @@ public final class ImporterView extends JXTaskPane implements PropertyChangeList
     @Getter @BoundSetter
     private UUID uuid;
 
+    @Getter @Setter
+    private Settings settings;
+
     public ImporterView() {
         super();
         addPropertyChangeListener(this);
@@ -49,7 +55,17 @@ public final class ImporterView extends JXTaskPane implements PropertyChangeList
         if (importerController != null && uuid != null
                 && ("uuid".equals(property) || "importerController".equals(property))) {
             setTitle(importerController.getImporter(uuid).getName());
-            jBeanEditor.setBean(importerController.getImporter(uuid).getSettings());
+            Importer.Settings importerSettings = importerController.getImporter(uuid).getSettings();
+            BeanHelper beanHelper = new BeanHelper(importerSettings);
+            beanHelper.addPropertyChangeListener(new PropertyChangeListener() {
+                @Override
+                public void propertyChange(PropertyChangeEvent evt) {
+                    // this means a mutable Map value just changed in Settings
+                    settings.firePropertyChange("importers", null, settings.getImporters());
+                }
+            });
+
+            jBeanEditor.setBeanHelper(beanHelper);
         }
     }
 

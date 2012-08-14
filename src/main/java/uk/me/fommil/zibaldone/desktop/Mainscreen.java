@@ -175,6 +175,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
     private void addImporter(UUID uuid, boolean used) {
         ImporterView importerView = new ImporterView();
         importerView.setImporterController(importerController);
+        importerView.setSettings(settings);
         importerView.setUuid(uuid);
         importerView.setCollapsed(used);
         importersPanel.add(importerView);

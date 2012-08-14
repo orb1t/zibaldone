@@ -69,39 +69,38 @@ public final class JBeanEditor extends JPanel {
      * 
      * Note JDesktop.org BeansBinding might help reduce some boilerplate.
      */
-
     private final JPanel top = new JPanel();
-
+    
     @Getter
     private volatile BeanHelper beanHelper;
 
     // links the table to the BeanHelper
     private static class MyTableModel extends AbstractTableModel {
-
+        
         private final List<Property> properties;
-
+        
         public MyTableModel(Iterable<Property> properties) {
             this.properties = Lists.newArrayList(properties);
         }
-
+        
         @Override
         public void setValueAt(Object value, int row, int col) {
             Preconditions.checkArgument(row >= 0 && row < getRowCount());
             Preconditions.checkArgument(col >= 0 && col < getColumnCount());
-
+            
             properties.get(row).setValue(value, JBeanEditor.class);
         }
-
+        
         @Override
         public int getRowCount() {
             return properties.size();
         }
-
+        
         @Override
         public int getColumnCount() {
             return 2;
         }
-
+        
         public Class<?> getClassAt(int row, int col) {
             Preconditions.checkArgument(row >= 0 && row < getRowCount());
             Preconditions.checkArgument(col >= 0 && col < getColumnCount());
@@ -112,7 +111,7 @@ public final class JBeanEditor extends JPanel {
                     return properties.get(row).getPropertyClass();
             }
         }
-
+        
         @Override
         public Object getValueAt(int row, int col) {
             Preconditions.checkArgument(row >= 0 && row < getRowCount());
@@ -124,7 +123,7 @@ public final class JBeanEditor extends JPanel {
                     return properties.get(row).getValue();
             }
         }
-
+        
         @Override
         public boolean isCellEditable(int row, int col) {
             Preconditions.checkArgument(row >= 0 && row < getRowCount());
@@ -133,7 +132,7 @@ public final class JBeanEditor extends JPanel {
             }
             return true;
         }
-
+        
         @Override
         public String getColumnName(int col) {
             Preconditions.checkArgument(col >= 0 && col < getColumnCount());
@@ -144,12 +143,12 @@ public final class JBeanEditor extends JPanel {
                     return "values";
             }
         }
-
+        
         public String getToolTipText(int row) {
             Preconditions.checkArgument(row >= 0 && row < getRowCount());
             return properties.get(row).getShortDescription();
         }
-
+        
         public boolean isExpert(int row, int col) {
             Preconditions.checkArgument(row >= 0 && row < getRowCount());
             Preconditions.checkArgument(col >= 0 && col < getColumnCount());
@@ -159,7 +158,6 @@ public final class JBeanEditor extends JPanel {
 
     // allow per-cell rendering and editing via JavaBeans
     private final JXTable table = new JXTable() {
-
         @Override
         public TableCellRenderer getCellRenderer(int row, int column) {
             MyTableModel model = (MyTableModel) getModel();
@@ -182,7 +180,7 @@ public final class JBeanEditor extends JPanel {
             }
             return getDefaultRenderer(klass);
         }
-
+        
         @Override
         public TableCellEditor getCellEditor(int row, int column) {
             MyTableModel model = (MyTableModel) getModel();
@@ -237,7 +235,7 @@ public final class JBeanEditor extends JPanel {
             }
         }
     };
-
+    
     public JBeanEditor() {
         super();
         setLayout(new BorderLayout());
@@ -255,10 +253,10 @@ public final class JBeanEditor extends JPanel {
         Dimension spacing = new Dimension(5, 0);
         table.setIntercellSpacing(spacing);
     }
-
+    
     public void refresh() {
         Iterable<Property> properties = Collections.emptyList();
-
+        
         if (beanHelper != null) {
             Image icon = beanHelper.getIcon(BeanInfo.ICON_COLOR_32x32);
             if (icon == null) {
@@ -270,14 +268,13 @@ public final class JBeanEditor extends JPanel {
             }
             properties = filter(beanHelper.getProperties(),
                     new Predicate<Property>() {
-
                         @Override
                         public boolean apply(Property input) {
                             return !input.isHidden();
                         }
                     });
         }
-
+        
         table.setModel(new MyTableModel(properties));
 
         // should we expose minimum row/column sizes as a user property?
@@ -285,7 +282,7 @@ public final class JBeanEditor extends JPanel {
         table.getColumnModel().getColumn(0).setMinWidth(1);
         table.getColumnModel().getColumn(0).setMaxWidth(1);
         table.getColumnModel().getColumn(1).setMinWidth(1);
-
+        
         table.packAll();
         revalidate();
     }
@@ -294,11 +291,14 @@ public final class JBeanEditor extends JPanel {
      * @param bean
      */
     public void setBean(Object bean) {
-        setBeanHelper(new BeanHelper(Preconditions.checkNotNull(bean)));
+        if (bean instanceof BeanHelper) {
+            setBeanHelper((BeanHelper) bean);
+        } else {
+            setBeanHelper(new BeanHelper(Preconditions.checkNotNull(bean)));
+        }
     }
-
+    
     private final PropertyChangeListener beanChangeListener = new PropertyChangeListener() {
-
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
             if (evt.getSource() != beanHelper.getBean() || evt.getPropagationId() == JBeanEditor.class) {

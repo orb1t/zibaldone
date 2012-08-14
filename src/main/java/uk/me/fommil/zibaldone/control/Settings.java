@@ -15,6 +15,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.UUID;
 import java.util.logging.Level;
 import lombok.BoundSetter;
@@ -35,8 +37,9 @@ import uk.me.fommil.zibaldone.control.TagController.TagChoice;
  * <p>
  * Note that although this is considered to be the <i>de facto</i> repository
  * of all current settings, it is not the official source for change events.
- * Change support is added here so that the settings can be persisted. Objects
- * wishing to be informed of changes should register with the appropriate
+ * Change support is added here so that the settings can be persisted
+ * (for most changes).
+ * Objects wishing to be informed of changes should register with the appropriate
  * controller.
  *
  * @author Samuel Halliday
@@ -68,6 +71,10 @@ public class Settings {
         ObservableCollection.propertyChangeAdapter(getPropertyChangeSupport(), selectedBunches, "selectedBunches");
         ObservableMap.propertyChangeAdapter(getPropertyChangeSupport(), importers, "importers");
         ObservableCollection.propertyChangeAdapter(getPropertyChangeSupport(), relators, "relators");
+
+        // we could potentially add a timer to check if any mutable Map values change without us knowing
+        // but that would involve dictating that they implement hashCode/equals. Best handle that as a
+        // special case.
     }
 
     // JAXB is more powerful and quicker, but XStream is a lot easier to use
@@ -89,6 +96,13 @@ public class Settings {
             xstream.omitField(ObservableMap.class, "$registeredMapListener");
             xstream.omitField(Settings.class, "$propertyChangeSupport");
             xstream.omitField(Settings.class, "$propertyChangeSupportLock");
+//            try {
+//                Field field = Settings.class.getDeclaredField("$propertyChangeSupportLock");
+//                log.info("modifiers = " + Modifier.toString(field.getModifiers()));
+//
+//            } catch (Exception e) {
+//                log.log(Level.WARNING, "Reflection FAIL", e);
+//            }
 
             return xstream;
         }
@@ -121,7 +135,7 @@ public class Settings {
         final Settings settings = new Settings();
         if (file.exists()) {
             Settings loaded = load(file);
-            // XStream resets final fields with default values
+            // it's this or implement readResolve
             settings.connections = loaded.connections;
             settings.importers.putAll(loaded.importers);
             settings.relators.addAll(loaded.relators);

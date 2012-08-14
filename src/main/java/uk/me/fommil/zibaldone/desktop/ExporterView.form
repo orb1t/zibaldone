@@ -52,7 +52,7 @@
         </Component>
       </SubComponents>
     </Container>
-    <Container class="javax.swing.JPanel" name="settingsPane">
+    <Component class="uk.me.fommil.beans.JBeanEditor" name="beanEditor">
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="false"/>
       </AuxValues>
@@ -61,8 +61,6 @@
           <BorderConstraints direction="Center"/>
         </Constraint>
       </Constraints>
-
-      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
-    </Container>
+    </Component>
   </SubComponents>
 </Form>

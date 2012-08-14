@@ -47,11 +47,7 @@ public class ExporterView extends JPanel {
 
     public void setExporter(Exporter exporter) {
         this.exporter = Preconditions.checkNotNull(exporter);
-
-        JBeanEditor editor = new JBeanEditor();
-        editor.setBean(exporter.getSettings());
-        settingsPane.removeAll();
-        settingsPane.add(editor, BorderLayout.CENTER);
+        beanEditor.setBean(exporter.getSettings());
     }
 
     @SuppressWarnings("unchecked")
@@ -60,7 +56,7 @@ public class ExporterView extends JPanel {
         JToolBar jToolBar1 = new JToolBar();
         Filler filler1 = new Filler(new Dimension(0, 0), new Dimension(0, 0), new Dimension(32767, 0));
         JButton jButton1 = new JButton();
-        settingsPane = new JPanel();
+        beanEditor = new JBeanEditor();
 
         setLayout(new BorderLayout());
 
@@ -80,9 +76,7 @@ public class ExporterView extends JPanel {
         jToolBar1.add(jButton1);
 
         add(jToolBar1, BorderLayout.PAGE_END);
-
-        settingsPane.setLayout(new BorderLayout());
-        add(settingsPane, BorderLayout.CENTER);
+        add(beanEditor, BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -95,6 +89,6 @@ public class ExporterView extends JPanel {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    JPanel settingsPane;
+    private JBeanEditor beanEditor;
     // End of variables declaration//GEN-END:variables
 }
