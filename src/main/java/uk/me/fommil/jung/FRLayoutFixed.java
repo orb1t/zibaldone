@@ -38,7 +38,7 @@ public class FRLayoutFixed<V, E> extends FRLayout<V, E> {
     @Override
     public void setSize(Dimension size) {
         // WORKAROUND: setSize doesn't touch the initialiser - ID: 3553281
-        // https://sourceforge.net/tracker/?func=detail&aid=3553281&group_id=73840&atid=539119        
+        // https://sourceforge.net/tracker/?func=detail&aid=3553281&group_id=73840&atid=539119
         //
         // passing up will result in:
         //
@@ -63,6 +63,8 @@ public class FRLayoutFixed<V, E> extends FRLayout<V, E> {
             }
             Point2D location = locations.get(vertex);
             if (location != null) {
+                // and fix "setSize of GraphLayout move vertices to filling space - ID: 3553171"
+                // https://sourceforge.net/tracker/index.php?func=detail&aid=3553171&group_id=73840&atid=539122
                 adjustedLocations.put(vertex, rescaleLocation(location, oldSize, size));
             }
         }
