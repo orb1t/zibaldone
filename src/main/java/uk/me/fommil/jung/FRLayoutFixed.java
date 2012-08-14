@@ -76,11 +76,12 @@ public class FRLayoutFixed<V, E> extends FRLayout<V, E> {
         try {
             // it seems a bit of a premature optimisation to ever calculate max_dimension,
             // since it is only ever used in done(). Here, we have to use reflection.
-            Field max_dim_field = getClass().getDeclaredField("max_dimension");
+            Field max_dim_field = FRLayout.class.getDeclaredField("max_dimension");
+            max_dim_field.setAccessible(true);
             double max = Math.max(size.width, size.height);
             max_dim_field.set(this, max);
         } catch (Exception ex) {
-            log.log(Level.SEVERE, "Reflection FAIL", ex);
+            log.log(Level.SEVERE, "Reflection FAIL " + ex.getMessage(), ex);
         }
     }
 
