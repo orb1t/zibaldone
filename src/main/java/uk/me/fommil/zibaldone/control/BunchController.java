@@ -33,7 +33,7 @@ import uk.me.fommil.zibaldone.persistence.BunchDao;
 @ListenerSupport(BunchListener.class)
 public class BunchController {
 
-    public static final String NEW_BUNCH_NAME = "New Bunch";
+    public static final String NEW_BUNCH_TITLE = "New Bunch";
 
     @NonNull
     private final EntityManagerFactory emf;
@@ -65,7 +65,7 @@ public class BunchController {
         Preconditions.checkArgument(!notes.isEmpty());
 
         Bunch bunch = new Bunch();
-        bunch.setName(NEW_BUNCH_NAME);
+        bunch.setTitle(NEW_BUNCH_TITLE);
         bunch.setNotes(notes);
         BunchDao dao = new BunchDao(emf);
         dao.create(bunch);

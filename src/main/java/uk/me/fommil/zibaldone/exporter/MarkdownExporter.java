@@ -46,7 +46,7 @@ public class MarkdownExporter implements Exporter {
         @Cleanup
         Writer writer = Files.newWriter(settings.getFile(), Charsets.UTF_8);
         for (Bunch bunch : bunches) {
-            writer.write("# " + bunch.getName() + " #\n\n");
+            writer.write("# " + bunch.getTitle() + " #\n\n");
             writer.write(bunch.getContents() + "\n\n");
             for (Note note : bunch.getNotes()) {
                 writer.write("## " + note.getTitle() + " ##\n\n");

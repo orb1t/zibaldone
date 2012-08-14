@@ -238,7 +238,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
         Set<Bunch> memberOf = bunchController.getBunches(memberOfIds);
         if (!memberOf.isEmpty()) {
             for (final Bunch bunch : memberOf) {
-                JMenuItem item = new JMenuItem("Show \"" + bunch.getName() + "\"");
+                JMenuItem item = new JMenuItem("Show \"" + bunch.getTitle() + "\"");
                 item.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
@@ -249,7 +249,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
             }
             popup.add(new JSeparator());
             for (final Bunch bunch : memberOf) {
-                JMenuItem item = new JMenuItem("Select all in \"" + bunch.getName() + "\"");
+                JMenuItem item = new JMenuItem("Select all in \"" + bunch.getTitle() + "\"");
                 item.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
@@ -286,7 +286,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     }
 
     private JMenuItem newBunchItem(final Set<Note> notes) {
-        JMenuItem newBunchItem = new JMenuItem(BunchController.NEW_BUNCH_NAME, KeyEvent.VK_N);
+        JMenuItem newBunchItem = new JMenuItem(BunchController.NEW_BUNCH_TITLE, KeyEvent.VK_N);
         newBunchItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -310,7 +310,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
                 loaded = true;
                 Collection<Bunch> active = bunchController.getBunches(activeBunches.keySet());
                 for (final Bunch bunch : active) {
-                    JMenuItem addToBunch = new JMenuItem(bunch.getName());
+                    JMenuItem addToBunch = new JMenuItem(bunch.getTitle());
                     addToBunch.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
@@ -409,7 +409,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
                 Preconditions.checkState(!activeBunches.containsKey(id));
                 Layout<Note, Weight> layout = createClump(bunch.getNotes(), true);
                 activeBunches.put(id, layout);
-                if (BunchController.NEW_BUNCH_NAME.equals(bunch.getName())) {
+                if (BunchController.NEW_BUNCH_TITLE.equals(bunch.getTitle())) {
                     showBunch(bunch);
                 }
                 break;

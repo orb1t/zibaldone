@@ -49,7 +49,7 @@ public class BunchMenu extends JMenu implements Listeners.BunchListener {
 
         remove(none);
         final UUID id = bunch.getId();
-        final JCheckBoxMenuItem item = new JCheckBoxMenuItem(bunch.getName(), false);
+        final JCheckBoxMenuItem item = new JCheckBoxMenuItem(bunch.getTitle(), false);
         item.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -77,7 +77,7 @@ public class BunchMenu extends JMenu implements Listeners.BunchListener {
     @Override
     public void bunchUpdated(Bunch bunch) {
         Preconditions.checkNotNull(bunch);
-        entries.get(bunch.getId()).setText(bunch.getName());
+        entries.get(bunch.getId()).setText(bunch.getTitle());
         rebuild();
     }
 

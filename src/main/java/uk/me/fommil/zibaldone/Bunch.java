@@ -41,7 +41,7 @@ public class Bunch implements Serializable {
     private UUID id = UUID.randomUUID();
 
     @Column
-    private String name;
+    private String title;
 
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Note> notes = Sets.newHashSet();

@@ -37,7 +37,7 @@ public class BunchView extends javax.swing.JPanel {
     public Bunch getBunch() {
         Preconditions.checkState(bunch != null);
 
-        bunch.setName(name.getText());
+        bunch.setTitle(name.getText());
         bunch.setContents(content.getText());
 
         return bunch;
@@ -49,7 +49,7 @@ public class BunchView extends javax.swing.JPanel {
     public void setBunch(final Bunch bunch) {
         this.bunch = Preconditions.checkNotNull(bunch);
 
-        name.setText(bunch.getName());
+        name.setText(bunch.getTitle());
         content.setText(bunch.getContents());
 
         Map<String, Note> noteMap = Maps.newTreeMap();

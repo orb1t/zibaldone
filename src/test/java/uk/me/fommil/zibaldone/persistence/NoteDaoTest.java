@@ -44,7 +44,7 @@ public class NoteDaoTest {
         noteDao.create(notes);
 
         Bunch bunch = new Bunch();
-        bunch.setName("Bunch");
+        bunch.setTitle("Bunch");
         bunch.setNotes(notes);
         
         BunchDao bunchDao = new BunchDao(emf);
