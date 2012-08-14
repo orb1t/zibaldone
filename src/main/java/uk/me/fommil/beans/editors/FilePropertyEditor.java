@@ -6,25 +6,42 @@
  */
 package uk.me.fommil.beans.editors;
 
+import java.beans.PropertyEditor;
 import java.io.File;
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.swing.JFileChooser;
+import lombok.extern.java.Log;
 
 /**
  * {@link PropertyEditor} that brings up a {@link JFileChooser}.
  *
  * @author Samuel Halliday
  */
+@Log
+@NotThreadSafe
 public class FilePropertyEditor extends JPropertyEditor {
+
+    // persists for the session
+    private static volatile File lastDir;
 
     @Override
     public void showEditor() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setMultiSelectionEnabled(false);
+        final JFileChooser chooser = new JFileChooser();
+        File file = (File) getValue();
+        File dir = lastDir;
+        if (file != null) {
+            dir = file;
+        }
+        chooser.setCurrentDirectory(getDirectoryFor(dir));
 
-        int returnVal = chooser.showOpenDialog(null);
+        // we have no way of knowing if the user intends to open or save a file
+        int returnVal = chooser.showDialog(null, "Choose File");
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            setValue(chooser.getSelectedFile());
+            File selected = chooser.getSelectedFile();
+            setValue(selected);
+            if (selected != null) {
+                lastDir = getDirectoryFor(selected);
+            }
         }
     }
 
@@ -32,5 +49,19 @@ public class FilePropertyEditor extends JPropertyEditor {
     public String getAsText() {
         File file = (File) getValue();
         return file != null ? file.getName() : "";
+    }
+
+    private File getDirectoryFor(File file) {
+        if (file == null) {
+            return null;
+        }
+        if (file.isDirectory()) {
+            return file;
+        }
+        File parent = file.getParentFile();
+        if (parent == null) {
+            return new File(System.getProperty("user.dir"));
+        }
+        return parent;
     }
 }

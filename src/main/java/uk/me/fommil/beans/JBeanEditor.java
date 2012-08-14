@@ -242,6 +242,8 @@ public final class JBeanEditor extends JPanel {
         super();
         setLayout(new BorderLayout());
 
+//        setBackground(UIManager.getColor("window"));
+//        table.setBackground(UIManager.getColor("window"));
         table.setTableHeader(null);
 //        table.setBackground(null);
         table.setShowGrid(false);

@@ -29,8 +29,10 @@ import uk.me.fommil.beans.editors.DatePropertyEditor;
 import uk.me.fommil.beans.editors.FilePropertyEditor;
 import uk.me.fommil.persistence.CrudDao;
 import uk.me.fommil.swing.SwingConvenience;
+import uk.me.fommil.zibaldone.Exporter;
 import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.control.BunchController;
+import uk.me.fommil.zibaldone.control.ExporterController;
 import uk.me.fommil.zibaldone.control.ImporterController;
 import uk.me.fommil.zibaldone.control.Settings;
 import uk.me.fommil.zibaldone.control.TagController;
@@ -57,6 +59,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
                 TagController tagController = new TagController(settings);
                 BunchController bunchController = new BunchController(emf, settings);
                 ImporterController importerController = new ImporterController(emf, settings);
+                ExporterController exporterController = new ExporterController();
                 importerController.addTagListener(graphController);
                 importerController.addNoteListener(graphController);
                 tagController.addTagListener(graphController);
@@ -66,8 +69,9 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
                 main.setGraphController(graphController);
                 main.setBunchController(bunchController);
                 main.setImporterController(importerController);
+                main.setExporterController(exporterController);
                 main.setSettings(settings);
-                
+
                 main.setVisible(true);
 
                 importerController.loadDb();
@@ -87,6 +91,9 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
 
     @BoundSetter
     private ImporterController importerController;
+
+    @BoundSetter
+    private ExporterController exporterController;
 
     @BoundSetter
     private Settings settings;
@@ -124,6 +131,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
             bunchController.addBunchListener(bunchList);
             jungGraphView.setBunchController(bunchController);
             bunchList.setBunchController(bunchController);
+            exporterView.setBunchController(bunchController);
         } else if ("importerController".equals(property)) {
             Preconditions.checkState(tagSelectView != null);
             ImporterController old = (ImporterController) evt.getOldValue();
@@ -134,6 +142,14 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
             Map<String, Class<Importer>> importers = importerController.getImporterImplementations();
             ComboBoxModel importerChoices = new MapComboBoxModel<String, Class<Importer>>(importers);
             importerSelector.setModel(importerChoices);
+        } else if ("exporterController".equals(property)) {
+            exportMenu.setExporters(exporterController.getExporterImplementations());
+            exportMenu.setCallback(new ExporterMenu.Callback() {
+                @Override
+                public void selectedExporter(Exporter exporter) {
+                    exporterActionPerformed(exporter);
+                }
+            });
         } else if ("settings".equals(property)) {
             for (Component component : importersPanel.getComponents()) {
                 if (component instanceof ImporterView) {
@@ -180,6 +196,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         javax.swing.JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
         importersPanel = new org.jdesktop.swingx.JXTaskPaneContainer();
         exportDialog = new javax.swing.JDialog();
+        exporterView = new uk.me.fommil.zibaldone.desktop.ExporterView();
         javax.swing.JToolBar jToolBar = new javax.swing.JToolBar();
         search = new org.jdesktop.swingx.JXSearchField();
         javax.swing.JButton tagsButton = new javax.swing.JButton();
@@ -188,7 +205,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         javax.swing.JMenuBar menu = new javax.swing.JMenuBar();
         javax.swing.JMenu fileMenu = new javax.swing.JMenu();
         javax.swing.JMenuItem importMenu = new javax.swing.JMenuItem();
-        javax.swing.JMenuItem exportMenu = new javax.swing.JMenuItem();
+        exportMenu = new uk.me.fommil.zibaldone.desktop.ExporterMenu();
         bunchList = new uk.me.fommil.zibaldone.desktop.BunchMenu();
         javax.swing.JMenu relatorsMenu = new javax.swing.JMenu();
 
@@ -237,6 +254,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         exportDialog.setAlwaysOnTop(true);
         exportDialog.setModal(true);
         exportDialog.setResizable(false);
+        exportDialog.getContentPane().add(exporterView, java.awt.BorderLayout.CENTER);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Zibaldone");
@@ -285,13 +303,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         });
         fileMenu.add(importMenu);
 
-        exportMenu.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.META_MASK));
         exportMenu.setText("Export");
-        exportMenu.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                exportMenuActionPerformed(evt);
-            }
-        });
         fileMenu.add(exportMenu);
 
         menu.add(fileMenu);
@@ -336,14 +348,17 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
         importDialog.setVisible(true);
     }//GEN-LAST:event_importMenuActionPerformed
 
-    private void exportMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportMenuActionPerformed
+    private void exporterActionPerformed(Exporter exporter) {
+        exporterView.setExporter(exporter);
         exportDialog.pack();
         exportDialog.setVisible(true);
-    }//GEN-LAST:event_exportMenuActionPerformed
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     uk.me.fommil.zibaldone.desktop.BunchMenu bunchList;
     javax.swing.JDialog exportDialog;
+    uk.me.fommil.zibaldone.desktop.ExporterMenu exportMenu;
+    private uk.me.fommil.zibaldone.desktop.ExporterView exporterView;
     javax.swing.JDialog importDialog;
     javax.swing.JComboBox importerSelector;
     org.jdesktop.swingx.JXTaskPaneContainer importersPanel;

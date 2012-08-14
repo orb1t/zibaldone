@@ -35,10 +35,9 @@ public class BunchMenu extends JMenu implements Listeners.BunchListener {
     // JCheckBoxMenuItem closes JMenu http://stackoverflow.com/questions/3759379
     private final Map<UUID, JCheckBoxMenuItem> entries = Maps.newTreeMap();
 
-    private final JMenuItem none = new JMenuItem("No Bunches");
+    private final JMenuItem none = new JMenuItem("empty");
 
-    public BunchMenu() {
-        super();
+    {
         none.setEnabled(false);
         add(none);
     }

@@ -28,8 +28,7 @@ public abstract class JPropertyEditor extends PropertyEditorSupport {
 
     private final JLabel label = new JLabel();
 
-    public JPropertyEditor() {
-        super();
+    {
         label.setFocusable(false);
     }
 
@@ -39,7 +38,6 @@ public abstract class JPropertyEditor extends PropertyEditorSupport {
     }
 
     private final ActionListener action = new ActionListener() {
-
         @Override
         public void actionPerformed(ActionEvent e) {
             showEditor();
