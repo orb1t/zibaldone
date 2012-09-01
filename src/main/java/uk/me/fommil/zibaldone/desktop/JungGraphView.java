@@ -49,6 +49,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
+import javax.swing.SwingUtilities;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import lombok.Setter;
@@ -338,7 +339,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
     private void showNote(Note note) {
         NoteView noteView = new NoteView();
         noteView.setNote(note);
-        SwingConvenience.showAsDialog("Note Viewer", noteView, true, null);
+        SwingConvenience.showAsDialog("Note Viewer", noteView, true, this, null);
     }
 
     private void showBunch(Bunch bunch) {
@@ -351,7 +352,7 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
                 bunchController.updateBunch(bunch);
             }
         };
-        SwingConvenience.showAsDialog("Bunch Editor", view, true, listener);
+        SwingConvenience.showAsDialog("Bunch Editor", view, true, this, listener);
     }
 
     private Set<UUID> belongsToActiveBunches(Set<Note> notes) {

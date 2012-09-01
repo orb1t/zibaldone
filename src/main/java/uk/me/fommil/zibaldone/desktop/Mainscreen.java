@@ -9,6 +9,8 @@ package uk.me.fommil.zibaldone.desktop;
 import uk.me.fommil.zibaldone.control.GraphController;
 import com.google.common.base.Preconditions;
 import java.awt.Component;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -330,6 +332,7 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
 
     private void tagsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tagsButtonActionPerformed
         tagDialog.pack();
+        SwingConvenience.relocateDialogAtMouse(tagDialog);
         tagDialog.setVisible(true);
     }//GEN-LAST:event_tagsButtonActionPerformed
 
@@ -346,12 +349,14 @@ public final class Mainscreen extends JFrame implements PropertyChangeListener {
 
     private void importMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importMenuActionPerformed
         importDialog.pack();
+        SwingConvenience.relocateDialogAtMouse(importDialog);
         importDialog.setVisible(true);
     }//GEN-LAST:event_importMenuActionPerformed
 
     private void exporterActionPerformed(Exporter exporter) {
         exporterView.setExporter(exporter);
         exportDialog.pack();
+        SwingConvenience.relocateDialogAtMouse(exportDialog);
         exportDialog.setVisible(true);
     }
 

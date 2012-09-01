@@ -10,6 +10,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Doubles;
 import java.awt.Component;
+import java.awt.Frame;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Window;
@@ -72,10 +73,11 @@ public final class SwingConvenience {
      * @param title
      * @param component
      * @param modal
-     * @param listener 
+     * @param listener
+     * @param parent  
      */
-    public static void showAsDialog(String title, Component component, boolean modal, @Nullable WindowListener listener) {
-        JDialog dialog = new JDialog();
+    public static void showAsDialog(String title, Component component, boolean modal, Component parent, @Nullable WindowListener listener) {
+        JDialog dialog = new JDialog(findParentFrame(parent));
         dialog.setTitle(Preconditions.checkNotNull(title));
         dialog.setModal(modal);
         dialog.add(Preconditions.checkNotNull(component));
@@ -83,7 +85,19 @@ public final class SwingConvenience {
             dialog.addWindowListener(listener);
         }
         dialog.pack();
+
+        relocateDialogAtMouse(dialog);
+
         dialog.setVisible(true);
+    }
+
+    /**
+     * @param dialog
+     */
+    public static void relocateDialogAtMouse(JDialog dialog) {
+        Preconditions.checkNotNull(dialog);
+        Point mouse = MouseInfo.getPointerInfo().getLocation();
+        dialog.setLocation(mouse);
     }
 
     /**
@@ -121,5 +135,19 @@ public final class SwingConvenience {
         } catch (Exception e) {
             log.log(Level.WARNING, "OS X Fullscreen FAIL", e);
         }
+    }
+
+    /**
+     * @param component
+     * @return
+     */
+    public static Frame findParentFrame(@Nullable Component component) {
+        if (component == null || component instanceof Frame) {
+            if (component != null) {
+                log.info("parent was " + component.getName());
+            }
+            return (Frame) component;
+        }
+        return findParentFrame(component.getParent());
     }
 }
