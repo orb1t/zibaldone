@@ -7,8 +7,10 @@
 package uk.me.fommil.zibaldone.desktop;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import lombok.extern.java.Log;
@@ -19,12 +21,16 @@ import uk.me.fommil.zibaldone.Note;
 import uk.me.fommil.zibaldone.Tag;
 
 /**
+ * The underlying Bunch is not edited until getBunch is called.
+ * 
  * @author Samuel Halliday
  */
 @Log
 public class BunchView extends javax.swing.JPanel {
 
     private Bunch bunch;
+
+    public final Collection<Note> removed = Lists.newArrayList();
 
     public BunchView() {
         initComponents();
@@ -40,6 +46,9 @@ public class BunchView extends javax.swing.JPanel {
         bunch.setTitle(name.getText());
         bunch.setContents(content.getText());
 
+        bunch.getNotes().removeAll(removed);
+        removed.clear();
+
         return bunch;
     }
 
@@ -52,14 +61,7 @@ public class BunchView extends javax.swing.JPanel {
         name.setText(bunch.getTitle());
         content.setText(bunch.getContents());
 
-        Map<String, Note> noteMap = Maps.newTreeMap();
-        Set<Tag> allTags = Sets.newTreeSet();
-        for (Note note : bunch.getNotes()) {
-            noteMap.put(note.getTitle(), note);
-            allTags.addAll(note.getTags());
-        }
-        tags.tagsAdded(allTags);
-        notes.setModel(new MapComboBoxModel<String, Note>(noteMap));
+        updateTagsAndNotes();
     }
 
     @SuppressWarnings("unchecked")
@@ -73,8 +75,11 @@ public class BunchView extends javax.swing.JPanel {
         tags = new uk.me.fommil.zibaldone.desktop.TagsView();
         javax.swing.JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
         content = new javax.swing.JEditorPane();
+        javax.swing.JPanel jPanel3 = new javax.swing.JPanel();
         javax.swing.JScrollPane jScrollPane2 = new javax.swing.JScrollPane();
         notes = new javax.swing.JList();
+        javax.swing.JToolBar jToolBar1 = new javax.swing.JToolBar();
+        javax.swing.JButton removeNoteButton = new javax.swing.JButton();
 
         setLayout(new java.awt.BorderLayout());
 
@@ -101,6 +106,8 @@ public class BunchView extends javax.swing.JPanel {
 
         jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
+        jPanel3.setLayout(new java.awt.BorderLayout());
+
         jScrollPane2.setBorder(javax.swing.BorderFactory.createTitledBorder("Notes"));
         jScrollPane2.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         jScrollPane2.setMaximumSize(new java.awt.Dimension(250, 32767));
@@ -115,7 +122,25 @@ public class BunchView extends javax.swing.JPanel {
         });
         jScrollPane2.setViewportView(notes);
 
-        jPanel1.add(jScrollPane2, java.awt.BorderLayout.EAST);
+        jPanel3.add(jScrollPane2, java.awt.BorderLayout.CENTER);
+
+        jToolBar1.setFloatable(false);
+        jToolBar1.setRollover(true);
+
+        removeNoteButton.setText("-");
+        removeNoteButton.setFocusable(false);
+        removeNoteButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        removeNoteButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        removeNoteButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removeNoteButtonActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(removeNoteButton);
+
+        jPanel3.add(jToolBar1, java.awt.BorderLayout.SOUTH);
+
+        jPanel1.add(jPanel3, java.awt.BorderLayout.EAST);
 
         add(jPanel1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
@@ -136,11 +161,45 @@ public class BunchView extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_notesMouseClicked
 
+    private void removeNoteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeNoteButtonActionPerformed
+
+        Object[] selected = notes.getSelectedValues();
+        @SuppressWarnings("unchecked")
+        MapComboBoxModel<String, Note> model = (MapComboBoxModel<String, Note>) notes.getModel();
+
+        for (Object object : selected) {
+            Note note = model.getValue(object);
+            removed.add(note);
+        }
+
+        updateTagsAndNotes();
+    }//GEN-LAST:event_removeNoteButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     javax.swing.JEditorPane content;
     javax.swing.JTextField name;
     javax.swing.JList notes;
-    private javax.swing.JPopupMenu popup;
+    javax.swing.JPopupMenu popup;
     uk.me.fommil.zibaldone.desktop.TagsView tags;
     // End of variables declaration//GEN-END:variables
+
+    private void updateTagsAndNotes() {
+        Set<Tag> currentTags = tags.getTags();
+
+        Map<String, Note> noteMap = Maps.newTreeMap();
+        Set<Tag> allTags = Sets.newTreeSet();
+        for (Note note : bunch.getNotes()) {
+            if (removed.contains(note)) {
+                continue;
+            }
+            noteMap.put(note.getTitle(), note);
+            allTags.addAll(note.getTags());
+        }
+
+        tags.tagsRemoved(Sets.difference(currentTags, allTags));
+        tags.tagsAdded(allTags);
+        notes.setModel(new MapComboBoxModel<String, Note>(noteMap));
+        notes.revalidate();
+        notes.repaint();
+    }
 }

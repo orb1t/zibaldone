@@ -349,7 +349,11 @@ public class JungGraphView extends JPanel implements ClusterListener, BunchListe
             @Override
             public void windowClosing(WindowEvent e) {
                 Bunch bunch = view.getBunch();
-                bunchController.updateBunch(bunch);
+                if (bunch.getNotes().isEmpty()) {
+                    bunchController.removeBunch(bunch);
+                } else {
+                    bunchController.updateBunch(bunch);
+                }
             }
         };
         SwingConvenience.showAsDialog("Bunch Editor", view, true, this, listener);

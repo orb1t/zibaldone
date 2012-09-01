@@ -9,8 +9,6 @@ package uk.me.fommil.zibaldone.desktop;
 import uk.me.fommil.zibaldone.control.GraphController;
 import com.google.common.base.Preconditions;
 import java.awt.Component;
-import java.awt.MouseInfo;
-import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;

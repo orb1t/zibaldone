@@ -12,6 +12,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Collections;
 import java.util.Set;
 import java.util.SortedMap;
 import javax.swing.JLabel;
@@ -133,6 +134,13 @@ public class TagsView extends JPanel implements TagListener {
         Preconditions.checkNotNull(choice);
 
         views.get(tag).setChoice(choice);
+    }
+
+    /**
+     * @return
+     */
+    public Set<Tag> getTags() {
+        return Collections.unmodifiableSet(views.keySet());
     }
 
     private void redraw() {
