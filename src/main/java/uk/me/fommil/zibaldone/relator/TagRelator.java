@@ -27,10 +27,6 @@ import uk.me.fommil.zibaldone.Relator;
 public class TagRelator implements Relator {
 
     @Getter
-    private final Settings settings = new Settings() {
-    };
-
-    @Getter
     private final String name = "Tags";
 
     @Override

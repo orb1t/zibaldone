@@ -15,11 +15,6 @@ import uk.me.fommil.zibaldone.Note;
 public class RandomRelator extends AbstractClusteringRelator {
 
     @Override
-    public Settings getSettings() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
     public String getName() {
         return "Random";
     }

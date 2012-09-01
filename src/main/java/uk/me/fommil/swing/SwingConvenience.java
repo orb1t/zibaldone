@@ -16,17 +16,21 @@ import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import lombok.extern.java.Log;
 import org.apache.commons.math3.stat.StatUtils;
+import uk.me.fommil.zibaldone.desktop.Mainscreen;
 
 /**
  * Convenience methods for Swing UIs.
@@ -149,5 +153,21 @@ public final class SwingConvenience {
             return (Frame) component;
         }
         return findParentFrame(component.getParent());
+    }
+
+    /**
+     * @param parent
+     */
+    public static void setUncaughtExceptionHandlerPopup(final JFrame parent) {
+        Preconditions.checkNotNull(parent);
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                JOptionPane.showMessageDialog(
+                        parent, "Error: " + e.getMessage(),
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            }
+        });
     }
 }

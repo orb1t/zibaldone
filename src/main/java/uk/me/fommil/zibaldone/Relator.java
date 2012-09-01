@@ -26,17 +26,6 @@ import javax.persistence.EntityManagerFactory;
 public interface Relator {
 
     /**
-     * Empty interface indicating a Relator's settings Javabeans object.
-     */
-    public interface Settings {
-    }
-
-    /**
-     * @return implementation-dependent user settings
-     */
-    public Settings getSettings();
-
-    /**
      * @return a user-friendly name for this implementation.
      */
     public String getName();

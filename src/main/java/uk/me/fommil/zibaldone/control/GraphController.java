@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.Set;
 import javax.persistence.EntityManagerFactory;
 import lombok.AutoGenMethodStub;
@@ -32,7 +33,6 @@ import lombok.Getter;
 import lombok.ListenerSupport;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.java.Log;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -59,7 +59,6 @@ import uk.me.fommil.zibaldone.control.Listeners.NoteListener;
 import uk.me.fommil.zibaldone.control.Listeners.SearchListener;
 import uk.me.fommil.zibaldone.control.Listeners.TagListener;
 import uk.me.fommil.zibaldone.control.TagController.TagChoice;
-import uk.me.fommil.zibaldone.relator.TagRelator;
 
 /**
  * Controller for the visual graph using JUNG as the backend.
@@ -93,9 +92,6 @@ public class GraphController implements TagListener, NoteListener, SearchListene
     private final ObservableGraph<Note, Weight> graph = new ObservableGraph<Note, Weight>(new UndirectedSparseGraph<Note, Weight>());
 
     private final Map<ClusterId, Set<Note>> clusters = Maps.newHashMap();
-
-    @Getter @Setter @NonNull
-    private Relator relator = new TagRelator();
 
     // keys are the UUIDs of the Notes, and are used in Lucene's Documents
     private final BiMap<String, Note> noteIds = HashBiMap.create();
@@ -204,7 +200,7 @@ public class GraphController implements TagListener, NoteListener, SearchListene
 
     private void rebuildGraph() {
         rebuildVertices();
-        relator.refresh(emf);
+        settings.getSelectedRelator().refresh(emf);
         rebuildEdges();
         rebuildClusters();
     }
@@ -256,6 +252,7 @@ public class GraphController implements TagListener, NoteListener, SearchListene
         }
 
         final List<Weight> allEdges = Lists.newArrayList();
+        final Relator relator = settings.getSelectedRelator();
         Convenience.upperOuter(notes, new Loop<Note>() {
             @Override
             public void action(Note first, Note second) {
@@ -302,7 +299,7 @@ public class GraphController implements TagListener, NoteListener, SearchListene
     private void rebuildClusters() {
         Collection<Note> notes = graph.getVertices();
         Set<Set<Note>> newClusters = Sets.newHashSet();
-        for (Set<Note> cluster : relator.cluster(notes)) {
+        for (Set<Note> cluster : settings.getSelectedRelator().cluster(notes)) {
             if (cluster.size() > 1) {
                 newClusters.add(cluster);
             }
@@ -342,5 +339,30 @@ public class GraphController implements TagListener, NoteListener, SearchListene
             }
         }
         return null;
+    }
+
+    /**
+     * Could refactor to have a RelatorController, but it would just result in
+     * lots of boilerplate.
+     * 
+     * @return
+     */
+    public Map<String, Relator> getRelators() {
+        ServiceLoader<Relator> importerService = ServiceLoader.load(Relator.class);
+        Map<String, Relator> relators = Maps.newTreeMap();
+        for (Relator relator : importerService) {
+            String name = relator.getName();
+            relators.put(name, relator);
+        }
+        return relators;
+    }
+
+    /**
+     * @param relator 
+     */
+    public void selectRelator(Relator relator) {
+        Preconditions.checkNotNull(relator);
+        settings.setSelectedRelator(relator);
+        rebuildGraph();
     }
 }

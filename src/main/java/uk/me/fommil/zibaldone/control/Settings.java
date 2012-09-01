@@ -8,20 +8,19 @@ package uk.me.fommil.zibaldone.control;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.mapper.MapperWrapper;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.UUID;
 import java.util.logging.Level;
 import lombok.BoundSetter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.java.Log;
 import uk.me.fommil.utils.ObservableCollection;
@@ -31,6 +30,7 @@ import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Relator;
 import uk.me.fommil.zibaldone.Tag;
 import uk.me.fommil.zibaldone.control.TagController.TagChoice;
+import uk.me.fommil.zibaldone.relator.TagRelator;
 
 /**
  * Keeps all the persistent user settings in one place.
@@ -55,7 +55,7 @@ public class Settings {
     @Deprecated // with preference for sparsity value
     private int connections = 500;
 
-    @BoundSetter
+    @BoundSetter @NonNull
     private String search = "";
 
     private final ObservableMap<Tag, TagChoice> selectedTags = ObservableMap.newObservableTreeMap();
@@ -64,13 +64,13 @@ public class Settings {
 
     private final ObservableMap<UUID, Importer> importers = ObservableMap.newObservableHashMap();
 
-    private final ObservableCollection<Relator> relators = ObservableCollection.newObservableCollection(Lists.<Relator>newArrayList());
+    @BoundSetter @NonNull
+    private Relator selectedRelator = new TagRelator();
 
     {
         ObservableMap.propertyChangeAdapter(getPropertyChangeSupport(), selectedTags, "selectedTags");
         ObservableCollection.propertyChangeAdapter(getPropertyChangeSupport(), selectedBunches, "selectedBunches");
         ObservableMap.propertyChangeAdapter(getPropertyChangeSupport(), importers, "importers");
-        ObservableCollection.propertyChangeAdapter(getPropertyChangeSupport(), relators, "relators");
 
         // we could potentially add a timer to check if any mutable Map values change without us knowing
         // but that would involve dictating that they implement hashCode/equals. Best handle that as a
@@ -83,7 +83,22 @@ public class Settings {
     private static final ThreadLocal<XStream> xstreams = new ThreadLocal<XStream>() {
         @Override
         protected XStream initialValue() {
-            XStream xstream = new XStream();
+            // see http://pvoss.wordpress.com/2009/01/08/xstream/
+            // http://jira.codehaus.org/browse/XSTR-30
+            XStream xstream = new XStream() {
+                @Override
+                protected MapperWrapper wrapMapper(MapperWrapper next) {
+                    return new MapperWrapper(next) {
+                        @Override
+                        public boolean shouldSerializeMember(Class definedIn, String fieldName) {
+                            if (definedIn == Object.class) {
+                                return false;
+                            }
+                            return super.shouldSerializeMember(definedIn, fieldName);
+                        }
+                    };
+                }
+            };
             xstream.alias("settings", Settings.class);
             xstream.alias("uuid", UUID.class);
             xstream.alias("tag", Tag.class);
@@ -138,10 +153,10 @@ public class Settings {
             // it's this or implement readResolve
             settings.connections = loaded.connections;
             settings.importers.putAll(loaded.importers);
-            settings.relators.addAll(loaded.relators);
             settings.search = loaded.search;
             settings.selectedBunches.addAll(loaded.selectedBunches);
             settings.selectedTags.putAll(loaded.selectedTags);
+            settings.selectedRelator = loaded.selectedRelator;
         }
 
         settings.addPropertyChangeListener(new PropertyChangeListener() {

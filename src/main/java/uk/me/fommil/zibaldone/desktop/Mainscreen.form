@@ -194,7 +194,7 @@
             </Menu>
           </SubComponents>
         </Menu>
-        <Menu class="uk.me.fommil.zibaldone.desktop.BunchMenu" name="bunchList">
+        <Menu class="uk.me.fommil.zibaldone.desktop.BunchMenu" name="bunchMenu">
           <Properties>
             <Property name="text" type="java.lang.String" value="Bunches"/>
           </Properties>
@@ -202,10 +202,13 @@
             <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="false"/>
           </AuxValues>
         </Menu>
-        <Menu class="javax.swing.JMenu" name="relatorsMenu">
+        <Menu class="uk.me.fommil.zibaldone.desktop.RelatorMenu" name="relatorMenu">
           <Properties>
             <Property name="text" type="java.lang.String" value="Relators"/>
           </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="false"/>
+          </AuxValues>
         </Menu>
       </SubComponents>
     </Menu>
