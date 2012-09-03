@@ -37,14 +37,11 @@ public class KindleImporter implements Importer {
         @Getter
         @Setter
         private File file = new File("/Volumes/Kindle/documents/My Clippings.txt");
+
     }
+
+    @Getter
     private final KindleSettings settings = new KindleSettings();
-
-    @Override
-    public KindleSettings getSettings() {
-
-        return settings;
-    }
 
     @Override
     public String getName() {
