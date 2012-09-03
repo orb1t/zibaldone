@@ -39,6 +39,6 @@ public class LocalEvernoteImporter implements Importer {
 
     @Override
     public List<Note> getNotes() throws IOException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("LocalEvernoteImporter not supported yet.");
     }
 }
