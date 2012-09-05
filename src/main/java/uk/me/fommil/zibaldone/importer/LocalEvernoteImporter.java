@@ -15,7 +15,8 @@ import uk.me.fommil.zibaldone.Importer;
 import uk.me.fommil.zibaldone.Note;
 
 /**
- * Imports <a href="http://evernote.com">Evernote</a> archives.
+ * Imports <a href="http://evernote.com">Evernote</a> archives
+ * ({@code enex} files).
  *
  * @author Samuel Halliday
  */
