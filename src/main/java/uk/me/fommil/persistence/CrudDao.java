@@ -20,7 +20,6 @@ import java.util.Set;
 import javax.persistence.*;
 import lombok.Cleanup;
 import lombok.extern.java.Log;
-import uk.me.fommil.zibaldone.Bunch;
 
 /**
  * Generic CRUD (CREATE, READ, UPDATE, DELETE) DAO (Data Access Object) for {@link Entity} types.
@@ -38,8 +37,10 @@ import uk.me.fommil.zibaldone.Bunch;
  * @author Samuel Halliday
  * @see <a href="http://code.google.com/p/hibernate-generic-dao/">Hibernate Generic DAO</a>
  * @see <a href="http://code.google.com/p/generic-dao/">Generic DAO</a>
+ * @deprecated use a third party DAO
  */
 @Log
+@Deprecated
 public abstract class CrudDao<K, T> {
 
     private static final String JPA_PROPERTIES = "jpa.properties";
