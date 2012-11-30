@@ -17,7 +17,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * A {@link Formatter} that may be customised in a {@code logging.properties}
  * file. The syntax of the property
- * {@code com.thinktankmaths.logging.TerseFormatter.format}
+ * {@code uk.me.fommil.logging.CustomFormatter.format}
  * specifies the output. A newline will be appended to the string and the
  * following special characters will be expanded (case sensitive):-
  * <ul>
