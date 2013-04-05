@@ -17,26 +17,29 @@ Zibaldone is a great way to:
 *(click image for a video of an old version of the application)*
 
 
-== Installing ==
+Installing
+==========
 
 Zibaldone is in *alpha* status and users will likely have to be technically savvy enough to compile and run the application. Ideally we'd like to see patches accompanying bug reports in the issue tracker. Once you've obtained a copy of this repo:
 
-{{{
+```
 mvn compile
 mvn exec:java
-}}}
+```
 
-_(or use an IDE to launch)_
+*(or use an IDE to launch)*
 
 **If you don't understand these instructions, it is highly likely that you are *not* a suitable *alpha* tester – please come back when the application is in *beta*.**
 
-== For Developers ==
+For Developers
+==============
 
 Zibaldone is a Java Swing application with a JPA connection to a local JavaDB database. The MVC model is strictly adhered to, meaning that the user interface can be swapped, with no changes to the backend, for a web application. Anybody interested in doing this is welcome to contribute.
 
 `Importer` and `Exporter` interfaces exist for developers to really easily implement new file formats. It's all loaded dynamically, so you just need to write your implementation and add it to the relevant `META-INF/services` text file. Likewise for `Relator`s, which determine where notes are to be placed on the screen.
 
-== History ==
+History
+=======
 
 Zibaldone was originally written as a writer's assistant, for creating novels and series. It is also useful for anybody who wants to be creative with the written word. 
 
