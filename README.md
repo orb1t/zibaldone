@@ -43,7 +43,7 @@ History
 
 Zibaldone was originally written as a writer's assistant, for creating novels and series. It is also useful for anybody who wants to be creative with the written word. 
 
-We call the project [http://en.wikipedia.org/wiki/Commonplace_book#Zibaldone Zibaldone] in honour of the first notebooks, used by the 14th century innovators of Italy.
+We call the project [Zibaldone](http://en.wikipedia.org/wiki/Commonplace_book#Zibaldone) in honour of the first notebooks, used by the 14th century innovators of Italy.
 
 Donations
 =========
